@@ -78,7 +78,6 @@ public class VisualizationControlPanel extends JPanel
         imageLoadBytesFormat = NumberFormat.getInstance();
         imageLoadBytesFormat.setMaximumFractionDigits(2);
         imageLoadBytesFormat.setMinimumFractionDigits(2);
-        imageLoadBytesFormat.setMinimumIntegerDigits(3);
     }
 
     private void initComponents() {
