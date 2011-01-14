@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="windows-1252"?>
+
+<!--
+    Document   : menu.xml
+    Created on : January 3, 2011, 11:21 AM
+    Author     : vivekananda_moosani
+    Description:
+        This XML contains the FOVAST tool menu. Almost all attributes of the
+        menu are self descriptive. 
+        - Few menu entries have hidden/render attribute which indicates that
+        menu is not to be rendered.
+    Implementation Details:
+        This file will be read as a part of application startup. Each entry will
+        have a corresponding MenuItem created.
+    TODO:
+        1. Icons for menu items 
+        2. Key Accelerators / Mnemonics
+        3. Toolbar will also be implemented using an xml file. Toolbar file
+        will simply have references to the menu item names. So items on toolbar
+        are a subset of menu. 
+-->
+
+<AppMenu>
+    <Menu name="Menu.File">
+        <MenuItem name="Menu.File.NewVisualization"/>
+        <MenuItem name="Menu.File.NewVisualizationFromTemplates" implState="todo"/>
+        <MenuItem name="Menu.File.OpenVisualization" implState="todo"/>
+        <MenuItem name="Menu.File.SaveVisualization" implState="todo"/>
+        <MenuItem name="Menu.File.CloseVisualization" implState="todo"/>
+        <MenuItem name="Menu.File.CloseAllVisualizations" implState="todo"/>
+        <!--MenuItem name="Menu.File.NewVisualizationGroup"/-->
+        <Separator/>
+        <MenuItem name="Menu.File.LoadFitsImage" implState="todo"/>
+        <Menu name="Menu.File.LoadFitsImageFromVoArchives" implState="todo">
+               <MenuItem name="Menu.File.LoadFitsImageFromVoArchives.Sdss" implState="todo"/>
+               <MenuItem name="Menu.File.LoadFitsImageFromVoArchives.Dss" implState="todo"/>
+               <MenuItem name="Menu.File.LoadFitsImageFromVoArchives.LookupSiaInVORegistries" implState="todo"/>
+        </Menu>
+        <MenuItem name="Menu.File.ShowImageList" implState="todo"/>
+        <MenuItem name="Menu.File.CloseFitsImage" implState="todo"/>
+        <MenuItem name="Menu.File.CloseAllFitsImages" implState="todo"/>
+        <Separator/>
+        <MenuItem name="Menu.File.LoadCatalog" implState="todo"/>
+        <MenuItem name="Menu.File.LoadCatalogFromVoArchives" implState="todo"/>
+        <MenuItem name="Menu.File.CloseCatalog" implState="todo"/>
+        <MenuItem name="Menu.File.CloseAllCatalogs" implState="todo"/>
+        <MenuItem name="Menu.File.ShowCatalogList" implState="todo"/>
+        <Separator/>
+        <MenuItem name="Menu.File.ProxySettings" implState="todo"/>
+        <MenuItem name="Menu.File.Preferences" implState="todo"/>
+        <Separator/>
+        <MenuItem name="Menu.File.Exit"/>
+    </Menu>
+    <Menu name="Menu.View" implState="todo">
+        <MenuItem name="Menu.View.DssBackground" type="checkbox" implState="todo"/>
+        <Menu name="Menu.View.Catalogs" implState="todo"/>
+        <Menu name="Menu.View.Images" implState="todo"/>
+        <MenuItem name="Menu.View.Annotations" type="checkbox" implState="todo"/>
+    </Menu>
+    <Menu name="Menu.Tabs">
+        <!-- 
+        We will show menu items one for each Visualization tab open.
+        Clicking the menu item would just activate the menu item.
+        -->
+    </Menu>
+    <Menu name="Menu.Interop" implState="todo">
+        <MenuItem name="Menu.Interop.Samp" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.LaunchExternalHub" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.LaunchInternalHub" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.StopInternalHub" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.Register" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.Unregister" implState="todo"/>
+        <Menu name="Menu.Interop.Samp.SendImage" implState="todo"/>
+        <Menu name="Menu.Interop.Samp.SendCatalog" implState="todo"/>
+        <MenuItem name="Menu.Interop.Samp.SampPreferences" implState="todo"/>
+    </Menu>
+    <Menu name="Menu.Help" implState="todo">
+        <MenuItem name="Menu.Help.UserGuide" implState="todo"/>
+        <MenuItem name="Menu.Help.ContextHelp" implState="todo"/>
+        <MenuItem name="Menu.Help.OnlineHelp" implState="todo"/>
+        <MenuItem name="Menu.Help.CheckUpdates" implState="todo"/>
+        <MenuItem name="Menu.Help.ReportBug" implState="todo"/>
+        <MenuItem name="Menu.Help.ViewBugTracker" implState="todo"/>
+        <MenuItem name="Menu.Help.About" implState="todo"/>
+    </Menu>
+</AppMenu>
+
