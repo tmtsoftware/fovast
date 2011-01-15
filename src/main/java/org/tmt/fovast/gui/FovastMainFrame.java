@@ -127,6 +127,8 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
     private JMenuItem selectedMenuItem;
 
     private FovastActions fovastActions;
+    
+    private int openCount = 0;
 
     public FovastMainFrame(ApplicationContext appContext,
             FovastApplicationController controller) {
@@ -307,7 +309,12 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
     }
 
     private boolean closeVisPanel(int index) {
-        return true;
+        JComponent comp = tabComponentList.get(index);
+        if(comp instanceof VisualizationPanel)
+            controller.removeVisualization((Integer)
+                    comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY));
+        //TODO: close happens in the lister .. think of this again
+        return false;
 //TODO: implement properly .. called on any tab close
 //        VisualizationPanel visPanel = visPanelList.get(index);
 //        if(visPanel.isModified()) {
@@ -428,6 +435,7 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
                 if (comp.getClientProperty(
                         TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(selectedVizId)) {
                     centerTabbedPane.setSelectedComponent(comp);
+                    break;
                 }
             }
         }
@@ -464,8 +472,33 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
         fovastActions.setCloseVisualizationMenuEnabled(true);
     }
 
-    private void updateUIForVisualizationRemoved(int selectedVizId) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void updateUIForVisualizationRemoved(int removedVizId) {
+        for (int i = 0; i < centerTabbedPane.getTabCount(); i++) {
+            JComponent comp = tabComponentList.get(i);
+            if (comp.getClientProperty(
+                    TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(removedVizId)) {
+                centerTabbedPane.removeTabAt(i);
+                tabComponentList.remove(i);
+                break;
+            }
+        }
+        for (int i = 0; i < tabsMenu.getMenuComponentCount(); i++) {
+            Component comp = tabsMenu.getMenuComponent(i);
+            if (comp instanceof JMenuItem) {
+                if (((JMenuItem) comp).getClientProperty(
+                        TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(removedVizId)) {
+                    tabsMenu.remove(comp);
+                    break;
+                }
+            }
+        }
+        
+        //TODO: finding if visualization tabs are open
+        openCount--;
+        if(openCount == 0) {
+            fovastActions.setSaveVisualizationMenuEnabled(false);
+            fovastActions.setCloseVisualizationMenuEnabled(false);
+        }
     }
 
     private void updateUIForVisualizationAdded(VisualizationState visualization,
@@ -496,6 +529,9 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
 
         //select the new viz active
         updateUIForVisualizationSelected(vizId);
+
+        //increase openCount
+        openCount++;
     }
 
     //TODO: to be removed after fixing bsaf api

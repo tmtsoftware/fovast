@@ -37,7 +37,7 @@ public class FovastApplication extends SingleFrameApplication {
 
     public static final String XML_EXT = ".xml";
 
-    public static final String DOWNLOAD_CACHE_INDEX_FILE = "downloadCache.xml";
+    public static final String DOWNLOAD_CACHE_INDEX_FILE = "downloadCache.ind";
 
     public static final String DOWNLOAD_CACHE_DIR = "downloadCache";
 
@@ -63,11 +63,16 @@ public class FovastApplication extends SingleFrameApplication {
             stateFile = resourceMap.getString(APPLICATION_ID_KEY) + resourceMap.getString(APPLICATION_VERSION_KEY) + XML_EXT;
             File localDir = applicationContext.getLocalStorage().getDirectory();
             if (!localDir.exists()) {
+                if(!localDir.getParentFile().exists()) {
+                    localDir.getParentFile().mkdir();
+                }
                 localDir.mkdir();
             }
+            logger.info("App data will be stored in " + localDir.toString());
             File downloadCacheFile =
                     new File(applicationContext.getLocalStorage().getDirectory(),
                     DOWNLOAD_CACHE_INDEX_FILE);
+            //logger.info("App data will be stored in " + downloadCacheFile.toString());
             File downloadCacheDir =
                     new File(applicationContext.getLocalStorage().getDirectory(),
                     DOWNLOAD_CACHE_DIR);
@@ -101,7 +106,7 @@ public class FovastApplication extends SingleFrameApplication {
         mainFrame.initializeFromState(fovastApplicationState);
         setMainFrame(mainFrame);
         //so that restore button does not show a small window
-        mainFrame.setSize(800, 800);
+        mainFrame.setSize(600, 600);
         
         show(mainFrame);
 
@@ -116,7 +121,13 @@ public class FovastApplication extends SingleFrameApplication {
 
     @Override
     protected void shutdown() {
-        super.shutdown();
+        try {
+            super.shutdown();
+        } catch (Exception ex) {
+            //TODO: .. Frame bounds exception
+            //logger.warn("Could not store application state ... ", ex);
+        }
+
         try {
             //TODO: custom code for saving visualizations
             applicationContext.getLocalStorage().save(
@@ -125,7 +136,7 @@ public class FovastApplication extends SingleFrameApplication {
             //save dssImageIndex cache
             dssImageCache.save();
 
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             logger.warn("Could not store application state ... ", ex);
         }
     }

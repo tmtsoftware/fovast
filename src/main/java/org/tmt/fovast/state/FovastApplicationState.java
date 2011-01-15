@@ -34,11 +34,11 @@ public class FovastApplicationState extends StateSupport {
 
     private int activeVisualizationId;
 
-    private HashMap<Integer, VisualizationState> visualizationIdMap =
-            new HashMap<Integer, VisualizationState>();
-
-    private HashMap<VisualizationState, Integer> idVisualizationMap =
+    private HashMap<VisualizationState, Integer> visualizationIdMap =
             new HashMap<VisualizationState, Integer>();
+
+    private HashMap<Integer, VisualizationState> idVisualizationMap =
+            new HashMap<Integer, VisualizationState>();
 
     private HashMap<VisualizationState, String> visualizationFileMap =
             new HashMap<VisualizationState, String>();
@@ -50,8 +50,8 @@ public class FovastApplicationState extends StateSupport {
     public void addVisualization(VisualizationState visualization, int vizId, String fileName) {
         if (!visualizations.contains(visualization)) {
             visualizations.add(visualization);
-            visualizationIdMap.put(new Integer(vizId), visualization);
-            idVisualizationMap.put(visualization, new Integer(vizId));
+            visualizationIdMap.put(visualization, new Integer(vizId));
+            idVisualizationMap.put(new Integer(vizId), visualization);
             visualizationFileMap.put(visualization, fileName);
 
             HashMap<String, Object> args = new HashMap<String, Object>();
@@ -60,6 +60,11 @@ public class FovastApplicationState extends StateSupport {
             args.put(VISUALIZATION_FILENAME_ARG_KEY, fileName);
             changeSupport.fireChange(this, VISUALIZATION_ADDED_EVENT_KEY, args);
         }
+    }
+
+    public void removeVisualization(int vizId) {
+        VisualizationState vis = idVisualizationMap.get((Integer)vizId);
+        removeVisualization(vis);
     }
 
     public void removeVisualization(VisualizationState visualization) {
@@ -72,7 +77,7 @@ public class FovastApplicationState extends StateSupport {
     }
 
     public void selectVisualization(VisualizationState vis) {
-        Integer id = idVisualizationMap.get(vis);
+        Integer id = visualizationIdMap.get(vis);
         if (id == null) {
             //TODO: Should this be a checked exception .. ? 
             throw new RuntimeException("Vizualtion not added to the state");
@@ -98,7 +103,7 @@ public class FovastApplicationState extends StateSupport {
 //        }
 //    }
     public void selectVisualizationById(int id) {
-        if (visualizationIdMap.get(id) != null) {
+        if (idVisualizationMap.get((Integer)id) != null) {
             if (activeVisualizationId == id) {
                 return;
             }
@@ -121,7 +126,7 @@ public class FovastApplicationState extends StateSupport {
     }
 
     public Integer getVisualizationId(VisualizationState viz) {
-        return idVisualizationMap.get(viz);
+        return visualizationIdMap.get(viz);
     }
 
     //TODO: methods to store loaded images / catalogs ...

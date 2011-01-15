@@ -351,8 +351,13 @@ public class VisualizationControlPanel extends JPanel
         controller.setTarget(
                 Double.parseDouble(raTextField.getText()),
                 Double.parseDouble(decTextField.getText()));
+
         if(showTargetCheckbox.isSelected()) {
-            //controller.showTarget(true);
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                   //controller.showTarget(true);
+                }
+            });
         }
     }
 
@@ -395,13 +400,17 @@ public class VisualizationControlPanel extends JPanel
 
     private boolean stCbChanged = false;
     @Override
-    public void backgroundImageLoadStarted() {
-        imageLoadMsgLabel.setText("Fetching image ...");
-        if(showTargetCheckbox.isSelected()) {
-            stCbChanged = true;
-            showTargetCheckbox.setSelected(false);            
-        }
-        enableDisableShowTargetCheckBox(false);
+    public void backgroundImageLoadStarted() {        
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                imageLoadMsgLabel.setText("Fetching image ...");
+                if(showTargetCheckbox.isSelected()) {
+                    stCbChanged = true;
+                    showTargetCheckbox.setSelected(false);
+                }
+                enableDisableShowTargetCheckBox(false);
+            }
+        });
     }
 
     @Override

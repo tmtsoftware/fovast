@@ -118,6 +118,10 @@ public class FovastApplicationController implements ChangeListener {
     public void selectVisualization(int id) {
         fovastApplicationState.selectVisualizationById(id);
     }
+    
+    public void removeVisualization(int vizId) {
+        fovastApplicationState.removeVisualization(vizId);
+    }
 
     @Override
     public void update(Object source, String eventKey, HashMap<String, Object> args) {

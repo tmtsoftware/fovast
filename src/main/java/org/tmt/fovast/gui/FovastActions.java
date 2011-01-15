@@ -74,12 +74,14 @@ public class FovastActions {
 
     @Action(name = "Menu.File.SaveVisualization", enabledProperty = SAVE_VISUALIZATION_MENU_ENABLED)
     public void saveVisualizationAction() {
-        mainFrame.saveVisualization();
+        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        //mainFrame.saveVisualization();
     }
 
     @Action(name = "Menu.File.CloseVisualization", enabledProperty = CLOSE_VISUALIZATION_MENU_ENABLED)
     public void closeVisualizationAction() {
-        mainFrame.saveAndCloseVisualization();
+        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        //mainFrame.saveAndCloseVisualization();
     }
 
     @Action(name = "Menu.File.CloseAllVisualizations", enabledProperty = CLOSE_VISUALIZATION_MENU_ENABLED)
