@@ -229,6 +229,8 @@ public class Cache {
     private void cleanup() {
         try {
             File[] children = downloadCacheDir.listFiles();
+            if(children == null)
+                return;
             Collection<String> values = index.values();
             for (int i = 0; i < children.length; i++) {
                 //relative path (+1 below is to count for the separator)
@@ -238,7 +240,7 @@ public class Cache {
                 }
             }
         } catch (Exception ex) {
-            logger.warn("Error while cleanup. It is recommended to manuall delete the cache dir contents");
+            logger.warn("Error while cleanup. It is recommended to manually delete the cache dir contents", ex);
         }
     }
 
