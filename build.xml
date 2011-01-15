@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+
+<project default="jar">
+
+	<property name="project.name" value="fovast"/>
+	<property name="project.root" value="."/>
+	<property name="project.src" value="${project.root}/src/main/java"/>
+	<!--property name="project.res" value="${project.root}/src/main/res"/-->
+	<property name="project.lib" value="${project.root}/src/main/lib"/>	
+	<property name="project.build" value="${project.root}/build"/>
+	<property name="project.dist" value="${project.root}/dist"/>	
+
+
+	<path id="classpath">
+		<fileset dir="${project.root}/src/main/lib">
+			<include name="*"/>
+		</fileset>
+	</path>
+	
+	<target name="clean">
+		<delete dir="${project.build}"></delete>
+		<delete dir="${project.dist}"></delete>
+	</target>
+
+	<target name="compile" depends="clean">
+		<!-- make build dir & build/web -->
+		<mkdir dir="${project.build}"/>
+				
+		<!-- make classes dir -->
+		<mkdir dir="${project.build}/classes"/>
+		
+		<!-- copy resource files in src directory to classes -->
+		<copy todir="${project.build}/classes">
+			<fileset dir="${project.src}">
+				<exclude  name="**/*.java"/>
+				<exclude  name="**/*.bak"/>
+			</fileset>
+		</copy>
+
+		<!-- copy resource files in res directory to classes -->
+		<!--copy todir="${project.build}/classes">
+			<fileset dir="${project.res}">
+				<exclude  name="**/*.bak"/>
+			</fileset>
+		</copy-->
+
+		
+		<!-- compile sources -->
+	  <javac srcdir="${project.src}" 
+	  	destdir="${project.build}/classes" fork="true" debug="true">
+	    <classpath>	    	
+	        <path refid="classpath"/>
+	    </classpath>
+	  </javac>
+	</target>
+	
+	<target name="jar" depends="compile">
+		<!-- make build dir & build/web -->
+		<mkdir dir="${project.dist}"/>
+
+		
+		<mkdir dir="${project.dist}/lib"/>
+<copy todir="${project.dist}/lib">
+	<fileset dir="${project.lib}"></fileset>
+</copy>
+
+<manifestclasspath property="jar.classpath" jarfile="${project.dist}/${project.name}.jar">
+	<classpath refid="classpath"/>
+</manifestclasspath>
+
+		<jar destfile="${project.dist}/${project.name}.jar">
+			<fileset dir="${project.build}/classes" />
+			<manifest>
+		     		<attribute name="Main-Class" value="org.tmt.fovast.main.Main"/>
+				<attribute name="Class-Path" value=". ${jar.classpath}"/>
+		    </manifest>
+		</jar>
+
+	    <!--
+		<jar  destfile="${project.dist}/${project.name}.jar" >
+			<fileset dir="${project.build}/classes" />
+			<zipgroupfileset dir="${project.lib}"/>
+			<manifest>
+		     		<attribute name="Main-Class" value="org.tmt.fovast.main.Main"/>
+				<attribute name="Class-Path" value=". ${jar.classpath}"/>
+		    </manifest>
+		</jar>
+	   -->
+	</target>
+	
+</project>
