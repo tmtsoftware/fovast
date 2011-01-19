@@ -161,7 +161,7 @@ public class FovastActions {
 
     @Action(name = "Menu.File.ProxySettings")
     public void showProxySettingsDialogAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        mainFrame.showProxySettingsDialog();
     }
 
     @Action(name = "Menu.File.Preferences")

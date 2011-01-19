@@ -48,6 +48,7 @@ import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;
 import org.tmt.fovast.swing.utils.StatusBar;
+import voi.swing.util.ProxySettingsDialog;
 
 /**
  *
@@ -539,6 +540,13 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
     public void pack() {
         //super.pack();
         // do nothing
+    }
+
+    void showProxySettingsDialog() {
+        File appLocalStorage = appContext.getLocalStorage().getDirectory();
+        File file = new File(appLocalStorage,
+                resourceMap.getString(FovastApplication.PROXY_SETTINGS_FILE_KEY));
+        ProxySettingsDialog dialog = new ProxySettingsDialog(this, file);
     }
 
 

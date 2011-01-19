@@ -18,6 +18,7 @@ import org.jdesktop.application.SingleFrameApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.FovastApplicationState;
+import voi.swing.util.ProxySettingsDialog;
 
 /**
  *
@@ -41,6 +42,9 @@ public class FovastApplication extends SingleFrameApplication {
 
     public static final String DOWNLOAD_CACHE_DIR = "downloadCache";
 
+    public static final String PROXY_SETTINGS_FILE_KEY =
+            "Application.proxySettingsFile";
+
     private ApplicationContext applicationContext;
 
     private ResourceMap resourceMap;
@@ -58,6 +62,7 @@ public class FovastApplication extends SingleFrameApplication {
     protected void initialize(String[] args) {
         try {
             super.initialize(args);
+            
             applicationContext = getContext();
             resourceMap = applicationContext.getResourceMap();
             stateFile = resourceMap.getString(APPLICATION_ID_KEY) + resourceMap.getString(APPLICATION_VERSION_KEY) + XML_EXT;
@@ -69,6 +74,8 @@ public class FovastApplication extends SingleFrameApplication {
                 localDir.mkdir();
             }
             logger.info("App data will be stored in " + localDir.toString());
+
+            //Initializae DSS image cache
             File downloadCacheFile =
                     new File(applicationContext.getLocalStorage().getDirectory(),
                     DOWNLOAD_CACHE_INDEX_FILE);
@@ -79,6 +86,12 @@ public class FovastApplication extends SingleFrameApplication {
             dssImageCache = new Cache(downloadCacheFile, downloadCacheDir);
 
             //TODO: Show copyright and startup greeter with launch progress.
+
+            //Load proxy settings
+            ProxySettingsDialog.readSettingsFile(new File(localDir,
+                    resourceMap.getString(PROXY_SETTINGS_FILE_KEY)));
+
+            //Load app state
             fovastApplicationState =
                     (FovastApplicationState) applicationContext.getLocalStorage().load(stateFile);
             if (fovastApplicationState == null) {
