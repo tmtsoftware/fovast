@@ -18,6 +18,11 @@ public interface VisualizationWorkPanelListener {
     public void backgroundImageLoadStarted();
 
     /**
+     * Not necessarily called
+     */
+     public void setImageSize(long length);
+    
+    /**
      * To track the progress of background image load
      * 
      * @param bytesRead - number of bytes read so far
