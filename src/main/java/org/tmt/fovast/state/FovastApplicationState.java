@@ -32,7 +32,7 @@ public class FovastApplicationState extends StateSupport {
 
     private ArrayList<VisualizationState> visualizations = new ArrayList<VisualizationState>();
 
-    private int activeVisualizationId;
+    private int activeVisualizationId = -1;
 
     private HashMap<VisualizationState, Integer> visualizationIdMap =
             new HashMap<VisualizationState, Integer>();
@@ -68,11 +68,20 @@ public class FovastApplicationState extends StateSupport {
     }
 
     public void removeVisualization(VisualizationState visualization) {
-        if (visualizations.remove(visualization)) {
+        if (visualizations.remove(visualization)) {            
+            //clean data structures
+            Integer associatedId = visualizationIdMap.remove(visualization);
+            idVisualizationMap.remove(associatedId);
+            
             HashMap<String, Object> args = new HashMap<String, Object>();
+
             //args.put(VISUALIZATION_ARG_KEY, visualization);
-            args.put(VISUALIZATION_ID_ARG_KEY, visualizationIdMap.get(visualization));
+            args.put(VISUALIZATION_ID_ARG_KEY, associatedId);
             changeSupport.fireChange(this, VISUALIZATION_REMOVED_EVENT_KEY, args);
+
+            //set back to default state
+            if(visualizations.size() == 0)                
+                selectVisualizationById(-1);
         }
     }
 
@@ -103,7 +112,10 @@ public class FovastApplicationState extends StateSupport {
 //        }
 //    }
     public void selectVisualizationById(int id) {
-        if (idVisualizationMap.get((Integer)id) != null) {
+        if(id == -1) {
+            //TODO: should we raise a active visualization change here ??
+        }
+        else if (idVisualizationMap.get((Integer)id) != null) {
             if (activeVisualizationId == id) {
                 return;
             }
