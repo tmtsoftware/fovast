@@ -7,7 +7,6 @@
 package org.tmt.fovast.gui;
 
 import java.awt.BorderLayout;
-import java.awt.geom.Rectangle2D;
 import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
@@ -15,13 +14,11 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 
 import jsky.coords.CoordinateConverter;
-import jsky.coords.WCSTransform;
 import jsky.graphics.CanvasFigure;
 import jsky.image.fits.codec.FITSImage;
 import jsky.image.graphics.DivaImageGraphics;
@@ -135,6 +132,14 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         //TODO: Update some image panel label for progress
         task = new Task(appContext.getApplication()) {
 
+            private URL urlToDownload = null;
+            //private URLConnection conn = null;
+
+            //TODO: We should pass the Cache class to the constructor
+            //or have a setter
+            Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
+
+
             @Override
             protected Object doInBackground() throws Exception {
                 if (!isCancelled()) {
@@ -147,26 +152,40 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                             otherConstraints);
                     if (!isCancelled()) {
                         if (urls.length > 0) {
-                            //TODO: We should pass the Cache class to the constructor
-                            //or have a setter
-                            Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
-                            URL url = new URL(urls[0]);
-                            if (cache.getFile(url) == null) {
-                                logger.info("Downloading image from " + url.toString());
-                                cache.save(url, new Cache.SaveListener() {
+                            urlToDownload = new URL(urls[0]);
+                            if (cache.getFile(urlToDownload) == null) {
+                                logger.info("Downloading image from " + urlToDownload.toString());
+                                cache.save(urlToDownload, new Cache.SaveListener() {
 
                                     @Override
                                     public void bytesRead(long bytes) {
                                         fireBytesReadEvent(bytes);
                                     }
+
+                                    @Override
+                                    public void setTotalBytes(long length) {
+                                        fireSetTotalBytesEvent(length);
+                                    }
                                 });
                             } else {
-                                logger.info("Using image from local cache instead of from " + url.toString());
-                                logger.info("Cached image path " + cache.getFile(url).toString());
+                                logger.info("Using image from local cache instead of from " + urlToDownload.toString());
+                                logger.info("Cached image path " + cache.getFile(urlToDownload).toString());
                             }
-                            return cache.getFile(url);
+                            return cache.getFile(urlToDownload);
                         }
                     }
+                    else {
+                        if(urlToDownload != null)
+                            logger.info("Task cancelled: " + urlToDownload.toString());
+                        else
+                            logger.info("Task cancelled");
+                    }
+                }
+                else {
+                    if(urlToDownload != null)
+                        logger.info("Task cancelled: " + urlToDownload.toString());
+                    else
+                        logger.info("Task cancelled");
                 }
                 return null;
             }
@@ -179,6 +198,9 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                     JOptionPane.showMessageDialog(VisualizationWorkPanel.this,
                             "DSS image load failed");
                     fireBackgroundImageLoadFailedEvent();
+                }
+                else {
+                    logger.debug("[TASK CANCELLED] in failed method", cause);
                 }
             }
 
@@ -194,6 +216,9 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                                     imageFile.getAbsolutePath()));
                             fireBackgroundImageLoadCompletedEvent();
                         } catch (Exception ex) {
+                            //Remove the corrupt image from cache
+                            cache.remove(urlToDownload);
+                            
                             logger.info("Image load failed", ex);
                             JOptionPane.showMessageDialog(VisualizationWorkPanel.this,
                                     "DSS image could not be loaded");
@@ -207,7 +232,23 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                     }
                     
                 }
+                else {
+                    if(result != null)
+                        logger.debug("[TASK CANCELLED] in success method" + result);
+                    else
+                        logger.debug("[TASK CANCELLED] in success method");
+                }
+
             }
+
+            @Override
+            protected void finished() {
+                super.finished();
+                if (isCancelled()) {
+                    logger.info("[TASK CANCELLED] in finished method");
+                }
+            }
+
 
         };
         task.execute();
@@ -280,6 +321,12 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         }
     }
 
+    private void fireSetTotalBytesEvent(long length) {
+        for (int i = 0; i < listeners.size(); i++) {
+            listeners.get(i).setImageSize(length);
+        }
+    }
+
     private void fireBackgroundImageLoadFailedEvent() {
         for (int i = 0; i < listeners.size(); i++) {
             listeners.get(i).backgroundImageLoadFailed();
@@ -292,6 +339,14 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         }
     }
 
+    /**
+     * TODO: Trying to make a something like LaTeX \oplus .. but the outplut not really
+     * smooth yet
+     *
+     * @param centerPixel
+     * @param halfSize
+     * @return
+     */
     private GeneralPath makeTargetShape(Point2D.Double centerPixel, double halfSize) {
         Point2D.Double north = new Point2D.Double(centerPixel.x, centerPixel.y - halfSize);
         Point2D.Double south = new Point2D.Double(centerPixel.x, centerPixel.y + halfSize);
@@ -310,6 +365,12 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         p.lineTo(east.x, east.y);
         //p.closePath();
         return p;
+    }
+
+    void stopRunningTasks() {
+        if (task != null && !task.isDone()) {
+            task.cancel(true);
+        }
     }
 
 
