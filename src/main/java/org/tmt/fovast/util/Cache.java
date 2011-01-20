@@ -16,6 +16,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Vector;
 import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Collection;
@@ -43,6 +44,11 @@ public class Cache {
     private LinkedHashMap<String, String> index = new LinkedHashMap<String, String>();
 
     private final int maxEntries;
+
+    /**
+     * Access to this should be synchronized. So using a vector
+     */
+    private Vector<String> queuedDownloads = new Vector<String>();
 
     /**
      * Cache will store max 20 (DEFAULT_MAX_ENTRIES) files.
@@ -76,7 +82,15 @@ public class Cache {
     /**
      * Save the content of the URL to cache directory
      * Note: This class does not bother about the HTTP cache directives
-     * 
+     *
+     * This method should be invoked in a separate thread for better interactivity
+     * and not on the EDT. Also note that if two requests are made
+     * at the same time to the same URL one of them blocks till the other finishes.
+     *
+     * This method is interrupt aware .. i.e, if Thread.interrupt were called
+     * this method automatically returns null. Note the interrupt flag on the
+     * thread is not cleared.
+     *
      * @param url - URL to download file from and cache
      * @param sl - SaveListener object
      * @return
@@ -85,37 +99,82 @@ public class Cache {
         //TODO: should we go for random unique names ?
         String relativePath = "file" + System.currentTimeMillis();
         File fileToStore = new File(downloadCacheDir, relativePath);
+
         long bytes = 0;
         long lastBytes = 0;
         byte[] bytea = new byte[2 * 1024 * 1024]; //2MB cache
         BufferedInputStream bis = null;
         BufferedOutputStream bos = null;
+
         try {
+
+            if(Thread.currentThread().isInterrupted())
+                return null;
+
+            //check if data at the URL is already being retrieved
+            //block until the other download finishes if so
+            while(queuedDownloads.contains(url.toString())) {
+                //sleep for 10 secs
+                Thread.sleep(10000);
+            }
+            
+            //check if a file has already been stored against this URL
+            //if so simply return it.
+            //getFile is synchronized so not obtaining lock
+            File file = getFile(url);
+            if(file != null)
+                return file;
+
+            //We are fetching a new file ..
+            queuedDownloads.add(url.toString());
+
             URLConnection conn = url.openConnection();
+            conn.connect();
+
+            long length = conn.getContentLength();
+            if(length >= -1 && sl != null)
+                sl.setTotalBytes(length);
+
+                
             bos = new BufferedOutputStream(new FileOutputStream(fileToStore));
             bis = new BufferedInputStream(conn.getInputStream());
             int read = 0;
             while ((read = bis.read(bytea)) != -1) {
                 bos.write(bytea, 0, read);
                 bytes += read;
+                logger.trace("Bytes read: " + bytes + " (from " + url.toString() + ")");
+
+                if(Thread.currentThread().isInterrupted()) {
+                    return null;
+                }
+
                 //call listener every 10 KB
                 if (sl != null && (bytes - lastBytes) > (10 * 1024)) {
                     lastBytes = bytes;
                     try {
-                        sl.bytesRead(bytes);
+                        sl.bytesRead(bytes);                        
                     } catch (Exception ex) {
                         logger.warn("Listener threw an exception", ex);
                     }
                 }
             }
             bos.flush();
-            index.put(url.toString(), relativePath);
+
+            //we just need to this in a synch block
+            synchronized(this) {
+                index.put(url.toString(), relativePath);                
+            }
+
             checkSize();
             return fileToStore;
         } catch (Exception ex) {
             logger.warn("Exception while saving the file to cache", ex);
             throw ex;
         } finally {
+
+            //remove from queued downloads
+            queuedDownloads.remove(url.toString());
+            
             if (bis != null) {
                 try {
                     bis.close();
@@ -142,7 +201,7 @@ public class Cache {
      * @return returns File object of the cached file .. returns null if no entry
      * is present in cache for the given URL
      */
-    public File getFile(URL url) {
+    public synchronized File getFile(URL url) {
         String relativePath = index.get(url.toString());
         if (relativePath != null) {
             return new File(downloadCacheDir, relativePath);
@@ -157,14 +216,14 @@ public class Cache {
      * @param url
      * @return
      */
-    public void remove(URL url) {
+    public synchronized void remove(URL url) {
         remove(url.toString());
     }
 
     /**
      * Saves the map of cache entries to disk
      */
-    public void save() {
+    public synchronized void save() {
         PrintWriter writer = null;
         try {
             writer = new PrintWriter(downloadCacheFile);
@@ -188,7 +247,7 @@ public class Cache {
      * loads index map from cache index file
      * 
      */
-    public void load() {
+    public synchronized void load() {
         if (downloadCacheFile.exists()) {
             BufferedReader reader = null;
             try {
@@ -253,7 +312,7 @@ public class Cache {
      * maintains the num entries below max entries
      */
     private void checkSize() {
-        if (index.size() > 20) {
+        if (index.size() > maxEntries) {
             Iterator<String> ite = index.keySet().iterator();
             String key = ite.next();
             remove(key);
@@ -263,16 +322,16 @@ public class Cache {
     /**
      * Deletes the given entry from cache and corresponding file in cache dir
      * 
-     * @param string
+     * @param entryId
      */
-    private void remove(String string) {
-        String relativePath = index.get(string);
+    public synchronized void remove(String entryId) {
+        String relativePath = index.get(entryId);
         if (relativePath != null) {
             File file = new File(downloadCacheDir, relativePath);
             if (file.exists()) {
                 file.delete();
             }
-            index.remove(string);
+            index.remove(entryId);
         }
 
     }
@@ -282,7 +341,14 @@ public class Cache {
      */
     public static interface SaveListener {
 
+        /**
+         * This method might not be called at all
+         */
+        public void setTotalBytes(long length);
+        
         public void bytesRead(long bytes);
 
     }
+
+    
 }
