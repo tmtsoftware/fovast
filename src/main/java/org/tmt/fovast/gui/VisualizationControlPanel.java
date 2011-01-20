@@ -399,8 +399,10 @@ public class VisualizationControlPanel extends JPanel
     //
 
     private boolean stCbChanged = false;
+    private long sizeOfImageBeingLoaded = -1;
     @Override
-    public void backgroundImageLoadStarted() {        
+    public void backgroundImageLoadStarted() {
+        sizeOfImageBeingLoaded = -1;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 imageLoadMsgLabel.setText("Fetching image ...");
@@ -419,8 +421,16 @@ public class VisualizationControlPanel extends JPanel
 
             @Override
             public void run() {
-                imageLoadMsgLabel.setText("Read " + imageLoadBytesFormat.format(
+                if(sizeOfImageBeingLoaded == -1) {
+                    imageLoadMsgLabel.setText("Read " + imageLoadBytesFormat.format(
                         (bytesRead) / 1024.0) + " KB");
+                }
+                else {
+                    imageLoadMsgLabel.setText("Read " + imageLoadBytesFormat.format(
+                        (bytesRead) / 1024.0) + " KB of "
+                        + imageLoadBytesFormat.format(sizeOfImageBeingLoaded / 1024.0)
+                        + " KB");
+                }
             }
         });
     }
@@ -453,6 +463,12 @@ public class VisualizationControlPanel extends JPanel
                 }
             }
         });
+    }
+
+    @Override
+    public void setImageSize(long length) {
+        if(sizeOfImageBeingLoaded > 0)
+            sizeOfImageBeingLoaded = length;
     }
 
     //
