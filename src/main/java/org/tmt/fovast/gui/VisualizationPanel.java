@@ -71,4 +71,8 @@ public class VisualizationPanel extends JPanel {
         //throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    void stopRunningTasks() {
+        workPanel.stopRunningTasks();
+    }
+
 }
