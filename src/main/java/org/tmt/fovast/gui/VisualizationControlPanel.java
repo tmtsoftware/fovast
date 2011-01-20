@@ -467,8 +467,10 @@ public class VisualizationControlPanel extends JPanel
 
     @Override
     public void setImageSize(long length) {
-        if(sizeOfImageBeingLoaded > 0)
+        if(length > 0)
             sizeOfImageBeingLoaded = length;
+        else
+            sizeOfImageBeingLoaded = -1;
     }
 
     //
