@@ -31,6 +31,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
 import org.jdesktop.application.ApplicationAction;
 import org.jdom.Document;
@@ -176,17 +177,25 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
 
             @Override
             public void stateChanged(ChangeEvent e) {
-                JComponent comp =
-                        ((JComponent) centerTabbedPane.getSelectedComponent());
-                //TODO: We need to worry about explorer panel if it comes into
-                //picture .. as selection of explorer panel .. should
-                //also remove any highlighting in Tabs menu .. should rise unselectVis
-                //on controller in this case
-                if (comp instanceof VisualizationPanel) {
-                    Integer vizId =
-                            (Integer) comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY);
-                    controller.selectVisualization(vizId);
-                }
+                //Need to invoke this in listener code to make sure
+                //selection change event happens after tab and menu are added
+                //
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        JComponent comp =
+                            ((JComponent) centerTabbedPane.getSelectedComponent());
+                        //TODO: We need to worry about explorer panel if it comes into
+                        //picture .. as selection of explorer panel .. should
+                        //also remove any highlighting in Tabs menu .. should rise unselectVis
+                        //on controller in this case
+                        if (comp instanceof VisualizationPanel) {
+                            Integer vizId =
+                                    (Integer) comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY);
+                            controller.selectVisualization(vizId);
+                        }
+                    }
+                });
             }
 
         });
@@ -474,12 +483,14 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
     }
 
     private void updateUIForVisualizationRemoved(int removedVizId) {
+        VisualizationPanel vPanelRemoved = null;
+
         for (int i = 0; i < centerTabbedPane.getTabCount(); i++) {
             JComponent comp = tabComponentList.get(i);
             if (comp.getClientProperty(
                     TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(removedVizId)) {
                 centerTabbedPane.removeTabAt(i);
-                tabComponentList.remove(i);
+                vPanelRemoved = (VisualizationPanel) tabComponentList.remove(i);
                 break;
             }
         }
@@ -499,6 +510,12 @@ public class FovastMainFrame extends JFrame implements ChangeListener {
         if(openCount == 0) {
             fovastActions.setSaveVisualizationMenuEnabled(false);
             fovastActions.setCloseVisualizationMenuEnabled(false);
+        }
+
+        //Stop running tasks of that tab
+        //TODO: Should this be done by a listener
+        if(vPanelRemoved != null) {
+            vPanelRemoved.stopRunningTasks();
         }
     }
 
