@@ -89,14 +89,15 @@ public class ProxySettingsDialog
     private String _storedPassword;
 	private boolean _storedRequiresAuthentication;
     
-	//current system props
+    //current system props
     String systemProxyHost;
     String systemProxyPort;
     String systemNonProxyHosts;
+    String systemRequiresAuth;
     String systemProxyUsername;
     String systemProxyPassword;
 
-	
+
     //components
     JTextField _proxyHostTextField;
     JTextField _proxyPortTextField;
@@ -128,13 +129,26 @@ public class ProxySettingsDialog
         this._proxySettingsFile = proxySettingsFile;
         //add components
         jbInit();
-      
-        systemProxyHost = System.getProperty(ProxySettingsDialog.PROXY_HOST);
-        systemProxyPort = System.getProperty(ProxySettingsDialog.PROXY_PORT);
-        systemNonProxyHosts = System.getProperty(ProxySettingsDialog.NON_PROXY_HOSTS);
-        systemProxyUsername = System.getProperty(ProxySettingsDialog.PROXY_USER);
-        systemProxyPassword = System.getProperty(ProxySettingsDialog.PROXY_PASSWORD);
 
+        systemProxyHost = System.getProperty(ProxySettingsDialog.PROXY_HOST);
+        if(systemProxyHost != null && systemProxyHost.trim().length() == 0)
+            systemProxyHost = null;
+        systemProxyPort = System.getProperty(ProxySettingsDialog.PROXY_PORT);
+        if(systemProxyPort != null && systemProxyPort.trim().length() == 0)
+            systemProxyPort = null;
+        systemNonProxyHosts = System.getProperty(ProxySettingsDialog.NON_PROXY_HOSTS);
+        if(systemNonProxyHosts != null && systemNonProxyHosts.trim().length() == 0)
+            systemNonProxyHosts = null;
+        systemRequiresAuth = System.getProperty(ProxySettingsDialog.REQUIRES_AUTH);
+        if(systemRequiresAuth != null && systemRequiresAuth.trim().length() == 0)
+            systemRequiresAuth = null;
+        systemProxyUsername = System.getProperty(ProxySettingsDialog.PROXY_USER);
+        if(systemProxyUsername != null && systemProxyUsername.trim().length() == 0)
+            systemProxyUsername = null;
+        systemProxyPassword = System.getProperty(ProxySettingsDialog.PROXY_PASSWORD);
+        if(systemProxyPassword != null && systemProxyPassword.trim().length() == 0)
+            systemProxyPassword = null;
+        
         readStoredSettings();
         
         //initialize textfields and check boxes
@@ -152,7 +166,7 @@ public class ProxySettingsDialog
             _nonProxyHostsTextField.setText(_storedNonProxyHosts);
         else
         	_nonProxyHostsTextField.setText(systemNonProxyHosts);
-        
+
         if(systemProxyUsername == null)
         	_userNameTextField.setText(_storedUserName);
         else
@@ -181,12 +195,16 @@ public class ProxySettingsDialog
             _useProxyCheckBox.setSelected(false);
             b = false;
         }
-        
-        if(systemProxyUsername != null && systemProxyPort != null)
+
+        if(systemRequiresAuth != null &&
+                (new Boolean(systemRequiresAuth) == true)) {
+            _requireAuthenticationCheckbox.setSelected(true);
+        }
+        else if(systemProxyUsername != null && systemProxyPassword != null)
         {
         	_requireAuthenticationCheckbox.setSelected(true);
         }
-        else if(_storedRequiresAuthentication)
+        else if(systemRequiresAuth == null && _storedRequiresAuthentication)
         {
         	_requireAuthenticationCheckbox.setSelected(true);
         }
@@ -255,6 +273,7 @@ public class ProxySettingsDialog
                     System.setProperty(NON_PROXY_HOSTS, _nonProxyHostsTextField.getText());
                     if(_requireAuthenticationCheckbox.isSelected())
                     {
+                        System.setProperty(REQUIRES_AUTH, "true");
                     	System.setProperty(PROXY_USER, _userNameTextField.getText());
                     	System.setProperty(PROXY_PASSWORD, 
                     			new String(_passwordTextField.getPassword()));
@@ -263,6 +282,7 @@ public class ProxySettingsDialog
                     else
                     {
                         //TODO: Check if this would work as clearProperty in jdk5.0
+                        System.setProperty(REQUIRES_AUTH, "false");
                         if(systemProxyUsername != null)
                             System.setProperty(PROXY_USER, "");
                         if(systemProxyPassword != null)
