@@ -78,9 +78,11 @@ public class NameResolver {
 
     public static final String NED_ERROR_PARAM_NAME = "Error";
 
-    private static final String NED_URL_PREFIX = "http://nedwww.ipac.caltech.edu/" + "cgi-bin/nph-objsearch?objname=";
+    private static final String NED_URL_PREFIX = "http://nedwww.ipac.caltech.edu/"
+            + "cgi-bin/nph-objsearch?objname=";
 
-    private static final String NED_URL_SUFFIX = "&extend=no&out_csys=Equatorial&" + "out_equinox=J2000.0&obj_sort=RA+or+Longitude&of=xml_main&" + "zv_breaker=30000.0&list_limit=5&img_stamp=NO";
+    private static final String NED_URL_SUFFIX = "&extend=no&out_csys=Equatorial&"
+            + "out_equinox=J2000.0&obj_sort=RA+or+Longitude&of=xml_main&" + "zv_breaker=30000.0&list_limit=5&img_stamp=NO";
 
     private static final String NED_VOTABLE_RESOURCE_TYPE = "results";
 
@@ -162,14 +164,31 @@ public class NameResolver {
     public static double[] getCoordsFromNED(String objectName)
             throws CouldNotResolveException, OtherException {
 
+        java.io.BufferedReader is = null;
         try {
             String nedURLString = NED_URL_PREFIX + URLEncoder.encode(objectName,
                     URL_ENCODING_FORMAT) + NED_URL_SUFFIX;
             logger.info("Resolving the " + objectName + " from NED " + nedURLString);
 
             double[] ra_dec_vals = new double[2];
+
+            //Reading XML into string as the STILTS/xerces-SAX library included throws error
+            //on encountering empty spaces
+            //before initial <?xml ..
+            //TODO: Need to check if it has been solved in recent versions.
+            URL nedURL = new URL(nedURLString);
+            is = new java.io.BufferedReader(new 
+                    java.io.InputStreamReader(nedURL.openConnection().getInputStream()));
+            String line;
+            StringBuffer buff = new StringBuffer();
+            while((line = is.readLine()) != null) {
+                buff.append("\n").append(line);
+            }
+            String xmlString = buff.toString().trim();
             
-            VOElement votable = new VOElementFactory().makeVOElement(nedURLString);
+            VOElement votable = new VOElementFactory().makeVOElement(
+                    new javax.xml.transform.stream.StreamSource(
+                        new java.io.StringReader(xmlString)));
 
             NodeList resources = votable.getElementsByTagName("RESOURCE");
 

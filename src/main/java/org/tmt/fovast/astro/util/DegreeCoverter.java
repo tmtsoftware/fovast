@@ -75,7 +75,15 @@ public class DegreeCoverter {
                 } else {
                     throw new IllegalFormatException();
                 }
+                ct++;
             }
+
+            //only one token i.e only hours given .. we will assume it to be
+            //degrees then
+            if(ct == 1) {
+                h = h/15.0;
+            }
+
         }
 
 
@@ -182,6 +190,7 @@ public class DegreeCoverter {
                 } else {
                     throw new IllegalFormatException();
                 }
+                ct++;
             }
         }
 
