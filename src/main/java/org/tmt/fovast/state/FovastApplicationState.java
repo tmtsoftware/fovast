@@ -114,6 +114,7 @@ public class FovastApplicationState extends StateSupport {
     public void selectVisualizationById(int id) {
         if(id == -1) {
             //TODO: should we raise a active visualization change here ??
+            activeVisualizationId = -1;
         }
         else if (idVisualizationMap.get((Integer)id) != null) {
             if (activeVisualizationId == id) {

@@ -32,7 +32,7 @@ import uk.ac.starlink.votable.VOStarTable;
  * @author vivekananda_moosani
  */
 public class SiaClient {
-    // TODO: Should we change VOTable parser to SAX
+    // As of now we use a DOMParser .. Should we change to SAX parser.
     //
     // TODO: Make constants of hardcoded strings 
 

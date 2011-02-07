@@ -6,6 +6,7 @@
  */
 package org.tmt.fovast.gui;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -18,7 +19,7 @@ import org.jdesktop.application.Action;
  * This class has several actions which user can perform on the UI (in particular menu
  * actions)
  *
- * Action methods simply call methods from the FovastMainFrame class.
+ * Action methods simply call methods from the FovastmainComponent class.
  *
  * @author vivekananda_moosani
  */
@@ -43,13 +44,16 @@ public class FovastActions {
 
     private boolean showAnnotationsMenuSelected = false;
 
-    private FovastMainFrame mainFrame;
+    private FovastMainView mainView;
+
+    private Component mainComponent;
 
     private ArrayList<PropertyChangeListener> propertyChangeListeners =
             new ArrayList<PropertyChangeListener>();
 
-    public FovastActions(FovastMainFrame mainFrame) {
-        this.mainFrame = mainFrame;
+    public FovastActions(FovastMainView mainView) {
+        this.mainView = mainView;
+        this.mainComponent = mainView.getFrame();
     }
 
     @Action(name = "Menu.File")
@@ -59,244 +63,244 @@ public class FovastActions {
 
     @Action(name = "Menu.File.NewVisualization")
     public void newVisualizationAction() {
-        mainFrame.createNewVisualization();
+        mainView.createNewVisualization();
     }
 
     @Action(name = "Menu.File.NewVisualizationFromTemplates")
     public void newVisualizationFromTemplateAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.OpenVisualization")
     public void openVisualizationAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.SaveVisualization", enabledProperty = SAVE_VISUALIZATION_MENU_ENABLED)
     public void saveVisualizationAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
-        //mainFrame.saveVisualization();
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        //mainComponent.saveVisualization();
     }
 
     @Action(name = "Menu.File.CloseVisualization", enabledProperty = CLOSE_VISUALIZATION_MENU_ENABLED)
     public void closeVisualizationAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
-        //mainFrame.saveAndCloseVisualization();
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        //mainComponent.saveAndCloseVisualization();
     }
 
     @Action(name = "Menu.File.CloseAllVisualizations", enabledProperty = CLOSE_VISUALIZATION_MENU_ENABLED)
     public void closeAllVisualizationsAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.NewVisualizationGroup")
     public void newVisualizationGroupAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadFitsImage")
     public void loadFitsImageAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives")
     public void loadFitsImageFromVoArchivesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives.Sdss")
     public void loadFitsImageFromSdssAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives.Dss")
     public void loadFitsImageFromDssAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives.LookupSiaInVORegistries")
     public void loadFitsImageByLookupSiaServicesInVoRegistriesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.ShowImageList")
     public void showImageListAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.CloseFitsImage")
     public void closeFitsImageAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.CloseAllFitsImages")
     public void closeAllFitsImagesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadCatalog")
     public void loadCatalogAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.LoadCatalogFromVoArchives")
     public void loadCatalogFromVoArchivesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.CloseCatalog")
     public void closeCatalogAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.CloseAllCatalogs")
     public void closeAllCatalogsAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.ShowCatalogList")
     public void showCatalogListAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.ProxySettings")
     public void showProxySettingsDialogAction() {
-        mainFrame.showProxySettingsDialog();
+        mainView.showProxySettingsDialog();
     }
 
     @Action(name = "Menu.File.Preferences")
     public void showPreferencesDialogAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.File.Exit")
     public void applicationExitAction() {
-        mainFrame.applicationExitAction();
+        mainView.applicationExitAction();
     }
 
     @Action(name = "Menu.View")
     public void viewAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.View.DssBackground", selectedProperty = SHOW_DSS_BACKGROUND_MENU_SELECTED)
     public void viewDssBackgroundAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.View.Catalogs")
     public void viewCatalogsAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.View.Images")
     public void viewImagesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.View.Annotations", selectedProperty = SHOW_ANNOTATIONS_MENU_SELECTED)
     public void viewAnnotationsAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Tabs")
     public void tabsAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Tabs.TabsMenuItem")
     public void tabsAction(ActionEvent ae) {
-        mainFrame.selectVisualizationPanel(((JMenuItem) ae.getSource()));
+        mainView.selectVisualizationPanel(((JMenuItem) ae.getSource()));
     }
 
     @Action(name = "Menu.Interop")
     public void interopAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp")
     public void sampAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.LaunchExternalHub")
     public void launchExternalHubAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.LaunchInternalHub")
     public void launchInternalHubAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.StopInternalHub")
     public void stopInternalHubAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.Register")
     public void sampRegisterAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.Unregister")
     public void sampUnregisterAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.SendImage")
     public void sendImageBySampAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.SendCatalog")
     public void sendCataloBySampAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Interop.Samp.SampPreferences")
     public void sampPreferencesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help")
     public void helpAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.UserGuide")
     public void userGuideAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.ContextHelp")
     public void contextualHelpAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.OnlineHelp")
     public void onlineHelpAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.CheckUpdates")
     public void checkUpdatesAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.ReportBug")
     public void reportBugAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.ViewBugTracker")
     public void viewBugTrackerAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     @Action(name = "Menu.Help.About")
     public void aboutAction() {
-        JOptionPane.showMessageDialog(mainFrame, "To be done");
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
     public void addPropertyChangeListener(PropertyChangeListener pcl) {

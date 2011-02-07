@@ -199,7 +199,6 @@ public class VisualizationControlPanel extends JPanel
        resolvePanel.add(nedButton);
 
        //ra, dec after labels
-        //TODO: deg constraint to be removed ...
         raAfterLabel = new JLabel("J2000/FK5");
         decAfterLabel = new JLabel("J2000/FK5");
 
@@ -209,14 +208,14 @@ public class VisualizationControlPanel extends JPanel
        int delay=Integer.MAX_VALUE;
        ToolTipManager.sharedInstance().setDismissDelay(delay);
        raFormatLabel.setToolTipText("<html><body><b>Formats for RA:</b><br/>"
-               + "<b>eg1:<b/> 12h 30m 40s<br/><b>eg2:<b/> 12:30:40<br/><b>eg3:<b/> 12 30 40<br/><b>eg4:<b/> 202.43(in degrees)");
+               + "<b>eg1:<b/> 12h 30m 40s<br/><b>eg2:<b/> 12:30:40<br/><b>eg3:<b/> 12 30 40<br/><b>eg4:<b/> 202.43 (in degrees)");
        raFormatPanel.add(raAfterLabel);
        raFormatPanel.add(raFormatLabel);
 
        JPanel decFormatPanel = new JPanel(new FlowLayout());
        decFormatLabel=new JLabel(new ImageIcon(urlString));
        decFormatLabel.setToolTipText("<html><body><b>Formats for DEC:</b><br/>"
-               + "<b>eg1:<b/> 12d 30m 40s<br/><b>eg2:<b/> 12:30:40<br/><b>eg3:<b/> 12 30 40<br/><b>eg4:<b/> 202.43(in degrees)");
+               + "<b>eg1:<b/> 12d 30m 40s<br/><b>eg2:<b/> 12:30:40<br/><b>eg3:<b/> 12 30 40<br/><b>eg4:<b/> 102.43 (in degrees)");
        decFormatPanel.add(decAfterLabel);
        decFormatPanel.add(decFormatLabel);
         
@@ -430,7 +429,6 @@ public class VisualizationControlPanel extends JPanel
                 return;
             }
 
-            //TODO: to be replaced by RaDecUtil methods later.
             dec = DegreeCoverter.parseAndConvertDec(text);
             decErrorMsgLabel.setText("");
             if (!(dec >= -90 && dec <= 90)) {
@@ -544,15 +542,9 @@ public class VisualizationControlPanel extends JPanel
                 enableDisableShowTargetCheckBox(true);
             }
         } else {
-            throw new RuntimeException("Event from source uninterested in: " +
+            logger.error("Event from source uninterested in: " +
                     source.toString());
         }
-
-        //TODO: As of now nothing to do for viscontrolpanel - update()
-        //throw new UnsupportedOperationException("Not supported yet.");
-
-        //TODO: Should not throw runtimeexceptions if and unwanted event key is encountered
-        //this has to be done else where update is implemented
     }
 
     //

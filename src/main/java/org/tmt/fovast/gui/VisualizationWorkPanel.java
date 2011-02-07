@@ -28,7 +28,6 @@ import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.controller.FovastApplication;
 import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.controller.VisualizationController;
@@ -80,7 +79,6 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
     }
 
     private void initComponents() {
-        //TODO: Work panel components ...
         setLayout(new BorderLayout());
         displayComp = new ImageDisplayControl();        
         displayComp.getImageDisplay().setAutoCenterImage(true);
@@ -108,7 +106,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
         } else {
             //TODO: this msg should be from resource bundle (should be parameterised msg
-            throw new RuntimeException("Unknown event key : " + eventKey +
+            logger.error("Unknown event key : " + eventKey +
                     "from source " + source.toString());
         }
     }
@@ -129,7 +127,6 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         //        new FITSImage("/home/vivekananda_moosani/.jsky3/" +
         //        "cache/jsky1608254944564360809.fits"));
 
-        //TODO: Update some image panel label for progress
         task = new Task(appContext.getApplication()) {
 
             private URL urlToDownload = null;

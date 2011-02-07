@@ -294,7 +294,6 @@ public class NameResolver {
 
         String objectToResolve = "m51";
 
-        //TODO:
         //Set system proxy
         System.setProperty("http.proxyHost", "localhost");
         System.setProperty("http.proxyPort", "5865");

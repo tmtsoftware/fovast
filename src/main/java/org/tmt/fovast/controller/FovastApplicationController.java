@@ -6,6 +6,7 @@
  */
 package org.tmt.fovast.controller;
 
+import org.tmt.fovast.gui.FovastApplication;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -110,10 +111,10 @@ public class FovastApplicationController implements ChangeListener {
         //return visualization;
     }
 
-    public void applicationExitAction() {
-        fovastApplication.getMainFrame().setVisible(true);
-        fovastApplication.exit();
-    }
+//    public void applicationExitAction() {
+//        fovastApplication.getMainFrame().setVisible(false);
+//        fovastApplication.exit();
+//    }
 
     public void selectVisualization(int id) {
         fovastApplicationState.selectVisualizationById(id);

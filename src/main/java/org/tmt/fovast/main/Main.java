@@ -7,7 +7,7 @@
 package org.tmt.fovast.main;
 
 import org.jdesktop.application.Application;
-import org.tmt.fovast.controller.FovastApplication;
+import org.tmt.fovast.gui.FovastApplication;
 
 /**
  * Class which accepts arguments and launches the FOVAST GUI

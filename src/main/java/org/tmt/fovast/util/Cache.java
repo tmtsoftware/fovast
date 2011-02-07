@@ -96,7 +96,6 @@ public class Cache {
      * @return
      */
     public File save(URL url, SaveListener sl) throws Exception {
-        //TODO: should we go for random unique names ?
         String relativePath = "file" + System.currentTimeMillis();
         File fileToStore = new File(downloadCacheDir, relativePath);
 
