@@ -433,7 +433,7 @@ public class VisualizationControlPanel extends JPanel
             decErrorMsgLabel.setText("");
             if (!(dec >= -90 && dec <= 90)) {
                 //TODO: should be from resource file
-                decErrorMsgLabel.setText("DEC should be in [-180, 180]");
+                decErrorMsgLabel.setText("DEC should be in [-90, 90]");
             } else {
                 return;
             }
@@ -498,12 +498,12 @@ public class VisualizationControlPanel extends JPanel
         if(!(raDeg >= 0 && raDeg < 360)) {
             raErrorMsgLabel.setText("RA should be in [0, 360)");
             if((!(decDeg >= -90 && decDeg <= 90))){
-                decErrorMsgLabel.setText("DEC should be in [-180, 180]");
+                decErrorMsgLabel.setText("DEC should be in [-90, 90]");
             }
             return;
         }
         if((!(decDeg >= -90 && decDeg <= 90))){
-            decErrorMsgLabel.setText("DEC should be in [-180, 180]");
+            decErrorMsgLabel.setText("DEC should be in [-90, 90]");
             return;
         }
 
