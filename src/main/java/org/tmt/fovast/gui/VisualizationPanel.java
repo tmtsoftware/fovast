@@ -7,9 +7,11 @@
 package org.tmt.fovast.gui;
 
 import java.awt.BorderLayout;
+import java.io.IOException;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JOptionPane;
+import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.tmt.fovast.controller.VisualizationController;
 import org.tmt.fovast.state.VisualizationState;
@@ -27,6 +29,15 @@ public class VisualizationPanel extends JPanel {
     private VisualizationWorkPanel workPanel;
 
     private VisualizationController controller;
+
+    public VisualizationWorkPanel getWorkPanel()
+    {
+        return workPanel;
+    }
+    public void setWorkPanel (VisualizationWorkPanel workPanel)
+    {
+        this.workPanel=workPanel;
+    }
 
     public VisualizationPanel(ApplicationContext appContext,
             VisualizationController visController) {
@@ -75,4 +86,16 @@ public class VisualizationPanel extends JPanel {
         workPanel.stopRunningTasks();
     }
 
+    void setImageAndCenter(String fitsImage) throws IOException, FitsException {
+        workPanel.setImage(fitsImage);
+        controlPanel.setEnable(workPanel.getCenter());
+    }
+
+    public void toggleGrid(){
+      workPanel.toggleGrid();
+    }
+
+    public boolean isGridShown() {
+        return workPanel.isGridShown();
+    }
 }

@@ -6,12 +6,15 @@
  */
 package org.tmt.fovast.gui;
 
+import java.io.IOException;
 import javax.swing.event.ChangeEvent;
+import nom.tam.fits.FitsException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,12 +24,14 @@ import javax.swing.ActionMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -321,6 +326,19 @@ public class FovastMainView extends FrameView implements ChangeListener {
         controller.createNewVisualization();
     }
 
+    void createNewVisualizationFromImageFile() {
+        //TODO: Remember last open directory ..
+        //TODO: Use filters  (*.fits, *.fit, All files)
+        JFileChooser fc = new JFileChooser();
+        int retVal = fc.showOpenDialog(
+                FovastApplication.getApplication().getMainFrame());
+        if(retVal == JFileChooser.APPROVE_OPTION)
+
+        //this create a visualization object and updates the app-model with it
+        controller.createNewVisualization(fc.getSelectedFile());
+
+    }
+
     private boolean closeVisPanel(int index) {
         JComponent comp = tabComponentList.get(index);
         if(comp instanceof VisualizationPanel)
@@ -396,6 +414,18 @@ public class FovastMainView extends FrameView implements ChangeListener {
         FovastApplication.getApplication().exit();
     }
 
+    void toggleGrid(){
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.toggleGrid();
+//        for (int i = 0; i < tabComponentList.size();i++) {
+//            Component comp = tabComponentList.get(i);
+//            if (comp instanceof VisualizationPanel) {
+//                ((VisualizationPanel)comp).toggleGrid();
+//            }
+//        }
+    }
+
+
     void selectVisualizationPanel(JMenuItem menuItem) {
         JMenuItem oldSelectedMenuItem = selectedMenuItem;
         if (oldSelectedMenuItem == menuItem) {
@@ -418,7 +448,11 @@ public class FovastMainView extends FrameView implements ChangeListener {
                     (String) args.get(FovastApplicationState.VISUALIZATION_FILENAME_ARG_KEY);
             int vizId =
                     (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
-            updateUIForVisualizationAdded(viz, vizId, fileName);
+
+            File imageFile = (File) args.get(FovastApplicationState.VISUALIZATION_IMAGE_ARG_KEY);
+
+            updateUIForVisualizationAdded(viz, vizId, fileName, imageFile);
+
         } else if (source == controller && eventKey ==
                 FovastApplicationState.VISUALIZATION_REMOVED_EVENT_KEY) {
             int selectedVizId =
@@ -443,12 +477,26 @@ public class FovastMainView extends FrameView implements ChangeListener {
                 TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(selectedVizId)) {
             //already selected
             //nothing to be done
+            if(((VisualizationPanel)tabContent).isGridShown()) {
+                fovastActions.setShowGridMenuSelected(true);
+            }
+            else {
+                fovastActions.setShowGridMenuSelected(false);
+            }
+
         } else {
             for (int i = 0; i < centerTabbedPane.getTabCount(); i++) {
                 JComponent comp = tabComponentList.get(i);
                 if (comp.getClientProperty(
                         TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(selectedVizId)) {
                     centerTabbedPane.setSelectedComponent(comp);
+                    if(((VisualizationPanel)comp).isGridShown()) {
+                        fovastActions.setShowGridMenuSelected(true);
+                    }
+                    else {
+                        fovastActions.setShowGridMenuSelected(false);
+                    }
+
                     break;
                 }
             }
@@ -480,10 +528,6 @@ public class FovastMainView extends FrameView implements ChangeListener {
             selectedMenuItem = newMenuItem;
         }
 
-        //enable .. the save viz menuitem
-        //TODO: make sure these are disabled when all viz's are closed ..
-        fovastActions.setSaveVisualizationMenuEnabled(true);
-        fovastActions.setCloseVisualizationMenuEnabled(true);
     }
 
     private void updateUIForVisualizationRemoved(int removedVizId) {
@@ -514,6 +558,7 @@ public class FovastMainView extends FrameView implements ChangeListener {
         if(openCount == 0) {
             fovastActions.setSaveVisualizationMenuEnabled(false);
             fovastActions.setCloseVisualizationMenuEnabled(false);
+            fovastActions.setShowGridMenuEnabled(false);
         }
 
         //Stop running tasks of that tab
@@ -524,7 +569,7 @@ public class FovastMainView extends FrameView implements ChangeListener {
     }
 
     private void updateUIForVisualizationAdded(VisualizationState visualization,
-            int vizId, String fileName) {
+            int vizId, String fileName, File imageFile) {
         //TODO: All this has to be done on viz-open from menu
         VisualizationController visController = new VisualizationController();
         visController.setState(visualization);
@@ -554,6 +599,27 @@ public class FovastMainView extends FrameView implements ChangeListener {
 
         //increase openCount
         openCount++;
+
+        //load image and set target to image center
+        if(imageFile != null) {
+            try {
+                visPanel.setImageAndCenter(imageFile.getAbsolutePath());
+            } catch (IOException ex) {
+                logger.error("Could not load image", ex);
+                JOptionPane.showMessageDialog(visPanel,
+                                    "DSS image could not be loaded");
+            } catch (FitsException ex) {
+                logger.error("Could not load image", ex);
+                 JOptionPane.showMessageDialog(visPanel,
+                                    "DSS image could not be loaded");
+            }
+        }
+
+        //enable showGrid here ..
+        //enable .. the save viz menuitem
+        fovastActions.setSaveVisualizationMenuEnabled(true);
+        fovastActions.setCloseVisualizationMenuEnabled(true);
+        fovastActions.setShowGridMenuEnabled(true);
     }
 
 //    //TODO: to be removed after fixing bsaf api

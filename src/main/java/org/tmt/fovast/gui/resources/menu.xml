@@ -30,7 +30,7 @@
         <MenuItem name="Menu.File.CloseAllVisualizations" implState="todo"/>
         <!--MenuItem name="Menu.File.NewVisualizationGroup"/-->
         <Separator/>
-        <MenuItem name="Menu.File.LoadFitsImage" implState="todo"/>
+        <MenuItem name="Menu.File.LoadFitsImage"/>
         <Menu name="Menu.File.LoadFitsImageFromVoArchives" implState="todo">
                <MenuItem name="Menu.File.LoadFitsImageFromVoArchives.Sdss" implState="todo"/>
                <MenuItem name="Menu.File.LoadFitsImageFromVoArchives.Dss" implState="todo"/>
@@ -56,6 +56,7 @@
         <Menu name="Menu.View.Catalogs" implState="todo"/>
         <Menu name="Menu.View.Images" implState="todo"/>
         <MenuItem name="Menu.View.Annotations" type="checkbox" implState="todo"/>
+        <MenuItem name="Menu.View.ShowGrid" type="checkbox"/>
     </Menu>
     <Menu name="Menu.Tabs">
         <!-- 

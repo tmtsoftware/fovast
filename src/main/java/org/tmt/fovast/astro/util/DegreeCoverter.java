@@ -201,13 +201,13 @@ public class DegreeCoverter {
                 }
                 if (decValue.contains("s")) {
                     index[2] = decValue.indexOf('s');
-                    if (decValue.contains("h") && decValue.contains("m")) {
+                    if (decValue.contains("d") && decValue.contains("m")) {
                         temp = decValue.substring(index[1] + 1, index[2]).trim();
-                    } else if (!decValue.contains("h") && !decValue.contains("m")) {
+                    } else if (!decValue.contains("d") && !decValue.contains("m")) {
                         temp = decValue.substring(0, index[2]).trim();
-                    } else if (decValue.contains("h") && !decValue.contains("m")) {
+                    } else if (decValue.contains("d") && !decValue.contains("m")) {
                         temp = decValue.substring(index[0] + 1, index[2]).trim();
-                    } else if (!decValue.contains("h") && decValue.contains("m")) {
+                    } else if (!decValue.contains("d") && decValue.contains("m")) {
                         temp = decValue.substring(index[1] + 1, index[2]).trim();
                     }
                     s = Double.parseDouble(temp);
@@ -295,8 +295,8 @@ public class DegreeCoverter {
             public void run() {
                 DegreeCoverter dc = new DegreeCoverter();
                 try {
-                    System.out.println(dc.parseAndConvertRa("-0h42m44.323s"));
-                    System.out.println(dc.parseAndConvertDec("-41d16m8.544s"));
+                    System.out.println(dc.parseAndConvertRa("+2h30s"));
+                    System.out.println(dc.parseAndConvertDec("10d0m30s"));
                 } catch (IllegalFormatException ex) {
                     Logger.getLogger(DegreeCoverter.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (NumberFormatException ex) {

@@ -11,19 +11,26 @@ import java.awt.Shape;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.Color;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.File;
 import java.net.URL;
+import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import jsky.coords.CoordinateConverter;
 import jsky.graphics.CanvasFigure;
 import jsky.image.fits.codec.FITSImage;
 import jsky.image.graphics.DivaImageGraphics;
 import jsky.image.graphics.ShapeUtil;
+import jsky.image.gui.DivaMainImageDisplay;
 import jsky.image.gui.ImageDisplayControl;
+import jsky.navigator.NavigatorImageDisplay;
+import jsky.navigator.NavigatorImageDisplayControl;
+import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
@@ -69,6 +76,8 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private CanvasFigure targetMarker;
 
+    private boolean gridShown = false;
+
     public VisualizationWorkPanel(ApplicationContext appContext,
             VisualizationController controller) {
         this.appContext = appContext;
@@ -80,12 +89,31 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private void initComponents() {
         setLayout(new BorderLayout());
-        displayComp = new ImageDisplayControl();        
-        displayComp.getImageDisplay().setAutoCenterImage(true);
-        //TODO: WCS conversion does not happen with a blank image ..
-        //should be fixed .. jskycat tool though works perfect
-        displayComp.getImageDisplay().blankImage(targetRa, targetDec);
-        
+        displayComp = new NavigatorImageDisplayControl(); //new ImageDisplayControl();
+        //TODO: We should form a blank FITS image using nom.tam.Fits API and load it.
+        //The dummy FITS should have TAN project and should be atleast 0.6 degree on each side
+        //This would get rid of the ugly fix below.
+        //We are doing this in invokeLater as 
+        //the dummy WCS setting on blank image done by JSkyCat gets nullified
+        //in an component resized event .. 
+        //Seems to be a problem with the JSky API
+        //We are doing this in double invokeLater so that VisualizationWorkPanel is
+        //realized before the blank image is set and getWidth/Height() calls give
+        //meaningful values. These methods are called internally called in JSkyCat
+        //If they return 0 then image paint is deferred in invokeLater internally.
+        //We need two invokeLaters here as the workpanel is not yet visible.
+        //setVisible / realization happens after the whole VisPanel is visualized.
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        displayComp.getImageDisplay().setAutoCenterImage(true);
+                        displayComp.getImageDisplay().blankImage(targetRa, targetDec);
+                        //((NavigatorImageDisplay)(displayComp.getImageDisplay())).toggleGrid();
+                    }
+                });
+            }
+        });
         //TODO: ScrollPane seems to not work with JSky display comps .. Should we fix ??
         //add(new JScrollPane(displayComp), BorderLayout.CENTER);
         add(displayComp, BorderLayout.CENTER);
@@ -370,5 +398,72 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         }
     }
 
+    void setImage(final String fitsImage) throws IOException, FitsException {
+       // try {
+                    displayComp.getImageDisplay().setAutoCenterImage(true);
+                    //displayComp.getImageDisplay().setImage(new FITSImage(fitsImage));
+                    displayComp.getImageDisplay().setFilename(fitsImage);
+                    targetSet=true;
+                    Thread th=new Thread() {
+                    @Override
+                        public void run() {
+                            super.run();
+                            try {
+                                //TODO: Need to get rid of this hack
+                                Thread.sleep(250);
+                            }catch (InterruptedException ex) {
+                                java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            SwingUtilities.invokeLater(new Runnable() {
+                                public void run() {
+                                     DivaImageGraphics canvasGraphics =
+                                            (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
+                                     if(targetMarker != null){
+                                            canvasGraphics.remove(targetMarker);
+                                            canvasGraphics.repaint();
+                                     }
+                                     CoordinateConverter converter = displayComp.getImageDisplay(
+                                                    ).getCoordinateConverter();
+                                     Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
+                                     //makeing clone
+                                     centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
+                                     converter.imageToScreenCoords(centerPixel, false);
+                                     int halfWidth = 20;
+                                     Shape shape = ShapeUtil.makePlus(centerPixel,
+                                            new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
+                                            new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
+                                     targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
+                                     canvasGraphics.add(targetMarker);
+                                     canvasGraphics.repaint();
 
+                                }
+                           });
+                      }
+                   };
+                   th.start();
+//           } catch (IOException ex) {
+//                 java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+//           } catch (FitsException ex) {
+//                 java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+//           }
+    }
+    
+    public Point2D.Double getCenter(){
+        DivaImageGraphics canvasGraphics =
+                (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
+        CanvasFigure targetMarker;
+        CoordinateConverter converter = displayComp.getImageDisplay(
+                        ).getCoordinateConverter();
+        Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
+        return centerPixel;
+    }
+
+    public void toggleGrid(){
+       ((NavigatorImageDisplay)displayComp.getImageDisplay()).toggleGrid();
+       gridShown = !gridShown;
+    }
+
+    public boolean isGridShown() {
+        return gridShown;
+    }
 }

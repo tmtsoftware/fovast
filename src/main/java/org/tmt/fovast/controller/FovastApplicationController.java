@@ -6,11 +6,12 @@
  */
 package org.tmt.fovast.controller;
 
-import org.tmt.fovast.gui.FovastApplication;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.jdesktop.application.ApplicationContext;
+import org.tmt.fovast.gui.FovastApplication;
 import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.mvc.ChangeSupport;
 import org.tmt.fovast.state.FovastApplicationState;
@@ -105,6 +106,45 @@ public class FovastApplicationController implements ChangeListener {
         //create visualization and add to model
         VisualizationState visualization = new VisualizationState();
         fovastApplicationState.addVisualization(visualization, newVisualizationId++, prefixToCheck);
+
+        //we donot return anything back to the view that calls the method ..
+        //view should have registered as listener to the dispatcher (which is controller in fovast)
+        //return visualization;
+    }
+
+    public void createNewVisualization(File imageFile) {
+
+        //Decide name for the visualization
+        //TODO: As of now we check the open visualizations
+        //and accordingly decide the name
+        //If we will be automatically storing the visualizations at a specified
+        //place under user home as gemini OT does .. then we have to search all
+        //visualizations saved in that dir and not just the ones which are open.
+        ArrayList<VisualizationState> visualizations =
+                fovastApplicationState.getVisualizations();
+        String newVisPanelPrefix = appContext.getResourceMap().getString(
+                UNSAVED_VIS_PANEL_PREFIX_KEY);
+        String prefixToCheck = newVisPanelPrefix;
+        int ct = 0;
+        boolean prefixCheckFlag = false;
+        do {
+            int i = 0;
+            for (; i < visualizations.size(); i++) {
+                if (fovastApplicationState.getVisualizationFileName(
+                        visualizations.get(i)).equals(prefixToCheck)) {
+                    prefixToCheck = newVisPanelPrefix + " (" + ++ct + ")";
+                    break;
+                }
+            }
+            if (i == visualizations.size()) {
+                prefixCheckFlag = true;
+            }
+        } while (!prefixCheckFlag);
+
+        //create visualization and add to model
+        VisualizationState visualization = new VisualizationState();
+        fovastApplicationState.addVisualization(visualization, newVisualizationId++, 
+                prefixToCheck, imageFile);
 
         //we donot return anything back to the view that calls the method ..
         //view should have registered as listener to the dispatcher (which is controller in fovast)

@@ -17,6 +17,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusAdapter;
+import java.awt.geom.Point2D;
 import java.net.URL;
 import java.util.HashMap;
 import java.text.NumberFormat;
@@ -671,6 +672,14 @@ public class VisualizationControlPanel extends JPanel
                 logger.warn("Could not resolve ", e);
             }
         }
+    }
+
+    public void setEnable(Point2D.Double center){
+        showTargetLabel.setEnabled(true);
+        showTargetCheckbox.setEnabled(true);    
+        showTargetCheckbox.setSelected(true);
+        stCbChanged=true;
+        targetLabel.setText("Target: " + center.x + ",  " + center.y);
     }
     
 }

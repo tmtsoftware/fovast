@@ -613,7 +613,6 @@ public class ProxySettingsDialog
     		else
     			pwd = pwdString.toCharArray();
     			
-    		//System.out.println("Here");
     		return new PasswordAuthentication(userName, pwd);
     	}
     }

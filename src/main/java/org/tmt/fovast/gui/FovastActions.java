@@ -34,6 +34,10 @@ public class FovastActions {
 
     private static final String SHOW_ANNOTATIONS_MENU_SELECTED = "showAnnotationsMenuSelected";
 
+    private static final String SHOW_GRID_MENU_SELECTED = "showGridMenuSelected";
+
+    private static final String SHOW_GRID_MENU_ENABLED = "showGridMenuEnabled";
+
     // properties which can be set to disable / enable menu components or buttons
     // tied to various action objects
     private boolean saveVisualizationMenuEnabled = false;
@@ -43,6 +47,10 @@ public class FovastActions {
     private boolean showDssBackgroundMenuSelected = false;
 
     private boolean showAnnotationsMenuSelected = false;
+
+    private boolean showGridMenuSelected = false;
+
+    private boolean showGridMenuEnabled = false;
 
     private FovastMainView mainView;
 
@@ -100,7 +108,7 @@ public class FovastActions {
 
     @Action(name = "Menu.File.LoadFitsImage")
     public void loadFitsImageAction() {
-        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        mainView.createNewVisualizationFromImageFile();
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives")
@@ -201,6 +209,13 @@ public class FovastActions {
     @Action(name = "Menu.View.Annotations", selectedProperty = SHOW_ANNOTATIONS_MENU_SELECTED)
     public void viewAnnotationsAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
+    }
+
+    @Action(name = "Menu.View.ShowGrid", enabledProperty = SHOW_GRID_MENU_ENABLED,
+        selectedProperty = SHOW_GRID_MENU_SELECTED)
+    public void viewShowGridAction() {
+        //JOptionPane.showMessageDialog(mainComponent, "To be done");
+        mainView.toggleGrid();
     }
 
     @Action(name = "Menu.Tabs")
@@ -341,6 +356,27 @@ public class FovastActions {
         boolean oldValue = this.showAnnotationsMenuSelected;
         this.showAnnotationsMenuSelected = newValue;
         firePropertyChangeEvent(SHOW_ANNOTATIONS_MENU_SELECTED, oldValue, newValue);
+    }
+
+    public boolean isShowGridMenuEnabled() {
+        return showGridMenuEnabled;
+    }
+
+    public void setShowGridMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showGridMenuEnabled;
+        this.showGridMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_GRID_MENU_ENABLED, oldValue, newValue);
+
+    }
+
+    public boolean isShowGridMenuSelected() {
+        return showGridMenuSelected;
+    }
+
+    public void setShowGridMenuSelected(boolean newValue) {
+        boolean oldValue = this.showGridMenuSelected;
+        this.showGridMenuSelected = newValue;
+        firePropertyChangeEvent(SHOW_GRID_MENU_SELECTED, oldValue, newValue);
     }
 
     public boolean isShowDssBackgroundMenuSelected() {
