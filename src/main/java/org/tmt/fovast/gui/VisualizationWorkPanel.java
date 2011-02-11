@@ -26,10 +26,7 @@ import jsky.graphics.CanvasFigure;
 import jsky.image.fits.codec.FITSImage;
 import jsky.image.graphics.DivaImageGraphics;
 import jsky.image.graphics.ShapeUtil;
-import jsky.image.gui.DivaMainImageDisplay;
 import jsky.image.gui.ImageDisplayControl;
-import jsky.navigator.NavigatorImageDisplay;
-import jsky.navigator.NavigatorImageDisplayControl;
 import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
@@ -89,7 +86,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private void initComponents() {
         setLayout(new BorderLayout());
-        displayComp = new NavigatorImageDisplayControl(); //new ImageDisplayControl();
+        displayComp = new FovastImageDisplayControl(); //new ImageDisplayControl();
         //TODO: We should form a blank FITS image using nom.tam.Fits API and load it.
         //The dummy FITS should have TAN project and should be atleast 0.6 degree on each side
         //This would get rid of the ugly fix below.
@@ -109,7 +106,6 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                     public void run() {
                         displayComp.getImageDisplay().setAutoCenterImage(true);
                         displayComp.getImageDisplay().blankImage(targetRa, targetDec);
-                        //((NavigatorImageDisplay)(displayComp.getImageDisplay())).toggleGrid();
                     }
                 });
             }
@@ -399,59 +395,68 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
     }
 
     void setImage(final String fitsImage) throws IOException, FitsException {
-       // try {
-                    displayComp.getImageDisplay().setAutoCenterImage(true);
-                    //displayComp.getImageDisplay().setImage(new FITSImage(fitsImage));
-                    displayComp.getImageDisplay().setFilename(fitsImage);
-                    targetSet=true;
-                    Thread th=new Thread() {
-                    @Override
-                        public void run() {
-                            super.run();
-                            try {
-                                //TODO: Need to get rid of this hack
-                                Thread.sleep(250);
-                            }catch (InterruptedException ex) {
-                                java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
-                            }
+//        try {
+//                    Thread th=new Thread() {
+//                    @Override
+//                        public void run() {
+//                            super.run();
+//                            try {
+//                                //TODO: Need to get rid of this hack
+//                                Thread.sleep(250);
+//                            }catch (InterruptedException ex) {
+//                                java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+//                            }
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
                             SwingUtilities.invokeLater(new Runnable() {
                                 public void run() {
-                                     DivaImageGraphics canvasGraphics =
-                                            (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
-                                     if(targetMarker != null){
+                                    try {
+                                        //there was a problem with nio channel created on the FITS image
+                                        //when zooming if this is done outside invoke later
+                                        //ok .. the above comment sounds as a wierd fix but it works
+                                        //TODO: Need to find out exact problem. 
+                                        displayComp.getImageDisplay().setImage(new FITSImage(new File(fitsImage).getAbsolutePath()));
+                                        targetSet = true;
+                                        //double invoke later as center marker placement is not happening
+                                        //properly if not.
+                                        DivaImageGraphics canvasGraphics = (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
+                                        if (targetMarker != null) {
                                             canvasGraphics.remove(targetMarker);
                                             canvasGraphics.repaint();
-                                     }
-                                     CoordinateConverter converter = displayComp.getImageDisplay(
-                                                    ).getCoordinateConverter();
-                                     Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
-                                     //makeing clone
-                                     centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
-                                     converter.imageToScreenCoords(centerPixel, false);
-                                     int halfWidth = 20;
-                                     Shape shape = ShapeUtil.makePlus(centerPixel,
-                                            new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
-                                            new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
-                                     targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
-                                     canvasGraphics.add(targetMarker);
-                                     canvasGraphics.repaint();
-
+                                        }
+                                        CoordinateConverter converter = displayComp.getImageDisplay().getCoordinateConverter();
+                                        Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
+                                        //makeing clone
+                                        centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
+                                        converter.imageToScreenCoords(centerPixel, false);
+                                        int halfWidth = 20;
+                                        Shape shape = ShapeUtil.makePlus(centerPixel, new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth), new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
+                                        targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
+                                        canvasGraphics.add(targetMarker);
+                                        canvasGraphics.repaint();
+                                    } catch (IOException ex) {
+                                        java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                                    } catch (FitsException ex) {
+                                        java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
                                 }
                            });
-                      }
-                   };
-                   th.start();
+                            }
+                       });
+
+//                      }
+//                   };
+//                   th.start();
 //           } catch (IOException ex) {
-//                 java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+//                 logger.error("Could not load image", ex);
 //           } catch (FitsException ex) {
-//                 java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+//                 logger.error("Could not load image", ex);
 //           }
     }
     
     public Point2D.Double getCenter(){
         DivaImageGraphics canvasGraphics =
                 (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
-        CanvasFigure targetMarker;
         CoordinateConverter converter = displayComp.getImageDisplay(
                         ).getCoordinateConverter();
         Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
@@ -459,7 +464,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
     }
 
     public void toggleGrid(){
-       ((NavigatorImageDisplay)displayComp.getImageDisplay()).toggleGrid();
+       ((FovastImageDisplay)displayComp.getImageDisplay()).toggleGrid();
        gridShown = !gridShown;
     }
 
