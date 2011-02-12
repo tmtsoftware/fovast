@@ -17,6 +17,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusAdapter;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.geom.Point2D;
 import java.net.URL;
 import java.util.HashMap;
@@ -358,10 +360,10 @@ public class VisualizationControlPanel extends JPanel
         showTargetLabel.setEnabled(false);
         showTargetCheckbox = new JCheckBox();
         showTargetCheckbox.setEnabled(false);
-        showTargetCheckbox.addActionListener(new ActionListener() {
+        showTargetCheckbox.addItemListener(new ItemListener() {
 
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void itemStateChanged(ItemEvent e) {
                 showTargetCbCliked();
             }
         });
@@ -508,7 +510,8 @@ public class VisualizationControlPanel extends JPanel
             return;
         }
 
-        controller.setTarget(raDeg,decDeg);
+        controller.setTarget(raDeg, decDeg, raTextField.getText().trim(),
+                decTextField.getText().trim());
         
         if(showTargetCheckbox.isSelected()) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -535,12 +538,19 @@ public class VisualizationControlPanel extends JPanel
             if (eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
                 Double ra = (Double) args.get(VisualizationState.TARGET_RA_ARG_KEY);
                 Double dec = (Double) args.get(VisualizationState.TARGET_DEC_ARG_KEY);
+                String raEntered = (String) args.get(VisualizationState.TARGET_RA_ENTERED_ARG_KEY);
+                String decEntered = (String) args.get(VisualizationState.TARGET_DEC_ENTERED_ARG_KEY);
 
                 //TODO: parameterised message should come from resource map
                 //TODO: This being event handler we cannot rely on text field values
                 // RA, DEC format should be preserved in the model.
-                targetLabel.setText("Target: " + raTextField.getText() + ",  " + decTextField.getText());
+                if(raEntered == null && decEntered == null)
+                    targetLabel.setText("Target: " + ra + ",  " + dec);
+                else
+                    targetLabel.setText("Target: " + raEntered + ",  " + decEntered);
                 enableDisableShowTargetCheckBox(true);
+                //also show the marker 
+                showTargetCheckbox.setSelected(true);
             }
         } else {
             logger.error("Event from source uninterested in: " +
@@ -674,7 +684,12 @@ public class VisualizationControlPanel extends JPanel
         }
     }
 
-    public void setEnable(Point2D.Double center){
+    /**
+     * As of also enables and selects the target checkbox
+     * 
+     * @param center
+     */
+    public void setCenter(Point2D.Double center){
         showTargetLabel.setEnabled(true);
         showTargetCheckbox.setEnabled(true);    
         showTargetCheckbox.setSelected(true);

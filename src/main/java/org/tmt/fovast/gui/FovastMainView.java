@@ -7,6 +7,7 @@
 package org.tmt.fovast.gui;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import javax.swing.event.ChangeEvent;
 import nom.tam.fits.FitsException;
 import java.awt.BorderLayout;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import javax.security.auth.login.Configuration;
 
 import javax.swing.ActionMap;
 import javax.swing.JButton;
@@ -327,15 +329,17 @@ public class FovastMainView extends FrameView implements ChangeListener {
     }
 
     void createNewVisualizationFromImageFile() {
-        //TODO: Remember last open directory ..
         //TODO: Use filters  (*.fits, *.fit, All files)
-        JFileChooser fc = new JFileChooser();
+        AppConfiguration config =
+                FovastApplication.getApplication().getConfiguration();
+        String dirToOpen = config.getFileDialogDirProperty();
+        JFileChooser fc = new JFileChooser(dirToOpen);
         int retVal = fc.showOpenDialog(getFrame());
-        if(retVal == JFileChooser.APPROVE_OPTION)
-
-        //this create a visualization object and updates the app-model with it
-        controller.createNewVisualization(fc.getSelectedFile());
-
+        if(retVal == JFileChooser.APPROVE_OPTION) {
+            config.setFileDialogDirProperty(fc.getSelectedFile().getParent());
+            //this creates a visualization object and updates the app-model with it
+            controller.createNewVisualization(fc.getSelectedFile());
+        }
     }
 
     private boolean closeVisPanel(int index) {
@@ -668,7 +672,32 @@ public class FovastMainView extends FrameView implements ChangeListener {
     }
 
     void showPreferencesDialog() {
-        FovastApplication.getApplication().showConfiguration(getFrame());
+        FovastApplication.getApplication().
+                getConfiguration().showConfiguration(getFrame());
+    }
+
+    void loadImageFileIntoActiveVisualization() {
+        if(openCount == 0) {
+            createNewVisualizationFromImageFile();
+        }
+        else {
+            //TODO: Use filters  (*.fits, *.fit, All files)
+            AppConfiguration config =
+                    FovastApplication.getApplication().getConfiguration();
+            String dirToOpen = config.getFileDialogDirProperty();
+            JFileChooser fc = new JFileChooser(dirToOpen);
+            int retVal = fc.showOpenDialog(getFrame());
+            if(retVal == JFileChooser.APPROVE_OPTION) {
+                try {
+                    config.setFileDialogDirProperty(fc.getSelectedFile().getParent());
+                    //this creates a visualization object and updates the app-model with it
+                    getActiveVisPanel().setImageAndCenter(fc.getSelectedFile().getAbsolutePath());
+                    //controller.createNewVisualization(fc.getSelectedFile());
+                } catch (Exception ex) {
+                    logger.error("Could not load image", ex);
+                }
+            }
+        }
     }
 
 

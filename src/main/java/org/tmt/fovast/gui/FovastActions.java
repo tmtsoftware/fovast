@@ -131,6 +131,11 @@ public class FovastActions {
         mainView.createNewVisualizationFromImageFile();
     }
 
+    @Action(name = "Menu.File.LoadFitsImageIntoActiveVisualization")
+    public void loadFitsImageActionIntoActiveVisualization() {
+        mainView.loadImageFileIntoActiveVisualization();
+    }
+
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives")
     public void loadFitsImageFromVoArchivesAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");

@@ -184,7 +184,7 @@ public class FovastApplication extends SingleFrameApplication {
         return dssImageCache;
     }
 
-    public AppConfiguration showConfiguration(JFrame frame) {
+    public AppConfiguration getConfiguration() {
         return appConfig;
     }
 

@@ -23,6 +23,10 @@ public class VisualizationState extends StateSupport {
 
     public static final String TARGET_DEC_ARG_KEY = "dec";
 
+    public static final String TARGET_RA_ENTERED_ARG_KEY = "raEntered";
+
+    public static final String TARGET_DEC_ENTERED_ARG_KEY = "decEntered";
+
     public static final String SHOW_TARGET_EVENT_KEY = "showTargetChanged";
 
     public static final String SHOW_TARGET_ARG_KEY = "showTarget";
@@ -44,6 +48,18 @@ public class VisualizationState extends StateSupport {
         HashMap<String, Object> args = new HashMap<String, Object>();
         args.put(TARGET_RA_ARG_KEY, ra);
         args.put(TARGET_DEC_ARG_KEY, dec);
+        changeSupport.fireChange(this, TARGET_CHANGED_EVENT_KEY, args);
+    }
+
+    public void setTarget(double ra, double dec, String raEntered, String decEntered) {
+        this.targetRa = ra;
+        this.targetDec = dec;
+
+        HashMap<String, Object> args = new HashMap<String, Object>();
+        args.put(TARGET_RA_ARG_KEY, ra);
+        args.put(TARGET_DEC_ARG_KEY, dec);
+        args.put(TARGET_RA_ENTERED_ARG_KEY, raEntered);
+        args.put(TARGET_DEC_ENTERED_ARG_KEY, decEntered);
         changeSupport.fireChange(this, TARGET_CHANGED_EVENT_KEY, args);
     }
 

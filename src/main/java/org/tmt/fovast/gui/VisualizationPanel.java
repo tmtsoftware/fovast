@@ -7,10 +7,12 @@
 package org.tmt.fovast.gui;
 
 import java.awt.BorderLayout;
+import java.awt.geom.Point2D;
 import java.io.IOException;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.tmt.fovast.controller.VisualizationController;
@@ -88,7 +90,21 @@ public class VisualizationPanel extends JPanel {
 
     void setImageAndCenter(String fitsImage) throws IOException, FitsException {
         workPanel.setImage(fitsImage);
-        controlPanel.setEnable(workPanel.getCenter());
+        //these invoke laters is an artifact of the swing utilities
+        //to setImage on ImageDisplay
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        Point2D.Double center = workPanel.getCenter();                        
+                        controller.setTarget(center.x, center.y);
+                        //controller.showTarget(true);
+                        controlPanel.setCenter(center);
+                    }
+                });
+            }
+        });
     }
 
     public void toggleGrid(){

@@ -137,6 +137,10 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private void loadImage(final Double ra, final Double dec) {
 
+        if(targetRa == ra && targetDec == dec) {
+            return; // nothing to do as image is already loaded. 
+        }
+        
         targetSet = true;
         targetRa = ra;
         targetDec = dec;
@@ -425,19 +429,22 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                                             canvasGraphics.repaint();
                                         }
                                         CoordinateConverter converter = displayComp.getImageDisplay().getCoordinateConverter();
-                                        Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
-                                        //makeing clone
-                                        centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
-                                        converter.imageToScreenCoords(centerPixel, false);
-                                        int halfWidth = 20;
-                                        Shape shape = ShapeUtil.makePlus(centerPixel, new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth), new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
-                                        targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
-                                        canvasGraphics.add(targetMarker);
-                                        canvasGraphics.repaint();
-                                    } catch (IOException ex) {
-                                        java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
-                                    } catch (FitsException ex) {
-                                        java.util.logging.Logger.getLogger(VisualizationWorkPanel.class.getName()).log(Level.SEVERE, null, ex);
+                                        Point2D.Double centerPixel = (Point2D.Double) converter.getWCSCenter();
+                                        targetRa = centerPixel.x;
+                                        targetDec = centerPixel.y;
+//                                      marker is automatically shown when target cb is checked on control panel
+//                                        //makeing clone
+//                                        centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
+//                                        converter.imageToScreenCoords(centerPixel, false);
+//                                        int halfWidth = 20;
+//                                        Shape shape = ShapeUtil.makePlus(centerPixel, new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth), new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
+//                                        targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
+//                                        canvasGraphics.add(targetMarker);
+//                                        canvasGraphics.repaint();
+                                    } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                                VisualizationWorkPanel.this, "Image load failed");
+                                        logger.error("Could not load image", ex);
                                     }
                                 }
                            });
@@ -459,8 +466,8 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                 (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
         CoordinateConverter converter = displayComp.getImageDisplay(
                         ).getCoordinateConverter();
-        Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter();
-        return centerPixel;
+        Point2D.Double centerPixel = (Point2D.Double) converter.getWCSCenter();
+        return new Point2D.Double(centerPixel.x, centerPixel.y);
     }
 
     public void toggleGrid(){

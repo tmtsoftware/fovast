@@ -30,6 +30,10 @@ public class VisualizationController implements ChangeListener {
         visualization.setTarget(ra, dec);
     }
 
+    public void setTarget(Double ra, Double dec, String raEntered, String decEntered) {
+        visualization.setTarget(ra, dec, raEntered, decEntered);
+    }
+
     public void showTarget(boolean show) {
         visualization.showTarget(show);
     }
