@@ -6,6 +6,7 @@
  */
 package org.tmt.fovast.gui;
 
+import javax.swing.JFrame;
 import org.tmt.fovast.util.Cache;
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.controller.FovastApplicationController;
 import org.tmt.fovast.state.FovastApplicationState;
+import org.tmt.fovast.util.AppConfiguration;
 import voi.swing.util.ProxySettingsDialog;
 
 /**
@@ -45,6 +47,8 @@ public class FovastApplication extends SingleFrameApplication {
     public static final String PROXY_SETTINGS_FILE_KEY =
             "Application.proxySettingsFile";
 
+    public static final String PREFERENCES_FILE_KEY = "Application.preferencesFile";
+
     private ApplicationContext applicationContext;
 
     private ResourceMap resourceMap;
@@ -54,6 +58,8 @@ public class FovastApplication extends SingleFrameApplication {
     private String stateFile;
 
     private Cache dssImageCache;
+
+    private AppConfiguration appConfig;
 
     public FovastApplication() {
     }
@@ -87,9 +93,18 @@ public class FovastApplication extends SingleFrameApplication {
                     DOWNLOAD_CACHE_DIR);
             dssImageCache = new Cache(downloadCacheFile, downloadCacheDir);
 
-            //Load proxy settings
+            //Load proxy settings .. note this method consumes exceptions so need
+            //not be put in a try-catch of its own.
             ProxySettingsDialog.readSettingsFile(new File(localDir,
                     resourceMap.getString(PROXY_SETTINGS_FILE_KEY)));
+
+            //Load other app preferences
+            try {
+                appConfig = new AppConfiguration(new File(localDir,
+                        resourceMap.getString(PREFERENCES_FILE_KEY)));
+            } catch(Exception ex) {
+                logger.error("Could not load configuration .. ", ex);
+            }
 
             //Load app state
             fovastApplicationState =
@@ -137,6 +152,13 @@ public class FovastApplication extends SingleFrameApplication {
             //logger.warn("Could not store application state ... ", ex);
         }
 
+        //Save app preferences
+        try {
+            appConfig.saveConfiguration();
+        } catch(Exception ex) {
+            logger.error("Could not save configuration .. ", ex);
+        }
+
         try {
             //TODO: custom code for saving visualizations
             applicationContext.getLocalStorage().save(
@@ -160,6 +182,10 @@ public class FovastApplication extends SingleFrameApplication {
 
     public Cache getDssImageCache() {
         return dssImageCache;
+    }
+
+    public AppConfiguration showConfiguration(JFrame frame) {
+        return appConfig;
     }
 
 }

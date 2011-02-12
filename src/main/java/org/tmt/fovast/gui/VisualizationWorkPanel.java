@@ -471,4 +471,20 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
     public boolean isGridShown() {
         return gridShown;
     }
+
+    void showImageColorsFrame() {
+        displayComp.getImageDisplay().editColors();
+    }
+
+    void showImageCutLevelsFrame() {
+        displayComp.getImageDisplay().editCutLevels();
+    }
+
+    void showImageExtensionsFrame() {
+        displayComp.getImageDisplay().viewFitsExtensions();
+    }
+
+    void showImageKeywordsFrame() {
+        displayComp.getImageDisplay().viewFitsKeywords();
+    }
 }

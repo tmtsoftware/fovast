@@ -47,7 +47,7 @@
         <MenuItem name="Menu.File.ShowCatalogList" implState="todo"/>
         <Separator/>
         <MenuItem name="Menu.File.ProxySettings"/>
-        <MenuItem name="Menu.File.Preferences" implState="todo"/>
+        <MenuItem name="Menu.File.Preferences"/>
         <Separator/>
         <MenuItem name="Menu.File.Exit"/>
     </Menu>
@@ -56,7 +56,13 @@
         <Menu name="Menu.View.Catalogs" implState="todo"/>
         <Menu name="Menu.View.Images" implState="todo"/>
         <MenuItem name="Menu.View.Annotations" type="checkbox" implState="todo"/>
+        <Separator/>
         <MenuItem name="Menu.View.ShowGrid" type="checkbox"/>
+        <MenuItem name="Menu.View.ImageColors"/>
+        <MenuItem name="Menu.View.ImageCutLevels"/>
+        <!--MenuItem name="Menu.View.ImageScaleInterpolation"/-->
+        <MenuItem name="Menu.View.ImageExtensions"/>
+        <MenuItem name="Menu.View.ImageKeywords"/>        
     </Menu>
     <Menu name="Menu.Tabs">
         <!-- 

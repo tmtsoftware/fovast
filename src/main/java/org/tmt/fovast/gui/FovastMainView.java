@@ -14,7 +14,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,6 +52,7 @@ import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;
 import org.tmt.fovast.swing.utils.StatusBar;
+import org.tmt.fovast.util.AppConfiguration;
 import voi.swing.util.ProxySettingsDialog;
 
 /**
@@ -330,8 +330,7 @@ public class FovastMainView extends FrameView implements ChangeListener {
         //TODO: Remember last open directory ..
         //TODO: Use filters  (*.fits, *.fit, All files)
         JFileChooser fc = new JFileChooser();
-        int retVal = fc.showOpenDialog(
-                FovastApplication.getApplication().getMainFrame());
+        int retVal = fc.showOpenDialog(getFrame());
         if(retVal == JFileChooser.APPROVE_OPTION)
 
         //this create a visualization object and updates the app-model with it
@@ -470,33 +469,24 @@ public class FovastMainView extends FrameView implements ChangeListener {
     }
 
     private void updateUIForVisualizationSelected(int selectedVizId) {
+
+        VisualizationPanel activePanel = null;
+
         //update selection on tabbed pane
         Component tabContent = centerTabbedPane.getSelectedComponent();
         if (tabContent instanceof VisualizationPanel &&
                 ((VisualizationPanel) tabContent).getClientProperty(
                 TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(selectedVizId)) {
             //already selected
+            activePanel = (VisualizationPanel)tabContent;
             //nothing to be done
-            if(((VisualizationPanel)tabContent).isGridShown()) {
-                fovastActions.setShowGridMenuSelected(true);
-            }
-            else {
-                fovastActions.setShowGridMenuSelected(false);
-            }
-
         } else {
             for (int i = 0; i < centerTabbedPane.getTabCount(); i++) {
                 JComponent comp = tabComponentList.get(i);
                 if (comp.getClientProperty(
                         TABS_MENUITEM_VIZID_CLIENTPROPERTY).equals(selectedVizId)) {
                     centerTabbedPane.setSelectedComponent(comp);
-                    if(((VisualizationPanel)comp).isGridShown()) {
-                        fovastActions.setShowGridMenuSelected(true);
-                    }
-                    else {
-                        fovastActions.setShowGridMenuSelected(false);
-                    }
-
+                    activePanel = (VisualizationPanel) comp;
                     break;
                 }
             }
@@ -528,6 +518,19 @@ public class FovastMainView extends FrameView implements ChangeListener {
             selectedMenuItem = newMenuItem;
         }
 
+
+        if(activePanel != null) {
+            //select deselect grid menu
+            if((activePanel).isGridShown()) {
+                fovastActions.setShowGridMenuSelected(true);
+            }
+            else {
+                fovastActions.setShowGridMenuSelected(false);
+            }
+
+            //enable disable other menus ..
+            //activePanel.getMenuItems();
+        }
     }
 
     private void updateUIForVisualizationRemoved(int removedVizId) {
@@ -559,6 +562,10 @@ public class FovastMainView extends FrameView implements ChangeListener {
             fovastActions.setSaveVisualizationMenuEnabled(false);
             fovastActions.setCloseVisualizationMenuEnabled(false);
             fovastActions.setShowGridMenuEnabled(false);
+            fovastActions.setShowImageColorsMenuEnabled(false);
+            fovastActions.setShowImageCutLevelsMenuEnabled(false);
+            fovastActions.setShowImageExtensionsMenuEnabled(false);
+            fovastActions.setShowImageKeywordsMenuEnabled(false);
         }
 
         //Stop running tasks of that tab
@@ -620,6 +627,10 @@ public class FovastMainView extends FrameView implements ChangeListener {
         fovastActions.setSaveVisualizationMenuEnabled(true);
         fovastActions.setCloseVisualizationMenuEnabled(true);
         fovastActions.setShowGridMenuEnabled(true);
+        fovastActions.setShowImageColorsMenuEnabled(true);
+        fovastActions.setShowImageCutLevelsMenuEnabled(true);
+        fovastActions.setShowImageExtensionsMenuEnabled(true);
+        fovastActions.setShowImageKeywordsMenuEnabled(true);
     }
 
 //    //TODO: to be removed after fixing bsaf api
@@ -633,10 +644,32 @@ public class FovastMainView extends FrameView implements ChangeListener {
         File appLocalStorage = appContext.getLocalStorage().getDirectory();
         File file = new File(appLocalStorage,
                 resourceMap.getString(FovastApplication.PROXY_SETTINGS_FILE_KEY));
-        ProxySettingsDialog dialog = new ProxySettingsDialog(
-                FovastApplication.getApplication().getMainFrame(), file);
+        ProxySettingsDialog dialog = new ProxySettingsDialog(getFrame(), file);
     }
 
+    void showImageColorsFrame() {
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.showImageColorsFrame();
+    }
+
+    void showImageCutLevelsFrame() {
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.showImageCutLevelsFrame();
+    }
+
+    void showImageExtensionsFrame() {
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.showImageExtensionsFrame();
+    }
+
+    void showImageKeywordsFrame() {
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.showImageKeywordsFrame();
+    }
+
+    void showPreferencesDialog() {
+        FovastApplication.getApplication().showConfiguration(getFrame());
+    }
 
 
 }

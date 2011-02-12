@@ -38,6 +38,16 @@ public class FovastActions {
 
     private static final String SHOW_GRID_MENU_ENABLED = "showGridMenuEnabled";
 
+    private static final String SHOW_IMAGE_COLORS_MENU_ENABLED = "showImageColorsMenuEnabled";
+
+    private static final String SHOW_IMAGE_CUTLEVELS_MENU_ENABLED= "showImageCutLevelsMenuEnabled";
+
+    private static final String SHOW_IMAGE_SCALINGALGORITHM_MENU_ENABLED = "showImageScalingAlgorithmMenuEnabled";
+
+    private static final String SHOW_IMAGE_EXTENSIONS_MENU_ENABLED = "showImageExtensionsMenuEnabled";
+
+    private static final String SHOW_IMAGE_KEYWORDS_MENU_ENABLED = "showImageKeywordsMenuEnabled";
+
     // properties which can be set to disable / enable menu components or buttons
     // tied to various action objects
     private boolean saveVisualizationMenuEnabled = false;
@@ -51,6 +61,16 @@ public class FovastActions {
     private boolean showGridMenuSelected = false;
 
     private boolean showGridMenuEnabled = false;
+
+    private boolean showImageColorsMenuEnabled = false;
+
+    private boolean showImageCutLevelsMenuEnabled = false;
+
+    private boolean showImageScalingAlgorithmMenuEnabled = false;
+
+    private boolean showImageExtensionsMenuEnabled = false;
+
+    private boolean showImageKeywordsMenuEnabled = false;
 
     private FovastMainView mainView;
 
@@ -178,7 +198,7 @@ public class FovastActions {
 
     @Action(name = "Menu.File.Preferences")
     public void showPreferencesDialogAction() {
-        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        mainView.showPreferencesDialog();
     }
 
     @Action(name = "Menu.File.Exit")
@@ -214,8 +234,27 @@ public class FovastActions {
     @Action(name = "Menu.View.ShowGrid", enabledProperty = SHOW_GRID_MENU_ENABLED,
         selectedProperty = SHOW_GRID_MENU_SELECTED)
     public void viewShowGridAction() {
-        //JOptionPane.showMessageDialog(mainComponent, "To be done");
         mainView.toggleGrid();
+    }
+
+    @Action(name = "Menu.View.ImageColors", enabledProperty = SHOW_IMAGE_COLORS_MENU_ENABLED)
+    public void viewImageColorsAction() {
+        mainView.showImageColorsFrame();
+    }
+
+    @Action(name = "Menu.View.ImageCutLevels", enabledProperty = SHOW_IMAGE_CUTLEVELS_MENU_ENABLED)
+    public void viewImageCutLevelsAction() {
+        mainView.showImageCutLevelsFrame();
+    }
+
+    @Action(name = "Menu.View.ImageExtensions", enabledProperty = SHOW_IMAGE_EXTENSIONS_MENU_ENABLED)
+    public void viewImageExtensionsAction() {
+        mainView.showImageExtensionsFrame();
+    }
+
+    @Action(name = "Menu.View.ImageKeywords", enabledProperty = SHOW_IMAGE_KEYWORDS_MENU_ENABLED)
+    public void viewImageKeywordsAction() {
+        mainView.showImageKeywordsFrame();
     }
 
     @Action(name = "Menu.Tabs")
@@ -378,6 +417,48 @@ public class FovastActions {
         this.showGridMenuSelected = newValue;
         firePropertyChangeEvent(SHOW_GRID_MENU_SELECTED, oldValue, newValue);
     }
+
+    public boolean isShowImageColorsMenuEnabled() {
+        return showImageColorsMenuEnabled;
+    }
+
+    public void setShowImageColorsMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showImageColorsMenuEnabled;
+        this.showImageColorsMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_IMAGE_COLORS_MENU_ENABLED, oldValue, newValue);
+    }
+
+    public boolean isShowImageCutLevelsMenuEnabled() {
+        return showImageCutLevelsMenuEnabled;
+    }
+
+    public void setShowImageCutLevelsMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showImageCutLevelsMenuEnabled;
+        this.showImageCutLevelsMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_IMAGE_CUTLEVELS_MENU_ENABLED, oldValue, newValue);
+    }
+
+    public boolean isShowImageExtensionsMenuEnabled() {
+        return showImageExtensionsMenuEnabled;
+    }
+
+    public void setShowImageExtensionsMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showImageExtensionsMenuEnabled;
+        this.showImageExtensionsMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_IMAGE_EXTENSIONS_MENU_ENABLED, oldValue, newValue);
+    }
+
+    public boolean isShowImageKeywordsMenuEnabled() {
+        return showImageKeywordsMenuEnabled;
+    }
+
+    public void setShowImageKeywordsMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showImageKeywordsMenuEnabled;
+        this.showImageKeywordsMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_IMAGE_KEYWORDS_MENU_ENABLED, oldValue, newValue);
+    }
+
+
 
     public boolean isShowDssBackgroundMenuSelected() {
         return showDssBackgroundMenuSelected;

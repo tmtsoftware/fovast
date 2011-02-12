@@ -98,4 +98,20 @@ public class VisualizationPanel extends JPanel {
     public boolean isGridShown() {
         return workPanel.isGridShown();
     }
+
+    void showImageColorsFrame() {
+        workPanel.showImageColorsFrame();
+    }
+
+    void showImageCutLevelsFrame() {
+        workPanel.showImageCutLevelsFrame();
+    }
+
+    void showImageExtensionsFrame() {
+        workPanel.showImageExtensionsFrame();
+    }
+
+    void showImageKeywordsFrame() {
+        workPanel.showImageKeywordsFrame();
+    }
 }
