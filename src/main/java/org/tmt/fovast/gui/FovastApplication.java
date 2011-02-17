@@ -6,7 +6,6 @@
  */
 package org.tmt.fovast.gui;
 
-import javax.swing.JFrame;
 import org.tmt.fovast.util.Cache;
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +16,6 @@ import org.jdesktop.application.ResourceMap;
 import org.jdesktop.application.SingleFrameApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.controller.FovastApplicationController;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.util.AppConfiguration;
 import voi.swing.util.ProxySettingsDialog;
@@ -124,13 +122,8 @@ public class FovastApplication extends SingleFrameApplication {
     @Override
     protected void startup() {
 
-        FovastApplicationController fovastMainFrameController =
-                new FovastApplicationController(this);
-        fovastMainFrameController.setFovastApplicationState(fovastApplicationState);
-
         //initialize main frame for the app
-        FovastMainView mainView = new FovastMainView(fovastMainFrameController);
-        mainView.initializeFromState(fovastApplicationState);
+        FovastMainView mainView = new FovastMainView();
         
         show(mainView);
 
