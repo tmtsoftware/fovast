@@ -128,12 +128,12 @@ public class FovastActions {
 
     @Action(name = "Menu.File.LoadFitsImage")
     public void loadFitsImageAction() {
-        mainView.createNewVisualizationFromImageFile();
+        mainView.createNewVisualizationFromImageFile(true);
     }
 
     @Action(name = "Menu.File.LoadFitsImageIntoActiveVisualization")
     public void loadFitsImageActionIntoActiveVisualization() {
-        mainView.loadImageFileIntoActiveVisualization();
+        mainView.createNewVisualizationFromImageFile(false);
     }
 
     @Action(name = "Menu.File.LoadFitsImageFromVoArchives")
