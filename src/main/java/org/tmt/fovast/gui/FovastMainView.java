@@ -7,7 +7,6 @@
 package org.tmt.fovast.gui;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import javax.swing.event.ChangeEvent;
 import nom.tam.fits.FitsException;
 import java.awt.BorderLayout;
@@ -19,7 +18,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import javax.security.auth.login.Configuration;
 
 import javax.swing.ActionMap;
 import javax.swing.JButton;
@@ -47,8 +45,6 @@ import org.jdesktop.application.FrameView;
 import org.jdesktop.application.ResourceMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.controller.FovastApplicationController;
-import org.tmt.fovast.controller.VisualizationController;
 import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
@@ -68,6 +64,9 @@ public class FovastMainView extends FrameView implements ChangeListener {
     private static final String baseKey = FovastMainView.class.getName();
 
     private static final String keyPrefix = baseKey + ".";
+
+    private static final String UNSAVED_VIS_PANEL_PREFIX_KEY =
+            keyPrefix + "UnsavedVisualizationPanelPrefix";
 
     private static final String TAB_SAVE_MESSAGE_KEY =
             keyPrefix + "TabSaveMessage";
@@ -107,7 +106,10 @@ public class FovastMainView extends FrameView implements ChangeListener {
 
     private ResourceMap resourceMap;
 
-    private FovastApplicationController controller;
+    private FovastApplicationState fovastState;
+
+    //Id given to the visualization in this state
+    private int newVisualizationId = 0;
 
     private JMenuBar menuBar = new JMenuBar();
 
@@ -138,19 +140,20 @@ public class FovastMainView extends FrameView implements ChangeListener {
     
     private int openCount = 0;
 
-    public FovastMainView(FovastApplicationController controller) {
+    public FovastMainView() {
+        this(new FovastApplicationState());
+    }
+
+    public FovastMainView(FovastApplicationState fovastState) {
         super(FovastApplication.getApplication());
         this.appContext = FovastApplication.getApplication().getContext();
         this.resourceMap = appContext.getResourceMap(FovastMainView.class);
-        //controller object is needed for making state changes on user actions on UI
-        this.controller = controller;
+
+        this.fovastState = fovastState;
 
         initComponents();
 
-        //UI needs to register as listener to controller for listening to
-        //state changes indirectly
-        controller.addChangeListener(this);
-
+        fovastState.addChangeListener(this);
     }
 
     private void initComponents() {
@@ -199,7 +202,8 @@ public class FovastMainView extends FrameView implements ChangeListener {
                         if (comp instanceof VisualizationPanel) {
                             Integer vizId =
                                     (Integer) comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY);
-                            controller.selectVisualization(vizId);
+                            fovastState.selectVisualizationById(vizId);
+                            updateUIForVisualizationSelected(vizId);
                         }
                     }
                 });
@@ -319,16 +323,66 @@ public class FovastMainView extends FrameView implements ChangeListener {
         statusBar = new StatusBar();
     }
 
-    public void initializeFromState(FovastApplicationState fovastApplicationState) {
-        //TODO: Load from saved state ..
+    void createNewVisualization(File imageFile) {
+
+        //Decide name for the visualization
+        //TODO: As of now we check the open visualizations
+        //and accordingly decide the name
+        //If we will be automatically storing the visualizations at a specified
+        //place under user home as gemini OT does .. then we have to search all
+        //visualizations saved in that dir and not just the ones which are open.
+        ArrayList<VisualizationState> visualizations =
+                fovastState.getVisualizations();
+        String newVisPanelPrefix = appContext.getResourceMap().getString(
+                UNSAVED_VIS_PANEL_PREFIX_KEY);
+        String prefixToCheck = newVisPanelPrefix;
+        int ct = 0;
+        boolean prefixCheckFlag = false;
+        do {
+            int i = 0;
+            for (; i < visualizations.size(); i++) {
+                if (fovastState.getVisualizationFileName(
+                        visualizations.get(i)).equals(prefixToCheck)) {
+                    prefixToCheck = newVisPanelPrefix + " (" + ++ct + ")";
+                    break;
+                }
+            }
+            if (i == visualizations.size()) {
+                prefixCheckFlag = true;
+            }
+        } while (!prefixCheckFlag);
+
+        //create visualization and add to model
+        VisualizationState visualization = new VisualizationState();
+        fovastState.addVisualization(visualization, newVisualizationId++,
+                prefixToCheck);
+        int vizId = fovastState.getVisualizationId(visualization);
+        updateUIForVisualizationAdded(visualization, vizId,
+                fovastState.getVisualizationFileName(visualization));
+        
+        //load image and set target to image center
+        VisualizationPanel vPanel = getVisualizationPanel(vizId);
+        if(imageFile != null) {
+            try {
+                vPanel.setImageAndCenter(imageFile.getAbsolutePath());
+            } catch (IOException ex) {
+                logger.error("Could not load image", ex);
+                JOptionPane.showMessageDialog(vPanel,
+                                    "DSS image could not be loaded");
+            } catch (FitsException ex) {
+                logger.error("Could not load image", ex);
+                 JOptionPane.showMessageDialog(vPanel,
+                                    "DSS image could not be loaded");
+            }
+        }
+
+
+        //we donot return anything back to the view that calls the method ..
+        //view should have registered as listener to the dispatcher (which is controller in fovast)
+        //return visualization;
     }
 
-    void createNewVisualization() {
-        //this create a visualization object and updates the app-model with it 
-        controller.createNewVisualization();
-    }
-
-    void createNewVisualizationFromImageFile() {
+    void createNewVisualizationFromImageFile(boolean newPanel) {
         //TODO: Use filters  (*.fits, *.fit, All files)
         AppConfiguration config =
                 FovastApplication.getApplication().getConfiguration();
@@ -336,18 +390,31 @@ public class FovastMainView extends FrameView implements ChangeListener {
         JFileChooser fc = new JFileChooser(dirToOpen);
         int retVal = fc.showOpenDialog(getFrame());
         if(retVal == JFileChooser.APPROVE_OPTION) {
-            config.setFileDialogDirProperty(fc.getSelectedFile().getParent());
-            //this creates a visualization object and updates the app-model with it
-            controller.createNewVisualization(fc.getSelectedFile());
+            try {
+                config.setFileDialogDirProperty(fc.getSelectedFile().getParent());
+                if(openCount == 0 || newPanel) {
+                    createNewVisualization(fc.getSelectedFile());
+                }
+                else {
+                    //this creates a visualization object and updates the app-model with it
+                    getActiveVisPanel().setImageAndCenter(fc.getSelectedFile().getAbsolutePath());
+                }
+                //controller.createNewVisualization(fc.getSelectedFile());
+            } catch (Exception ex) {
+                logger.error("Could not load image", ex);
+            }
         }
     }
 
     private boolean closeVisPanel(int index) {
         JComponent comp = tabComponentList.get(index);
-        if(comp instanceof VisualizationPanel)
-            controller.removeVisualization((Integer)
-                    comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY));
-        //TODO: close happens in the lister .. think of this again
+        if(comp instanceof VisualizationPanel) {
+            int vizId = (Integer)comp.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY);
+            fovastState.removeVisualization(vizId);
+            updateUIForVisualizationRemoved(vizId);
+        }
+        //Note that close happens in updateUIForVisualizationRemoved() call
+        //So this should always return false.
         return false;
 //TODO: implement properly .. called on any tab close
 //        VisualizationPanel visPanel = visPanelList.get(index);
@@ -437,14 +504,15 @@ public class FovastMainView extends FrameView implements ChangeListener {
 
         int visualizationId = (Integer) menuItem.getClientProperty(
                 TABS_MENUITEM_VIZID_CLIENTPROPERTY);
-        controller.selectVisualization(visualizationId);
+        fovastState.selectVisualizationById(visualizationId);
+        updateUIForVisualizationSelected(visualizationId);
     }
 
     @Override
     public void update(Object source, String eventKey, HashMap<String, Object> args) {
         //handle new vis
-        if (source == controller && eventKey ==
-                FovastApplicationState.VISUALIZATION_ADDED_EVENT_KEY) {
+        if (source == fovastState && eventKey.equals(
+                FovastApplicationState.VISUALIZATION_ADDED_EVENT_KEY)) {
             VisualizationState viz =
                     (VisualizationState) args.get(FovastApplicationState.VISUALIZATION_ARG_KEY);
             String fileName =
@@ -452,17 +520,17 @@ public class FovastMainView extends FrameView implements ChangeListener {
             int vizId =
                     (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
 
-            File imageFile = (File) args.get(FovastApplicationState.VISUALIZATION_IMAGE_ARG_KEY);
+            //File imageFile = (File) args.get(FovastApplicationState.VISUALIZATION_IMAGE_ARG_KEY);
 
-            updateUIForVisualizationAdded(viz, vizId, fileName, imageFile);
+            updateUIForVisualizationAdded(viz, vizId, fileName);
 
-        } else if (source == controller && eventKey ==
-                FovastApplicationState.VISUALIZATION_REMOVED_EVENT_KEY) {
+        } else if (source == fovastState && eventKey.equals(
+                FovastApplicationState.VISUALIZATION_REMOVED_EVENT_KEY)) {
             int selectedVizId =
                     (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
             updateUIForVisualizationRemoved(selectedVizId);
-        } else if (source == controller && eventKey ==
-                FovastApplicationState.VISUALIZATION_SELECTED_EVENT_KEY) {
+        } else if (source == fovastState && eventKey.equals(
+                FovastApplicationState.VISUALIZATION_SELECTED_EVENT_KEY)) {
             int selectedVizId =
                     (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
             updateUIForVisualizationSelected(selectedVizId);
@@ -560,33 +628,33 @@ public class FovastMainView extends FrameView implements ChangeListener {
             }
         }
         
-        //TODO: finding if visualization tabs are open
-        openCount--;
-        if(openCount == 0) {
-            fovastActions.setSaveVisualizationMenuEnabled(false);
-            fovastActions.setCloseVisualizationMenuEnabled(false);
-            fovastActions.setShowGridMenuEnabled(false);
-            fovastActions.setShowImageColorsMenuEnabled(false);
-            fovastActions.setShowImageCutLevelsMenuEnabled(false);
-            fovastActions.setShowImageExtensionsMenuEnabled(false);
-            fovastActions.setShowImageKeywordsMenuEnabled(false);
-        }
-
         //Stop running tasks of that tab
         //TODO: Should this be done by a listener
         if(vPanelRemoved != null) {
             vPanelRemoved.stopRunningTasks();
+
+            //if all panels are closed .. 
+            openCount--;
+            if(openCount == 0) {
+                fovastActions.setSaveVisualizationMenuEnabled(false);
+                fovastActions.setCloseVisualizationMenuEnabled(false);
+                fovastActions.setShowGridMenuEnabled(false);
+                fovastActions.setShowImageColorsMenuEnabled(false);
+                fovastActions.setShowImageCutLevelsMenuEnabled(false);
+                fovastActions.setShowImageExtensionsMenuEnabled(false);
+                fovastActions.setShowImageKeywordsMenuEnabled(false);
+            }
         }
     }
 
     private void updateUIForVisualizationAdded(VisualizationState visualization,
-            int vizId, String fileName, File imageFile) {
+            int vizId, String fileName) {
+        //if already added nothing to do.
+        if(getVisualizationPanel(vizId) != null)
+            return;
+        
         //TODO: All this has to be done on viz-open from menu
-        VisualizationController visController = new VisualizationController();
-        visController.setState(visualization);
-
-        VisualizationPanel visPanel = new VisualizationPanel(appContext, visController);
-        visPanel.initializeFromState(visualization);
+        VisualizationPanel visPanel = new VisualizationPanel(appContext, visualization);
 
         String visPanelLabel = fileName;
         if (fileName.contains(File.separator)) {
@@ -610,21 +678,6 @@ public class FovastMainView extends FrameView implements ChangeListener {
 
         //increase openCount
         openCount++;
-
-        //load image and set target to image center
-        if(imageFile != null) {
-            try {
-                visPanel.setImageAndCenter(imageFile.getAbsolutePath());
-            } catch (IOException ex) {
-                logger.error("Could not load image", ex);
-                JOptionPane.showMessageDialog(visPanel,
-                                    "DSS image could not be loaded");
-            } catch (FitsException ex) {
-                logger.error("Could not load image", ex);
-                 JOptionPane.showMessageDialog(visPanel,
-                                    "DSS image could not be loaded");
-            }
-        }
 
         //enable showGrid here ..
         //enable .. the save viz menuitem
@@ -676,28 +729,20 @@ public class FovastMainView extends FrameView implements ChangeListener {
                 getConfiguration().showConfiguration(getFrame());
     }
 
-    void loadImageFileIntoActiveVisualization() {
-        if(openCount == 0) {
-            createNewVisualizationFromImageFile();
-        }
-        else {
-            //TODO: Use filters  (*.fits, *.fit, All files)
-            AppConfiguration config =
-                    FovastApplication.getApplication().getConfiguration();
-            String dirToOpen = config.getFileDialogDirProperty();
-            JFileChooser fc = new JFileChooser(dirToOpen);
-            int retVal = fc.showOpenDialog(getFrame());
-            if(retVal == JFileChooser.APPROVE_OPTION) {
-                try {
-                    config.setFileDialogDirProperty(fc.getSelectedFile().getParent());
-                    //this creates a visualization object and updates the app-model with it
-                    getActiveVisPanel().setImageAndCenter(fc.getSelectedFile().getAbsolutePath());
-                    //controller.createNewVisualization(fc.getSelectedFile());
-                } catch (Exception ex) {
-                    logger.error("Could not load image", ex);
+    void createNewVisualization() {
+        createNewVisualization(null);
+    }
+
+    private VisualizationPanel getVisualizationPanel(int vizId) {
+        for(int i=0; i<tabComponentList.size(); i++) {
+            if(tabComponentList.get(i) instanceof VisualizationPanel) {
+                VisualizationPanel vPanel = (VisualizationPanel)tabComponentList.get(i);
+                if(vizId == vPanel.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY)) {
+                    return vPanel;
                 }
             }
         }
+        return null;
     }
 
 

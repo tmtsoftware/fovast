@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.VisualizationState;
-import org.tmt.fovast.controller.VisualizationController;
 import org.tmt.fovast.util.Cache;
 import org.tmt.fovast.vo.client.SiaClient;
 
@@ -56,7 +55,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private ApplicationContext appContext;
 
-    private final VisualizationController controller;
+    private final VisualizationState visualization;
 
     private ImageDisplayControl displayComp;
 
@@ -75,13 +74,18 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     private boolean gridShown = false;
 
+    private boolean inSetTargetEvent = false;
+
     public VisualizationWorkPanel(ApplicationContext appContext,
-            VisualizationController controller) {
+            VisualizationState visualization) {
         this.appContext = appContext;
-        this.controller = controller;
+        this.visualization = visualization;
+
+        //TODO: initialize from viz
+        
         initComponents();
 
-        controller.addChangeListener(this);
+        visualization.addChangeListener(this);
     }
 
     private void initComponents() {
@@ -117,17 +121,17 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
 
     @Override
     public void update(Object source, String eventKey, HashMap<String, Object> args) {
-        if (source.equals(controller) && eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
+        if (source.equals(visualization) && eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
 
             Double ra = (Double) args.get(VisualizationState.TARGET_RA_ARG_KEY);
             Double dec = (Double) args.get(VisualizationState.TARGET_DEC_ARG_KEY);
 
-            loadImage(ra, dec);
+            if(!inSetTargetEvent)
+                loadImage(ra, dec);            
 
-        } else if (source.equals(controller) && eventKey.equals(VisualizationState.SHOW_TARGET_EVENT_KEY)) {
+        } else if (source.equals(visualization) && eventKey.equals(VisualizationState.SHOW_TARGET_EVENT_KEY)) {
             Boolean show = (Boolean) args.get(VisualizationState.SHOW_TARGET_ARG_KEY);
             showTarget(show);
-
         } else {
             //TODO: this msg should be from resource bundle (should be parameterised msg
             logger.error("Unknown event key : " + eventKey +
@@ -287,6 +291,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         if(targetSet) {
             if(targetMarker != null) {
                 canvasGraphics.remove(targetMarker);
+                targetMarker = null;
                 canvasGraphics.repaint();
             }
             if(show) {
@@ -432,6 +437,16 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                                         Point2D.Double centerPixel = (Point2D.Double) converter.getWCSCenter();
                                         targetRa = centerPixel.x;
                                         targetDec = centerPixel.y;
+                                        try {
+                                            inSetTargetEvent = true;
+                                            visualization.setTarget(targetRa, targetDec);
+                                            if(targetMarker != null)
+                                                showTarget(true);
+                                        }
+                                        finally {
+                                            inSetTargetEvent = false;
+                                        }
+
 //                                      marker is automatically shown when target cb is checked on control panel
 //                                        //makeing clone
 //                                        centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);

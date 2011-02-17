@@ -31,7 +31,7 @@ public class FovastApplicationState extends StateSupport {
 
     public final static String VISUALIZATION_ID_ARG_KEY = "visualizationId";
 
-    public final static String VISUALIZATION_IMAGE_ARG_KEY = "imageName";
+//    public final static String VISUALIZATION_IMAGE_ARG_KEY = "imageName";
 
     private ArrayList<VisualizationState> visualizations = new ArrayList<VisualizationState>();
 
@@ -65,22 +65,22 @@ public class FovastApplicationState extends StateSupport {
         }
     }
 
-    public void addVisualization(VisualizationState visualization, int vizId, String fileName,
-            File imageFile) {
-        if (!visualizations.contains(visualization)) {
-            visualizations.add(visualization);
-            visualizationIdMap.put(visualization, new Integer(vizId));
-            idVisualizationMap.put(new Integer(vizId), visualization);
-            visualizationFileMap.put(visualization, fileName);
-
-            HashMap<String, Object> args = new HashMap<String, Object>();
-            args.put(VISUALIZATION_ARG_KEY, visualization);
-            args.put(VISUALIZATION_ID_ARG_KEY, vizId);
-            args.put(VISUALIZATION_FILENAME_ARG_KEY, fileName);
-            args.put(VISUALIZATION_IMAGE_ARG_KEY, imageFile);
-            changeSupport.fireChange(this, VISUALIZATION_ADDED_EVENT_KEY, args);
-        }
-    }
+//    public void addVisualization(VisualizationState visualization, int vizId, String fileName,
+//            File imageFile) {
+//        if (!visualizations.contains(visualization)) {
+//            visualizations.add(visualization);
+//            visualizationIdMap.put(visualization, new Integer(vizId));
+//            idVisualizationMap.put(new Integer(vizId), visualization);
+//            visualizationFileMap.put(visualization, fileName);
+//
+//            HashMap<String, Object> args = new HashMap<String, Object>();
+//            args.put(VISUALIZATION_ARG_KEY, visualization);
+//            args.put(VISUALIZATION_ID_ARG_KEY, vizId);
+//            args.put(VISUALIZATION_FILENAME_ARG_KEY, fileName);
+//            args.put(VISUALIZATION_IMAGE_ARG_KEY, imageFile);
+//            changeSupport.fireChange(this, VISUALIZATION_ADDED_EVENT_KEY, args);
+//        }
+//    }
 
     public void removeVisualization(int vizId) {
         VisualizationState vis = idVisualizationMap.get((Integer)vizId);

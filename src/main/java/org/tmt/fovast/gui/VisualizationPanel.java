@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
-import org.tmt.fovast.controller.VisualizationController;
 import org.tmt.fovast.state.VisualizationState;
 
 /**
@@ -26,34 +25,34 @@ public class VisualizationPanel extends JPanel {
 
     private ApplicationContext appContext;
 
+    private VisualizationState visualization;
+    
     private VisualizationControlPanel controlPanel;
 
     private VisualizationWorkPanel workPanel;
 
-    private VisualizationController controller;
-
-    public VisualizationWorkPanel getWorkPanel()
-    {
-        return workPanel;
-    }
     public void setWorkPanel (VisualizationWorkPanel workPanel)
     {
         this.workPanel=workPanel;
     }
 
     public VisualizationPanel(ApplicationContext appContext,
-            VisualizationController visController) {
+            VisualizationState visualization) {
         this.appContext = appContext;
-        this.controller = visController;
+        this.visualization = visualization;
+
         initComponents();
+
+        //TODO: If the visualization is an old one (saved one)
+        //we have to setup workpanel and control panel appropriately
     }
 
     private void initComponents() {
         setLayout(new BorderLayout());
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        controlPanel = new VisualizationControlPanel(appContext, controller);
-        workPanel = new VisualizationWorkPanel(appContext, controller);
+        controlPanel = new VisualizationControlPanel(appContext, visualization);
+        workPanel = new VisualizationWorkPanel(appContext, visualization);
         workPanel.addVisualizationWorkPanelListener(controlPanel);
 
         splitPane.setLeftComponent(controlPanel);
@@ -79,32 +78,27 @@ public class VisualizationPanel extends JPanel {
         return true;
     }
 
-    public void initializeFromState(VisualizationState visualization) {
-        //TODO: load visualization to panel
-        //throw new UnsupportedOperationException("Not yet implemented");
-    }
-
     void stopRunningTasks() {
         workPanel.stopRunningTasks();
     }
 
     void setImageAndCenter(String fitsImage) throws IOException, FitsException {
         workPanel.setImage(fitsImage);
-        //these invoke laters is an artifact of the swing utilities
-        //to setImage on ImageDisplay
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        Point2D.Double center = workPanel.getCenter();                        
-                        controller.setTarget(center.x, center.y);
-                        //controller.showTarget(true);
-                        controlPanel.setCenter(center);
-                    }
-                });
-            }
-        });
+//        //these invoke laters is an artifact of the swing utilities
+//        //to setImage on ImageDisplay
+//        SwingUtilities.invokeLater(new Runnable() {
+//            public void run() {
+//                SwingUtilities.invokeLater(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Point2D.Double center = workPanel.getCenter();
+//                        controller.setTarget(center.x, center.y);
+//                        //controller.showTarget(true);
+//                        controlPanel.setCenter(center);
+//                    }
+//                });
+//            }
+//        });
     }
 
     public void toggleGrid(){

@@ -40,7 +40,6 @@ import org.jdesktop.application.ApplicationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.mvc.ChangeListener;
-import org.tmt.fovast.controller.VisualizationController;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
 
@@ -79,7 +78,7 @@ public class VisualizationControlPanel extends JPanel
 
     private JPanel instrumentConfigPanel;
     
-    private final VisualizationController controller;
+    private VisualizationState visualization;
 
     private NumberFormat imageLoadBytesFormat;
 
@@ -96,13 +95,16 @@ public class VisualizationControlPanel extends JPanel
     private JLabel decAfterLabel;
 
     public VisualizationControlPanel(ApplicationContext appContext,
-            VisualizationController controller) {
+            VisualizationState visualizationState) {
         this.appContext = appContext;
-        this.controller = controller;
-        //actionMap = appContext.getActionMap(new VisualizationActions(this));
+        this.visualization = visualizationState;
+
+
+        //TODO: Setup control panel if the visualization is an old one.
+
         initComponents();
 
-        controller.addChangeListener(this);
+        visualization.addChangeListener(this);
 
         //other initialization
         imageLoadBytesFormat = NumberFormat.getInstance();
@@ -510,16 +512,15 @@ public class VisualizationControlPanel extends JPanel
             return;
         }
 
-        controller.setTarget(raDeg, decDeg, raTextField.getText().trim(),
+        visualization.setTarget(raDeg, decDeg, raTextField.getText().trim(),
+                decTextField.getText().trim());
+        updateUIForSetTarget(raDeg, decDeg, raTextField.getText().trim(),
                 decTextField.getText().trim());
         
-        if(showTargetCheckbox.isSelected()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                   //controller.showTarget(true);
-                }
-            });
-        }
+        //if(showTargetCheckbox.isSelected()) {
+            visualization.showTarget(true);
+            updateUIForShowTarget(true);
+        //}
     }
 
     private void enableDisableShowTargetCheckBox(boolean enable) {
@@ -528,29 +529,26 @@ public class VisualizationControlPanel extends JPanel
     }
 
     public void showTargetCbCliked() {
-        controller.showTarget(showTargetCheckbox.isSelected());
+        boolean show = showTargetCheckbox.isSelected();
+        visualization.showTarget(show);
+        updateUIForShowTarget(show);
     }
 
     @Override
     public void update(Object source, String eventKey, HashMap<String, Object> args) {
 
-        if (source.equals(controller)) {
+        if (source.equals(visualization)) {
             if (eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
                 Double ra = (Double) args.get(VisualizationState.TARGET_RA_ARG_KEY);
                 Double dec = (Double) args.get(VisualizationState.TARGET_DEC_ARG_KEY);
                 String raEntered = (String) args.get(VisualizationState.TARGET_RA_ENTERED_ARG_KEY);
                 String decEntered = (String) args.get(VisualizationState.TARGET_DEC_ENTERED_ARG_KEY);
 
-                //TODO: parameterised message should come from resource map
-                //TODO: This being event handler we cannot rely on text field values
-                // RA, DEC format should be preserved in the model.
-                if(raEntered == null && decEntered == null)
-                    targetLabel.setText("Target: " + ra + ",  " + dec);
-                else
-                    targetLabel.setText("Target: " + raEntered + ",  " + decEntered);
-                enableDisableShowTargetCheckBox(true);
-                //also show the marker 
-                showTargetCheckbox.setSelected(true);
+                updateUIForSetTarget(ra, dec, raEntered, decEntered);
+            }
+            else if(eventKey.equals(VisualizationState.SHOW_TARGET_EVENT_KEY)) {
+                Boolean show = (Boolean) args.get(VisualizationState.SHOW_TARGET_ARG_KEY);
+                updateUIForShowTarget(show);
             }
         } else {
             logger.error("Event from source uninterested in: " +
@@ -684,19 +682,43 @@ public class VisualizationControlPanel extends JPanel
         }
     }
 
-    /**
-     * As of also enables and selects the target checkbox
-     * 
-     * @param center
-     */
-    public void setCenter(Point2D.Double center){
-        showTargetLabel.setEnabled(true);
-        showTargetCheckbox.setEnabled(true);    
-        showTargetCheckbox.setSelected(true);
-        stCbChanged=true;
-        targetLabel.setText("Target: " + center.x + ",  " + center.y);
+    private void updateUIForSetTarget(Double ra, Double dec, String raEntered,
+            String decEntered) {
+        //TODO: parameterised message should come from resource map
+        //TODO: This being event handler we cannot rely on text field values
+        // RA, DEC format should be preserved in the model.
+        if(raEntered == null && decEntered == null)
+            targetLabel.setText("Target: " + ra + ",  " + dec);
+        else
+            targetLabel.setText("Target: " + raEntered + ",  " + decEntered);
+        enableDisableShowTargetCheckBox(true);
+        //also show the marker
+        //showTargetCheckbox.setSelected(true);
     }
-    
+
+    private void updateUIForShowTarget(Boolean show) {
+        if(show) {
+            if(!showTargetCheckbox.isSelected())
+                showTargetCheckbox.setSelected(true);
+        } else {
+            if(showTargetCheckbox.isSelected())
+                showTargetCheckbox.setSelected(false);
+        }
+    }
+
+//    /**
+//     * As of also enables and selects the target checkbox
+//     *
+//     * @param center
+//     */
+//    public void setCenter(Point2D.Double center){
+//        showTargetLabel.setEnabled(true);
+//        showTargetCheckbox.setEnabled(true);
+//        showTargetCheckbox.setSelected(true);
+//        stCbChanged=true;
+//        targetLabel.setText("Target: " + center.x + ",  " + center.y);
+//    }
+//
 }
 
 
