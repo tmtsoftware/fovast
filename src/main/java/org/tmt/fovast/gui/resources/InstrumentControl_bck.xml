@@ -9,39 +9,49 @@
         instrument config options. It also has info on what config option
         depends on what other config option.
         
-        Config elements will be shown as a JTree
-        Display elements are also to be shown in the above tree but with an option
-            to show them or hide them.
-        Config elements are the settings to be done on the telescope
-        DisplayElements are purely for visualization purpose. They can be saved
-            in FOVAST for restoring the app to exactly same state where it was
-            left.
-        For DisplayElements showByDefault="true" is the default setting
-        For ConfigElements selectByDefault if true indicates that the option has
-            to be auto-set as and when the parent element is set. By default this
-            is false
-        For a config option if no Values child is present, then its of boolean type
-       
+        This XML doesnot have any look and feel info of various instrument
+        config choices in FOVAST. For now we will just show a JTree of config
+        options with checkboxes or radio buttons with tree nodes.
+
+        Currently the following actions are possible
+            - Select a config option
+            - Show/Hide some visualization related to the config option
+            - If parent config's visualization is unshown all child visualizations
+              are unshown.
+            - If parent config is unselected all child config are unselected.
+              (implementation might not do that but simply disregard child element
+              settings .. the next time parent element is selected the last prev
+              config selected can be defaulted to.)
+
         Nesting of ConfigOptions indicates a parent child relation.
-        A ConfigOption is enabled in GUI only if the parent config option is enabled
-        Value of a config option only makes sense if its enabled and if its parent
-        is set to true. (i,e parent config options are of boolean type)
+        
 -->
 
 <FovastInstrumentGuiConfig>
     
-    <Instrument id="iris" label="IRIS">
+    <ConfigOption id="iris" label="IRIS">
+        
+        <!-- select IRIS instrument for observation -->
+        <action type="select" />
 
-        <ConfigOption id="iris.mode" label="Mode" selectByDefault="true" type="string">
+        <!-- this would disable all IRIS related visualization -->
+        <action type="show" />
+        
+        <ConfigOption id="iris.mode" label="Mode">
 
             <!-- Possible values for this config
-            and selectMode="mutuallyExclusive" indicates only one of the values
-            can be set and is the default selectMode -->
-            <Values selectMode="mutuallyExclusive">
-                <Value default="true">Imaging</Value>
+                and type="mutuallyExclusive" indicates only one of the values
+                can be set -->
+            <Values type="mutuallyExclusive">
+                <Value>Imaging</Value>
                 <Value>IFU</Value>
             </Values>
             
+            <!-- In presence of values select action indicates that one of the
+                values has to be selected -->
+            <action type="select" />
+            <action type="show" />
+
             <!--
                 Detector is 17x17 arc seconds in size
                 Spectrograph is 18 arc secs off center to right 
@@ -70,76 +80,58 @@ Inspection of the visualization of the IRIS FoV should show the selected
 “sweet spot”.
 Tests:
             -->
-            <DisplayElement id="iris.sciencedetector" showByDefault="true"
-                label="IRIS detector">
+            <ConfigOption id="iris.sciencedetector"  label="Mode">
 
                 <EnableConditions>
                     <condition element="iris.mode" value="Imaging" />
                 </EnableConditions>
 
-            </DisplayElement>
+                <DisableConditions />
 
-            <ConfigOption id="iris.ifuimager" type="string"
-                label="IFU Imager">
+                <action type="show" />
+                <action type="select" />
+
+            </ConfigOption>
+
+            <ConfigOption id="iris.ifuimager">
 
                 <EnableConditions>
                     <condition element="iris.mode" value="IFU" />
                 </EnableConditions>
+
+                <DisableConditions />
+
+                <action type="show" />
+                <action type="select" />
 
                 <Values>
                     <Value>Lenslet</Value>
                     <Value>Slicer</Value>
                 </Values>
 
-                <DisplayElement id="iris.ifuimager.lenslet">
-
-                    <EnableConditions>
-                        <condition element="iris.ifuimager" value="Lenslet" />
-                    </EnableConditions>
-
-                </DisplayElement>
-
-                <DisplayElement id="iris.ifuimager.lenslet">
-
-                    <EnableConditions>
-                        <condition element="iris.ifuimager" value="Slicer" />
-                    </EnableConditions>
-
-                </DisplayElement>
-
             </ConfigOption>
 
-            <!-- Note that this is actually not required but wrapping all probes
-            under one config so that GUI also has all probes under a probe node-->
-            <ConfigOption id="iris.oiwfs" label="OIWFS Probes">
-
+            <ConfigOption id="iris.oiwfs">
                 <!-- For each probe we have to store the probe tip RA, DEC 
                     Can select stars beneath it.
                 -->
-                <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true"
-                    type="position" captured="true" captureElement="iris.oiwfs.probe1.arm"
-                    label="Probe1">
+                <ConfigOption id="iris.oiwfs.probe1">
 
-                   <DisplayElement id="iris.oiwfs.probe1.arm" label="Probe1 arm">
-
-                   </DisplayElement>
-
-                   <DisplayElement id="iris.oiwfs.probe1.limits"  label="Probe1 limits">
+                   <DisplayElement id="iris.oiwfs.probe1.limits">
                         
                    </DisplayElement>
 
-                   <DisplayElement id="iris.oiwfs.probe1.vignettingLimits"
-                     label="Probe1 vignetting limits">
+                   <DisplayElement id="iris.oiwfs.probe1.vignettingLimits">
 
                    </DisplayElement>
 
                 </ConfigOption>
 
-                <ConfigOption id="iris.oiwfs.probe2" selectByDefault="true">
+                <ConfigOption id="iris.oiwfs.probe2">
 
                 </ConfigOption>
 
-                <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
+                <ConfigOption id="iris.oiwfs.probe3">
 
                 </ConfigOption>
 
@@ -149,16 +141,16 @@ Tests:
         </ConfigOption>
 
         
-    </Instrument>
+    </ConfigOption>
     
-    <Instrument id="nfiraos" >
+    <ConfigOption id="nfiraos" >
         <EnableConditions>
             <!-- NFIRAOS elements should be selected and shown only when an
             instrument which is to be mount on it is selected. IRIS is one such
             instrument -->
             <!-- By default type is "xor" -->
             <Condition type="or">
-                <Condition element="iris" value="true"></Condition>
+                <Condition element="iris" selected="true"></Condition>
                 <!-- condition tags for other NFIRAOS mounted instruments to come -->
             </Condition>
         </EnableConditions>
@@ -183,8 +175,10 @@ Tests:
         -->
         <ConfigOption id="nfiraos.twfs">
 
-            <DisplayElement id="nfiraos.twfs.detector">
-            </DisplayElement>
+
+            <ConfigOption id="nfiraos.twfs.detector">
+
+            </ConfigOption>
 
         </ConfigOption>
 
@@ -202,6 +196,6 @@ Tests:
 
         </DisplayElement>
 
-    </Instrument>
+    </ConfigOption>
     
 </FovastInstrumentGuiConfig>

@@ -64,7 +64,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
     private ArrayList<VisualizationWorkPanelListener> listeners =
             new ArrayList<VisualizationWorkPanelListener>();
 
-    private boolean targetSet = true;
+    private boolean targetSet = false;
 
     private Double targetRa = 0.0;
 
@@ -420,27 +420,29 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                             SwingUtilities.invokeLater(new Runnable() {
                                 public void run() {
                                     try {
-                                        //there was a problem with nio channel created on the FITS image
-                                        //when zooming if this is done outside invoke later
-                                        //ok .. the above comment sounds as a wierd fix but it works
-                                        //TODO: Need to find out exact problem. 
-                                        displayComp.getImageDisplay().setImage(new FITSImage(new File(fitsImage).getAbsolutePath()));
-                                        targetSet = true;
-                                        //double invoke later as center marker placement is not happening
-                                        //properly if not.
-                                        DivaImageGraphics canvasGraphics = (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
-                                        if (targetMarker != null) {
-                                            canvasGraphics.remove(targetMarker);
-                                            canvasGraphics.repaint();
-                                        }
-                                        CoordinateConverter converter = displayComp.getImageDisplay().getCoordinateConverter();
-                                        Point2D.Double centerPixel = (Point2D.Double) converter.getWCSCenter();
-                                        targetRa = centerPixel.x;
-                                        targetDec = centerPixel.y;
                                         try {
                                             inSetTargetEvent = true;
+                                            //if targetSet was false its a new panel loaded from image
+                                            boolean newPanel = !targetSet;
+
+                                            //there was a problem with nio channel created on the FITS image
+                                            //when zooming if this is done outside invoke later
+                                            //ok .. the above comment sounds as a wierd fix but it works
+                                            //TODO: Need to find out exact problem.
+                                            displayComp.getImageDisplay().setImage(new FITSImage(new File(fitsImage).getAbsolutePath()));
+                                            targetSet = true;
+                                            //double invoke later as center marker placement is not happening
+                                            //properly if not.
+                                            CoordinateConverter converter = displayComp.getImageDisplay().getCoordinateConverter();
+                                            Point2D.Double centerPixel = (Point2D.Double) converter.getWCSCenter();
+                                            targetRa = centerPixel.x;
+                                            targetDec = centerPixel.y;
+                                            
                                             visualization.setTarget(targetRa, targetDec);
-                                            if(targetMarker != null)
+                                            if(newPanel)
+                                                //note corresponding update event shows the target in this case.
+                                                visualization.showTarget(true);
+                                            else if(targetMarker != null)
                                                 showTarget(true);
                                         }
                                         finally {
