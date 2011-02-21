@@ -377,6 +377,10 @@ public class FovastInstrumentGuiConfig {
 
         private Element parent;
 
+        public DisplayElement(String id) {
+            this.id = id;
+        }
+
         public String getId() {
             return id;
         }
@@ -410,7 +414,14 @@ public class FovastInstrumentGuiConfig {
         }
     }
 
-    public class ConfigOptionGroup {
-        
+    public static class ConfigGroupOption extends ConfigOption {
+
+        public ConfigGroupOption(String id) {
+            super(id);
+        }
+        //nothing to be done
+        //This is purely required to show an addition wrapper config option
+        //in GUI
+
     }
 }

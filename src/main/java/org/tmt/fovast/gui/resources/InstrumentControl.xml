@@ -26,6 +26,11 @@
         A ConfigOption is enabled in GUI only if the parent config option is enabled
         Value of a config option only makes sense if its enabled and if its parent
         is set to true. (i,e parent config options are of boolean type)
+
+        NOTE: For saving a visualization's state, we can use the same XML tags
+        All we need for that XML with the following tags
+            Instrument, ConfigOption
+        These tags would have only the id attribute and Value child element. 
 -->
 
 <FovastInstrumentGuiConfig>
@@ -58,17 +63,17 @@
 
             <!-- Sweet spot
             US-29
-Story:
-Description:
-As a user I want to select and visualize the "sweet spot" for AO field center.
-It should be possible to select the “sweet spot”, or location of best AO
-correction in the IRIS configuration as: - IFU, imaging, both (middle). There
-should be something displayed in the visualization to show the “sweet spot”
-selection. By default, the sweet spot should follow the selection of the
-observing mode (i.e. imaging or IFU). The user can override this selection.
-Inspection of the visualization of the IRIS FoV should show the selected
-“sweet spot”.
-Tests:
+            Story:
+            Description:
+            As a user I want to select and visualize the "sweet spot" for AO field center.
+            It should be possible to select the “sweet spot”, or location of best AO
+            correction in the IRIS configuration as: - IFU, imaging, both (middle). There
+            should be something displayed in the visualization to show the “sweet spot”
+            selection. By default, the sweet spot should follow the selection of the
+            observing mode (i.e. imaging or IFU). The user can override this selection.
+            Inspection of the visualization of the IRIS FoV should show the selected
+            “sweet spot”.
+            Tests:
             -->
             <DisplayElement id="iris.sciencedetector" showByDefault="true"
                 label="IRIS detector">
@@ -111,7 +116,7 @@ Tests:
 
             <!-- Note that this is actually not required but wrapping all probes
             under one config so that GUI also has all probes under a probe node-->
-            <ConfigOption id="iris.oiwfs" label="OIWFS Probes">
+            <ConfigOptionGroup id="iris.oiwfs" label="OIWFS Probes">
 
                 <!-- For each probe we have to store the probe tip RA, DEC 
                     Can select stars beneath it.
@@ -143,7 +148,7 @@ Tests:
 
                 </ConfigOption>
 
-            </ConfigOption>
+            </ConfigOptionGroup>
 
 
         </ConfigOption>
@@ -162,8 +167,6 @@ Tests:
                 <!-- condition tags for other NFIRAOS mounted instruments to come -->
             </Condition>
         </EnableConditions>
-
-
 
         <DisplayElement id="nfiraos.limits">
             
