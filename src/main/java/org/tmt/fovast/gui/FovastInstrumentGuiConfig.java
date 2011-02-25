@@ -37,6 +37,8 @@ public class FovastInstrumentGuiConfig {
 
         private String label;
 
+        private Value value;
+
         private String selectByDefault;
 
         private EnableConditions enableConditions;
@@ -107,6 +109,14 @@ public class FovastInstrumentGuiConfig {
 
         public void setParent(Element parent) {
             this.parent = parent;
+        }
+
+        public Value getValue() {
+            return value;
+        }
+
+        public void setValue(Value value) {
+            this.value = value;
         }
     }
 
@@ -414,6 +424,9 @@ public class FovastInstrumentGuiConfig {
         }
     }
 
+    /** 
+     * This class is for grouping elements under a node.
+     */
     public static class ConfigGroupOption extends ConfigOption {
 
         public ConfigGroupOption(String id) {

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : InstrumentTree.xml
+    Created on : February 23, 2011, 3:06 PM
+    Author     : vivekananda_moosani
+    Description:
+        Defines how the config options should be shown in a JTree
+
+        There are three types of Nodes
+        1. Node - a simple node 
+        2. CheckboxNode - shows a checkbox
+        3. GroupNode - just to group sub group nodes. will also have a
+        4. CheckboxGroupNode - GroupNode which also shows a checkbox.
+            Clicking the checkbox simply selects all child nodes
+
+        Display of a JTree from this xml is handled by InstrumentTreeHandler.
+        If configOptionId and configOptionValue attributes are present then on
+            checkbox click the tree handler calls updateConfig(elementId, value)
+        If configOptionId alone is present, then on checkbox click
+            updateConfig(elementId, TRUE/FALSE) is called on ConfigManager.
+        The updateConfig method calls evaluateDependents() which scans the config
+        elements dependent on the updated element and accordingly changes their
+        state.
+
+        ConfigManager has addConfigListener() method using which TreeHandler
+        subscribes for any changes.
+        ConfigListener has the following methods:
+            1. updateConfig(confElementId, value)
+            2. batchUpdateConfig(confElementId[], value[])
+        The second method is more for a performance reason so that when some config
+        element changes all dependent elements can be changed and a batchUpdateConfig
+        be called on listeners.
+
+        TreeHandler's implementation of [batch]UpdateConfig() does this:
+            for each element config id find the corresponding checkbox node
+            and set its value. 
+
+
+        Benefits of separating instrument layout in a different XML is that we
+        separate layout info from actual config info. Drawback happens to be the
+        fact that, in the current layout for each config element value we have a
+        CheckboxNode with configOptionId and configOptionValue attributes
+        essentially duplicating the value info. 
+
+        ConfigManager depends on InstrumentConfig.xml for validationRules and
+        config element type info.
+
+        DisplayElements in config file.
+            Actually display elements should not be in the config file as they
+            have nothing related to the config.
+            What to do about the probe position which is a config element ?
+
+
+        How to capture shape info
+
+        <ShapesLibrary>
+        
+            //shows basic shape info 
+            <Shape type="<sometype>"
+                    rotatable="true"
+                    selectable="true"
+                    resizable="true"
+                    movable="true"
+                     >
+            </Shape>
+            
+            //shows info specific to a type of shape
+            <Shape type="Rectangle">
+            </Shape>
+
+            //Should individual shape elements in a compound shape have
+            //rotatable, selectable, resizable, movable constraints .. ???
+            <Shape type="CompoundShape">
+                //Shape elements as children. 
+            </Shape>            
+        </Shapes>
+
+        We also have to capture dependency between shapes.
+        For example in IRIS and Mobie if the detector shape rotates, then
+            other shapes have to be rotated as well.
+            
+        For OIWFS probes, when probe detector is dragged probe arm, vignetting
+        limits, normal limits also have to move along ... in here probe detector
+        subshape can be marked as master among the shapes in the compound shape. 
+
+        How to tie display elements with config options ?
+            - Should display elements and config options be in the same XML.
+            - How to tie layout xml with display elements
+            - How to tie display elements and config options
+
+        Position in InstrumentControl.xml should have 
+
+        How would one configure an instrument
+            - select one or more values from possible values for a config element
+              (UI element : drop down select box or checkboxes or radio buttons)
+            - choose one of two options
+              (UI element: radio button)
+            - simply select some setting
+              (UI element: single checkbox)
+            - there could be dependency between config elements ..
+               i.e you can only configure one option if some other option is chosen
+            - what to do if a certain option does not apply .. leave it blank or
+              set it to its default value ? 
+              
+-->
+
+<Tree>
+    <CheckboxNode configOptionId="iris" label="IRIS">
+        <CheckboxNode configOptionId="iris.mode" configOptionValue="Imaging" label="Imaging">
+            <CheckboxNode configOptionId="iris.imagingdetector" label="Show Imaging Detector" />
+        </CheckboxNode>
+        <CheckboxNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
+            <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
+                <CheckboxNode configOptionId="iris.ifuimager.lenslet" label="Show"/>
+            </CheckboxNode>
+            <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
+                <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show" />
+            </CheckboxNode>
+        </CheckboxNode>
+        <CheckboxGroupNode label="OIWFS Probes">
+            <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Arm"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Vignetting Limits"/>
+            </CheckboxNode>
+            <CheckboxNode configOptionId="iris.oiwfs.probe2" label="Probe1">
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Arm"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Vignetting Limits"/>
+            </CheckboxNode>
+            <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe1">
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Arm"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Vignetting Limits"/>
+            </CheckboxNode>
+        </CheckboxGroupNode>
+    </CheckboxNode>
+</Tree>

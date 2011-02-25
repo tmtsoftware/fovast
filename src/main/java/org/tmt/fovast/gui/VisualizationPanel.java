@@ -61,7 +61,7 @@ public class VisualizationPanel extends JPanel {
     }
 
     //
-    // UNUSED METHODS .. STILL IN TODO STATE 
+    // TODO: UNUSED METHODS .. STILL IN TODO STATE
     //
     boolean isNew() {
         //TODO: check if visualization is new
@@ -93,7 +93,7 @@ public class VisualizationPanel extends JPanel {
 //                    public void run() {
 //                        Point2D.Double center = workPanel.getCenter();
 //                        controller.setTarget(center.x, center.y);
-//                        //controller.showTarget(true);
+//                        //controller.vslShowTarget(true);
 //                        controlPanel.setCenter(center);
 //                    }
 //                });

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : InstrumentControl.xml
+    Created on : February 8, 2011, 1:09 PM
+    Author     : vivekananda_moosani
+    Description:
+        Includes info on what all config options are present, their possible values
+        and display elements associated with each config
+
+        This XML has all the information to enable and disable different
+        instrument config options. It also has info on what config option
+        depends on what other config option.
+        
+        Config elements will be shown as a JTree
+        Display elements are also to be shown in the above tree but with an option
+            to show them or hide them.
+        Config elements are the settings to be done on the telescope
+        DisplayElements are purely for visualization purpose. They can be saved
+            in FOVAST for restoring the app to exactly same state where it was
+            left.
+        For DisplayElements showByDefault="true" is the default setting
+        For ConfigElements selectByDefault if true indicates that the option has
+            to be auto-set as and when the parent element is set. By default this
+            is false
+        For a config option if no Values child is present, then its of boolean type
+       
+        Nesting of ConfigOptions indicates a parent child relation.
+        A ConfigOption is enabled in GUI only if the parent config option is enabled
+        Value of a config option only makes sense if its enabled and if its parent
+        is set to true. (i,e parent config options are of boolean type)
+
+        NOTE: For saving a visualization's state, we can use the same XML tags
+        All we need for that XML with the following tags
+            Instrument, ConfigOption
+        These tags would have only the id attribute and Value child element. 
+-->
+
+<FovastInstrumentConfig>
+    
+    <Instrument id="iris">
+
+        <ConfigOption id="iris.mode" selectByDefault="true" type="string">
+
+            <!-- Possible values for this config
+            and selectMode="mutuallyExclusive" indicates only one of the values
+            can be set and is the default selectMode -->
+            <Values selectMode="mutuallyExclusive">
+                <Value default="true">Imaging</Value>
+                <Value>IFU</Value>
+            </Values>
+            
+            <!--
+                Detector is 17x17 arc seconds in size
+                Spectrograph is 18 arc secs off center to right 
+                Probe detector sizes are 4x4 arc-sec
+                Slicer - size ???
+                Lenslet size ???
+                NFIRAOS FOV (corrected ?) - 2 arc min (radius / diameter ?) (US-22)
+                Move/rotate probes ...
+                Sweet spot - US29
+                Rotate instrument (IRIS / NFIRAOS)
+                Show NFIRAOS vis except asterism by default
+                TWFS - 1x1 arc-sec
+            -->
+
+            <!-- Sweet spot
+            US-29
+            Story:
+            Description:
+            As a user I want to select and visualize the "sweet spot" for AO field center.
+            It should be possible to select the “sweet spot”, or location of best AO
+            correction in the IRIS configuration as: - IFU, imaging, both (middle). There
+            should be something displayed in the visualization to show the “sweet spot”
+            selection. By default, the sweet spot should follow the selection of the
+            observing mode (i.e. imaging or IFU). The user can override this selection.
+            Inspection of the visualization of the IRIS FoV should show the selected
+            “sweet spot”.
+            Tests:
+            -->
+            <DisplayElement id="iris.sciencedetector" showByDefault="true">
+
+                <EnableConditions>
+                    <condition element="iris.mode" value="Imaging" />
+                </EnableConditions>
+
+            </DisplayElement>
+
+            <ConfigOption id="iris.ifuimager" type="string">
+
+                <EnableConditions>
+                    <condition element="iris.mode" value="IFU"/>
+                </EnableConditions>
+
+                <Values>
+                    <Value>Lenslet</Value>
+                    <Value>Slicer</Value>
+                </Values>
+
+                <DisplayElement id="iris.ifuimager.lenslet">
+
+                    <EnableConditions>
+                        <condition element="iris.ifuimager" value="Lenslet" />
+                    </EnableConditions>
+
+                </DisplayElement>
+
+                <DisplayElement id="iris.ifuimager.lenslet">
+
+                    <EnableConditions>
+                        <condition element="iris.ifuimager" value="Slicer" />
+                    </EnableConditions>
+
+                </DisplayElement>
+
+            </ConfigOption>
+
+            <!-- For each probe we have to store the probe tip RA, DEC
+                Can select stars beneath it.
+            -->
+            <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true"
+                type="position" captured="true" captureElement="iris.oiwfs.probe1.arm">
+
+               <DisplayElement id="iris.oiwfs.probe1.arm">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe1.limits">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe1.vignettingLimits">
+               </DisplayElement>
+
+            </ConfigOption>
+
+            <ConfigOption id="iris.oiwfs.probe2" selectByDefault="true">
+
+            </ConfigOption>
+
+            <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
+
+            </ConfigOption>
+
+        </ConfigOption>
+
+        
+    </Instrument>
+    
+    <Instrument id="nfiraos" >
+        <EnableConditions>
+            <!-- NFIRAOS elements should be selected and shown only when an
+            instrument which is to be mount on it is selected. IRIS is one such
+            instrument -->
+            <!-- By default type is "xor" -->
+            <Condition type="or">
+                <Condition element="iris" value="true"></Condition>
+                <!-- condition tags for other NFIRAOS mounted instruments to come -->
+            </Condition>
+        </EnableConditions>
+
+        <DisplayElement id="nfiraos.limits">
+            
+        </DisplayElement>
+
+        <!-- This is a six star asterism .. polygon of stars with one at center
+            Arc made by stars on polygon subtens 72 deg angle at center. One of the
+            stars on the polygon is to north for now. The points on the polygon are
+            35 arc-sec away from center (radius of pentagon)-->
+        <DisplayElement id="nfiraos.lsgasterism">
+
+        </DisplayElement>
+
+        <!-- This cannot interfere with science detector and can be moved with in
+            1 arc min FOV of NFIRAOS
+            Can select stars beneath it 
+        -->
+        <ConfigOption id="nfiraos.twfs">
+
+            <DisplayElement id="nfiraos.twfs.detector">
+            </DisplayElement>
+
+        </ConfigOption>
+
+        <DisplayElement id="nfiraos.acqusitionCamera">
+
+        </DisplayElement>
+
+        <!-- 20 arc sec centered on optical axis -->
+        <DisplayElement id="nfiraos.acqusitionCameraLimits">
+
+        </DisplayElement>
+
+        <!-- TBD as per US-44 -->
+        <DisplayElement id="nfiraos.acqusitionCameraPointing">
+
+        </DisplayElement>
+
+    </Instrument>
+    
+</FovastInstrumentConfig>

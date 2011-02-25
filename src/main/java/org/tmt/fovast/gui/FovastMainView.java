@@ -16,7 +16,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.ActionMap;
@@ -45,7 +44,6 @@ import org.jdesktop.application.FrameView;
 import org.jdesktop.application.ResourceMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;
@@ -57,7 +55,8 @@ import voi.swing.util.ProxySettingsDialog;
  *
  * @author vivekananda_moosani
  */
-public class FovastMainView extends FrameView implements ChangeListener {
+public class FovastMainView extends FrameView
+        implements FovastApplicationState.FovastApplicationStateListener {
 
     private static final Logger logger = LoggerFactory.getLogger(FovastMainView.class);
 
@@ -153,7 +152,7 @@ public class FovastMainView extends FrameView implements ChangeListener {
 
         initComponents();
 
-        fovastState.addChangeListener(this);
+        fovastState.addListener(this);
     }
 
     private void initComponents() {
@@ -509,36 +508,20 @@ public class FovastMainView extends FrameView implements ChangeListener {
     }
 
     @Override
-    public void update(Object source, String eventKey, HashMap<String, Object> args) {
-        //handle new vis
-        if (source == fovastState && eventKey.equals(
-                FovastApplicationState.VISUALIZATION_ADDED_EVENT_KEY)) {
-            VisualizationState viz =
-                    (VisualizationState) args.get(FovastApplicationState.VISUALIZATION_ARG_KEY);
-            String fileName =
-                    (String) args.get(FovastApplicationState.VISUALIZATION_FILENAME_ARG_KEY);
-            int vizId =
-                    (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
-
-            //File imageFile = (File) args.get(FovastApplicationState.VISUALIZATION_IMAGE_ARG_KEY);
-
-            updateUIForVisualizationAdded(viz, vizId, fileName);
-
-        } else if (source == fovastState && eventKey.equals(
-                FovastApplicationState.VISUALIZATION_REMOVED_EVENT_KEY)) {
-            int selectedVizId =
-                    (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
-            updateUIForVisualizationRemoved(selectedVizId);
-        } else if (source == fovastState && eventKey.equals(
-                FovastApplicationState.VISUALIZATION_SELECTED_EVENT_KEY)) {
-            int selectedVizId =
-                    (Integer) args.get(FovastApplicationState.VISUALIZATION_ID_ARG_KEY);
-            updateUIForVisualizationSelected(selectedVizId);
-        } else {
-            logger.error("Unknown event " + eventKey + " from " +
-                    "source " + source.toString() + "");
-        }
+    public void fasVisualizationAdded(VisualizationState visualization,
+            int vizId, String fileName) {
+        updateUIForVisualizationAdded(visualization, vizId, fileName);
     }
+
+    @Override
+    public void fasVisualizationRemoved(int vizId) {
+        updateUIForVisualizationRemoved(vizId);
+    }
+
+    @Override
+    public void fasVisualizationSelected(int vizId) {
+        updateUIForVisualizationSelected(vizId);
+    }            
 
     private void updateUIForVisualizationSelected(int selectedVizId) {
 
@@ -628,11 +611,7 @@ public class FovastMainView extends FrameView implements ChangeListener {
             }
         }
         
-        //Stop running tasks of that tab
-        //TODO: Should this be done by a listener
         if(vPanelRemoved != null) {
-            vPanelRemoved.stopRunningTasks();
-
             //if all panels are closed .. 
             openCount--;
             if(openCount == 0) {
@@ -644,6 +623,9 @@ public class FovastMainView extends FrameView implements ChangeListener {
                 fovastActions.setShowImageExtensionsMenuEnabled(false);
                 fovastActions.setShowImageKeywordsMenuEnabled(false);
             }
+
+            //Stop running tasks of that tab
+            vPanelRemoved.stopRunningTasks();
         }
     }
 
@@ -744,6 +726,5 @@ public class FovastMainView extends FrameView implements ChangeListener {
         }
         return null;
     }
-
 
 }

@@ -6,31 +6,14 @@
  */
 package org.tmt.fovast.state;
 
-import java.util.HashMap;
-import org.tmt.fovast.mvc.ChangeSupport;
-import org.tmt.fovast.mvc.StateSupport;
+import org.tmt.fovast.mvc.ListenerSupport;
 
 /**
  *
  * @author vivekananda_moosani
  */
-public class VisualizationState extends StateSupport {
-
-    //TODO: these should be again replicated in corresponding controller class.
-    public static final String TARGET_CHANGED_EVENT_KEY = "targetChanged";
-
-    public static final String TARGET_RA_ARG_KEY = "ra";
-
-    public static final String TARGET_DEC_ARG_KEY = "dec";
-
-    public static final String TARGET_RA_ENTERED_ARG_KEY = "raEntered";
-
-    public static final String TARGET_DEC_ENTERED_ARG_KEY = "decEntered";
-
-    public static final String SHOW_TARGET_EVENT_KEY = "showTargetChanged";
-
-    public static final String SHOW_TARGET_ARG_KEY = "showTarget";
-
+public class VisualizationState
+        extends ListenerSupport<VisualizationState.VisualizationStateListener> {
 
     private Double targetRa;
 
@@ -45,22 +28,14 @@ public class VisualizationState extends StateSupport {
         this.targetRa = ra;
         this.targetDec = dec;
 
-        HashMap<String, Object> args = new HashMap<String, Object>();
-        args.put(TARGET_RA_ARG_KEY, ra);
-        args.put(TARGET_DEC_ARG_KEY, dec);
-        changeSupport.fireChange(this, TARGET_CHANGED_EVENT_KEY, args);
+        fireVslTargetChanged(ra, dec, null, null);
     }
 
     public void setTarget(double ra, double dec, String raEntered, String decEntered) {
         this.targetRa = ra;
         this.targetDec = dec;
 
-        HashMap<String, Object> args = new HashMap<String, Object>();
-        args.put(TARGET_RA_ARG_KEY, ra);
-        args.put(TARGET_DEC_ARG_KEY, dec);
-        args.put(TARGET_RA_ENTERED_ARG_KEY, raEntered);
-        args.put(TARGET_DEC_ENTERED_ARG_KEY, decEntered);
-        changeSupport.fireChange(this, TARGET_CHANGED_EVENT_KEY, args);
+        fireVslTargetChanged(ra, dec, raEntered, decEntered);
     }
 
     public Double[] getTarget() {
@@ -69,11 +44,40 @@ public class VisualizationState extends StateSupport {
 
     public void showTarget(boolean show) {
         showTarget = show;
-        HashMap<String, Object> args = new HashMap<String, Object>();
-        args.put(SHOW_TARGET_ARG_KEY, (Boolean)show);
-        changeSupport.fireChange(this, SHOW_TARGET_EVENT_KEY, args);
-
+        fireVslTargetChanged(show);
     }
 
-    //TODO: Code equals and .. other methods .. 
+    private void fireVslTargetChanged(double ra, double dec, Object object, Object object0) {
+        for(int i=0; i<genericListeners.size(); i++) {
+            try {
+                ((VisualizationStateListener)(genericListeners.get(i))).vslTargetChanged(
+                        targetRa, targetRa, null, null);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
+    private void fireVslTargetChanged(boolean show) {
+        for(int i=0; i<genericListeners.size(); i++) {
+            try {
+                ((VisualizationStateListener)(genericListeners.get(i))).vslShowTarget(
+                        show);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
+    //TODO: Code equals and .. other methods ..
+
+
+    public static interface VisualizationStateListener {
+
+        public void vslTargetChanged(double ra, double dec,
+                String raEntered, String decEntered);
+
+        public void vslShowTarget(boolean show);
+        
+    }
 }

@@ -1,16 +1,18 @@
 /*
  *  Copyright 2011 TMT.
- * 
+ *
  *  License and source copyright header text to be decided
- *  
+ *
  */
-package org.tmt.fovast.mvc;
+package backup;
+
+import backup.ChangeSupport;
 
 /**
  *
  * @author vivekananda_moosani
  */
-public class StateSupport {
+public class StateSupportUsingChangeSupport {
 
     protected ChangeSupport changeSupport = new ChangeSupport();
 

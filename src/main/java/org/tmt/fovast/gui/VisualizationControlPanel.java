@@ -6,7 +6,6 @@
  */
 package org.tmt.fovast.gui;
 
-import diva.gui.toolbox.JTreePane;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Insets;
@@ -22,7 +21,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.List;
 import java.text.NumberFormat;
 import javax.swing.BorderFactory;
@@ -43,12 +41,9 @@ import voi.astro.util.NameResolver;
 
 import org.jdesktop.application.ApplicationActionMap;
 import org.jdesktop.application.ApplicationContext;
-import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
 
@@ -57,7 +52,8 @@ import org.tmt.fovast.astro.util.DegreeCoverter;
  * @author vivekananda_moosani
  */
 public class VisualizationControlPanel extends JPanel
-        implements ChangeListener, VisualizationWorkPanelListener {
+        implements VisualizationState.VisualizationStateListener,
+        VisualizationWorkPanelListener {
 
     private static Logger logger = LoggerFactory.getLogger(VisualizationControlPanel.class);
 
@@ -111,11 +107,9 @@ public class VisualizationControlPanel extends JPanel
         this.visualization = visualizationState;
 
 
-        //TODO: Setup control panel if the visualization is an old one.
-
         initComponents();
 
-        visualization.addChangeListener(this);
+        visualization.addListener(this);
 
         //other initialization
         imageLoadBytesFormat = NumberFormat.getInstance();
@@ -547,7 +541,7 @@ public class VisualizationControlPanel extends JPanel
         }
 
         if (decTextField.getText().trim().length() == 0) {
-            //TODO: take from resource
+            //TODO: take from resource 
             decErrorMsgLabel.setText("DEC field is empty");
             return;
         }
@@ -605,27 +599,23 @@ public class VisualizationControlPanel extends JPanel
         updateUIForShowTarget(show);
     }
 
+    //
+    //VisualizationStateListener overrides start ...
+    //
+
     @Override
-    public void update(Object source, String eventKey, HashMap<String, Object> args) {
-
-        if (source.equals(visualization)) {
-            if (eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
-                Double ra = (Double) args.get(VisualizationState.TARGET_RA_ARG_KEY);
-                Double dec = (Double) args.get(VisualizationState.TARGET_DEC_ARG_KEY);
-                String raEntered = (String) args.get(VisualizationState.TARGET_RA_ENTERED_ARG_KEY);
-                String decEntered = (String) args.get(VisualizationState.TARGET_DEC_ENTERED_ARG_KEY);
-
-                updateUIForSetTarget(ra, dec, raEntered, decEntered);
-            }
-            else if(eventKey.equals(VisualizationState.SHOW_TARGET_EVENT_KEY)) {
-                Boolean show = (Boolean) args.get(VisualizationState.SHOW_TARGET_ARG_KEY);
-                updateUIForShowTarget(show);
-            }
-        } else {
-            logger.error("Event from source uninterested in: " +
-                    source.toString());
-        }
+    public void vslTargetChanged(double ra, double dec, String raEntered, String decEntered) {
+        updateUIForSetTarget(ra, dec, raEntered, decEntered);
     }
+
+    @Override
+    public void vslShowTarget(boolean show) {
+        updateUIForShowTarget(show);
+    }
+
+    //
+    //VisualizationStateListener overrides end ...
+    //
 
     //
     //VisualizationWorkPanelListener overrides start ...

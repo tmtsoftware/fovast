@@ -7,31 +7,16 @@
 package org.tmt.fovast.state;
 
 import java.io.File;
-import org.tmt.fovast.mvc.StateSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.tmt.fovast.mvc.ListenerSupport;
 
 /**
  *
  * @author vivekananda_moosani
  */
-public class FovastApplicationState extends StateSupport {
-
-    //TODO: Events should be redefined in Controller classes .. as UI class use
-    //these constants as of now.
-    public final static String VISUALIZATION_ADDED_EVENT_KEY = "visualizationAdded";
-
-    public final static String VISUALIZATION_REMOVED_EVENT_KEY = "visualizationRemoved";
-
-    public final static String VISUALIZATION_SELECTED_EVENT_KEY = "visualizationSelected";
-
-    public final static String VISUALIZATION_ARG_KEY = "visualization";
-
-    public final static String VISUALIZATION_FILENAME_ARG_KEY = "visualizationFileName";
-
-    public final static String VISUALIZATION_ID_ARG_KEY = "visualizationId";
-
-//    public final static String VISUALIZATION_IMAGE_ARG_KEY = "imageName";
+public class FovastApplicationState
+        extends ListenerSupport<FovastApplicationState.FovastApplicationStateListener> {
 
     private ArrayList<VisualizationState> visualizations = new ArrayList<VisualizationState>();
 
@@ -58,10 +43,8 @@ public class FovastApplicationState extends StateSupport {
             visualizationFileMap.put(visualization, fileName);
 
             HashMap<String, Object> args = new HashMap<String, Object>();
-            args.put(VISUALIZATION_ARG_KEY, visualization);
-            args.put(VISUALIZATION_ID_ARG_KEY, vizId);
-            args.put(VISUALIZATION_FILENAME_ARG_KEY, fileName);
-            changeSupport.fireChange(this, VISUALIZATION_ADDED_EVENT_KEY, args);
+
+            fireFasVisualizationAdded(visualization, vizId, fileName);
         }
     }
 
@@ -92,12 +75,8 @@ public class FovastApplicationState extends StateSupport {
             //clean data structures
             Integer associatedId = visualizationIdMap.remove(visualization);
             idVisualizationMap.remove(associatedId);
-            
-            HashMap<String, Object> args = new HashMap<String, Object>();
 
-            //args.put(VISUALIZATION_ARG_KEY, visualization);
-            args.put(VISUALIZATION_ID_ARG_KEY, associatedId);
-            changeSupport.fireChange(this, VISUALIZATION_REMOVED_EVENT_KEY, args);
+            fireFasVisualizationRemoved(associatedId);
 
             //set back to default state
             if(visualizations.size() == 0)                
@@ -114,9 +93,7 @@ public class FovastApplicationState extends StateSupport {
             return;
         } else {
             activeVisualizationId = id;
-            HashMap<String, Object> args = new HashMap<String, Object>();
-            args.put(VISUALIZATION_ID_ARG_KEY, id);
-            changeSupport.fireChange(this, VISUALIZATION_SELECTED_EVENT_KEY, args);
+            fireFasVisualizationSelected(id);
         }
     }
 
@@ -142,9 +119,7 @@ public class FovastApplicationState extends StateSupport {
                 return;
             }
             activeVisualizationId = id;
-            HashMap<String, Object> args = new HashMap<String, Object>();
-            args.put(VISUALIZATION_ID_ARG_KEY, id);
-            changeSupport.fireChange(this, VISUALIZATION_SELECTED_EVENT_KEY, args);
+            fireFasVisualizationSelected(id);
         } else {
             //TODO: should this be checked exception ?
             throw new RuntimeException("Visualization Id passed is out of bounds: " + id);
@@ -163,5 +138,49 @@ public class FovastApplicationState extends StateSupport {
         return visualizationIdMap.get(viz);
     }
 
+    private void fireFasVisualizationAdded(VisualizationState visualization, int vizId, String fileName) {
+        for(int i=0; i<genericListeners.size(); i++) {
+            try {
+                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                        fasVisualizationAdded(visualization, vizId, fileName);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
+    private void fireFasVisualizationSelected(Integer id) {
+        for(int i=0; i<genericListeners.size(); i++) {
+            try {
+                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                        fasVisualizationSelected(id);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
+    private void fireFasVisualizationRemoved(Integer id) {
+        for(int i=0; i<genericListeners.size(); i++) {
+            try {
+                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                        fasVisualizationRemoved(id);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
     //TODO: methods to store loaded images / catalogs ...
+
+
+    public static interface FovastApplicationStateListener {
+
+        public void fasVisualizationAdded(VisualizationState visualization, 
+                int vizId, String fileName);
+
+        public void fasVisualizationRemoved(int vizId);
+
+        public void fasVisualizationSelected(int vizId);
+    }
 }

@@ -48,7 +48,7 @@
         <MenuItem name="Menu.File.ShowCatalogList" implState="todo"/>
         <Separator/>
         <MenuItem name="Menu.File.ProxySettings"/>
-        <MenuItem name="Menu.File.Preferences"/>
+        <MenuItem name="Menu.File.Preferences" implState="todo"/>
         <Separator/>
         <MenuItem name="Menu.File.Exit"/>
     </Menu>

@@ -223,7 +223,7 @@ public class AppConfiguration {
 
         public ConfigurationGui(LinkedHashMap<String, Object> properties) {
             setLayout(new BorderLayout());
-            //TODO:
+            //TODO: GUI to be done yet .. 
         }
     }
 

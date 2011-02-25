@@ -8,7 +8,6 @@ package org.tmt.fovast.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Shape;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.awt.Color;
 import java.io.IOException;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.File;
 import java.net.URL;
-import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -32,7 +30,6 @@ import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.mvc.ChangeListener;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.util.Cache;
 import org.tmt.fovast.vo.client.SiaClient;
@@ -41,7 +38,8 @@ import org.tmt.fovast.vo.client.SiaClient;
  *
  * @author vivekananda_moosani
  */
-public class VisualizationWorkPanel extends JPanel implements ChangeListener {
+public class VisualizationWorkPanel extends JPanel
+        implements VisualizationState.VisualizationStateListener {
 
     private static Logger logger = LoggerFactory.getLogger(VisualizationWorkPanel.class);
 
@@ -85,7 +83,7 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         
         initComponents();
 
-        visualization.addChangeListener(this);
+        visualization.addListener(this);
     }
 
     private void initComponents() {
@@ -114,32 +112,25 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
                 });
             }
         });
-        //TODO: ScrollPane seems to not work with JSky display comps .. Should we fix ??
+        
+        //ScrollPane does not work properly with JSky display comps
         //add(new JScrollPane(displayComp), BorderLayout.CENTER);
         add(displayComp, BorderLayout.CENTER);
     }
 
+
     @Override
-    public void update(Object source, String eventKey, HashMap<String, Object> args) {
-        if (source.equals(visualization) && eventKey.equals(VisualizationState.TARGET_CHANGED_EVENT_KEY)) {
-
-            Double ra = (Double) args.get(VisualizationState.TARGET_RA_ARG_KEY);
-            Double dec = (Double) args.get(VisualizationState.TARGET_DEC_ARG_KEY);
-
-            if(!inSetTargetEvent)
-                loadImage(ra, dec);            
-
-        } else if (source.equals(visualization) && eventKey.equals(VisualizationState.SHOW_TARGET_EVENT_KEY)) {
-            Boolean show = (Boolean) args.get(VisualizationState.SHOW_TARGET_ARG_KEY);
-            showTarget(show);
-        } else {
-            //TODO: this msg should be from resource bundle (should be parameterised msg
-            logger.error("Unknown event key : " + eventKey +
-                    "from source " + source.toString());
-        }
+    public void vslTargetChanged(double ra, double dec, String raEntered, String decEntered) {
+        if(!inSetTargetEvent)
+            loadImage(ra, dec);
     }
 
-    private void loadImage(final Double ra, final Double dec) {
+    @Override
+    public void vslShowTarget(boolean show) {
+        showTarget(show);
+    }
+
+    private void loadImage(final double ra, final double dec) {
 
         if(targetRa == ra && targetDec == dec) {
             return; // nothing to do as image is already loaded. 
@@ -367,34 +358,6 @@ public class VisualizationWorkPanel extends JPanel implements ChangeListener {
         for (int i = 0; i < listeners.size(); i++) {
             listeners.get(i).backgroundImageLoadCompleted();
         }
-    }
-
-    /**
-     * TODO: Trying to make a something like LaTeX \oplus .. but the outplut not really
-     * smooth yet
-     *
-     * @param centerPixel
-     * @param halfSize
-     * @return
-     */
-    private GeneralPath makeTargetShape(Point2D.Double centerPixel, double halfSize) {
-        Point2D.Double north = new Point2D.Double(centerPixel.x, centerPixel.y - halfSize);
-        Point2D.Double south = new Point2D.Double(centerPixel.x, centerPixel.y + halfSize);
-        Point2D.Double east = new Point2D.Double(centerPixel.x + halfSize*2, centerPixel.y);
-        Point2D.Double west = new Point2D.Double(centerPixel.x - halfSize*2, centerPixel.y);
-        Point2D.Double eastA = new Point2D.Double(centerPixel.x + halfSize*4, centerPixel.y);
-        Point2D.Double westA = new Point2D.Double(centerPixel.x - halfSize*4, centerPixel.y);
-        
-        // XXX Note: This is not an ellipse. What we really want is a "smooth polygon"...
-        GeneralPath p = new GeneralPath();
-        p.moveTo((float) north.x, (float) north.y);
-        p.quadTo((float) westA.x, (float) westA.y, (float) south.x, (float) south.y);
-        p.quadTo((float) eastA.x, (float) eastA.y, (float) north.x, (float) north.y);
-        p.lineTo(south.x, south.y);
-        p.moveTo(west.x, west.y);
-        p.lineTo(east.x, east.y);
-        //p.closePath();
-        return p;
     }
 
     void stopRunningTasks() {
