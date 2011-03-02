@@ -13,17 +13,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Note this class allows you do some thing like
- *  private ListenerSupport support = new ListenerSupport();
- * By doing that you can add any object as a Listener which could be a problem.
- * Please donot do such thing.
+ * <p>Generic Listener support class. Check {@link org.tmt.fovast.state.FovastApplicationState}
+ * implementation for one way of using it. Instead of extending like 
+ * FovastApplicationState does, you could have a instance of this class as member 
+ * variable and implement wrapper add, remove listener methods which delegate work
+ * to the member variable.
+ * </p>
  *
+ * <p> Note this class allows you do some thing like </p>
+ *      <code> private ListenerSupport support = new ListenerSupport(); </code>
+ * <p>By doing that you can add any object as a listener which could be a problem.
+ * Please take care not to use the class as shown above.
+ * </p>
  *
- * @author vivekananda_moosani
  */
 public class ListenerSupport<T1> {
 
-    public static Logger logger = LoggerFactory.getLogger(ListenerSupport.class);
+    private static Logger logger = LoggerFactory.getLogger(ListenerSupport.class);
 
     protected ArrayList genericListeners = new ArrayList();
 

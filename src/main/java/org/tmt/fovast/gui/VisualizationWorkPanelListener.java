@@ -8,7 +8,6 @@ package org.tmt.fovast.gui;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public interface VisualizationWorkPanelListener {
 

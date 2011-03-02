@@ -10,10 +10,9 @@ import org.jdesktop.application.Application;
 import org.tmt.fovast.gui.FovastApplication;
 
 /**
- * Class which accepts arguments and launches the FOVAST GUI
- * This is just a wrapper class to quickly identify app's starting point.
+ * <p>Class which accepts arguments and launches the FOVAST GUI
+ * This is just a wrapper class to quickly identify app's starting point.</p>
  * 
- * @author vivekananda_moosani
  *
  */
 public class Main {

@@ -10,7 +10,6 @@ import backup.ChangeSupport;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class StateSupportUsingChangeSupport {
 

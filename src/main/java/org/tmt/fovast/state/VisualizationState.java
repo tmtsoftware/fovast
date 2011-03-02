@@ -7,14 +7,18 @@
 package org.tmt.fovast.state;
 
 import org.tmt.fovast.mvc.ListenerSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class VisualizationState
         extends ListenerSupport<VisualizationState.VisualizationStateListener> {
 
+    private static Logger logger = LoggerFactory.getLogger(VisualizationState.class);
+    
     private Double targetRa;
 
     private Double targetDec;

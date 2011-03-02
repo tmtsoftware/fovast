@@ -21,8 +21,11 @@ import org.tmt.fovast.util.AppConfiguration;
 import voi.swing.util.ProxySettingsDialog;
 
 /**
+ * This class does setup and exit time work for the FOVAST application.
+ * It extends the SingleFrameApplication from Better Swing Application Framework(BSAF).
  *
- * @author vivekananda_moosani
+ * Application properties are present in org.tmt.fovast.gui.resources.FovastApplication.properties.
+ *
  */
 public class FovastApplication extends SingleFrameApplication {
 
@@ -62,6 +65,19 @@ public class FovastApplication extends SingleFrameApplication {
     public FovastApplication() {
     }
 
+    /**
+     * 1. Checks if the local storage directory is present, if not creates one
+     * 2. Initializes DSS image cache and Catalog cache
+     * 3. Reads proxy settings
+     * 4. Loads application configuration
+     * 5. Also loads application state
+     *
+     * If you add another initialization step you should put it in a try-catch block
+     * so that initialization steps after it still are done. Incase of an exception
+     * set what ever you are initializing to a default value. 
+     *
+     * @param args - startup args which were passed to launch() method
+     */
     @Override
     protected void initialize(String[] args) {
         try {
@@ -110,6 +126,7 @@ public class FovastApplication extends SingleFrameApplication {
             if (fovastApplicationState == null) {
                 fovastApplicationState = new FovastApplicationState();
             }
+            
             //TODO: loading saved state
             //fovastApplicationState = fovast.initFromSavedState();
 
@@ -136,6 +153,14 @@ public class FovastApplication extends SingleFrameApplication {
         
     }
 
+    /**
+     * Does all exit time work like saving app configuration, app state, writing
+     * DSS image cache and catalog cache entries to disk etc ...
+     *
+     * Again each of these exit time steps have to be done in its own try-catch
+     * block so that other exit time work still happens. 
+     * 
+     */
     @Override
     protected void shutdown() {
         try {

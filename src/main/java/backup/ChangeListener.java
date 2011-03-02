@@ -15,7 +15,6 @@ import java.util.HashMap;
  *      - source, eventKey, args .. 
  *
  *
- * @author vivekananda_moosani
  */
 public interface ChangeListener {
 

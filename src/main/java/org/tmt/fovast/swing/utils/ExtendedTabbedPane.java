@@ -12,7 +12,6 @@ import javax.swing.JTabbedPane;
 /**
  * Extends JTabbedPane to show a close button on tabs.
  * 
- * @author vivekananda_moosani
  */
 public abstract class ExtendedTabbedPane extends JTabbedPane {
 

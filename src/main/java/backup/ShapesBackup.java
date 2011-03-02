@@ -12,7 +12,6 @@ import java.awt.geom.Point2D;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class ShapesBackup {
 

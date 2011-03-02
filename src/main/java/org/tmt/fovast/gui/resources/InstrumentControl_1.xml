@@ -3,7 +3,6 @@
 <!--
     Document   : InstrumentControl.xml
     Created on : February 8, 2011, 1:09 PM
-    Author     : vivekananda_moosani
     Description:
         This XML has all the information to enable and disable different
         instrument config options. It also has info on what config option

@@ -12,7 +12,6 @@ import java.util.HashMap;
 
 /**
  * Support class to add / remove change listeners and fire change events ..
- * @author vivekananda_moosani
  */
 public class ChangeSupport {
 

@@ -10,7 +10,6 @@ import org.tmt.fovast.mvc.ListenerSupport;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class StateSupport<T1> {
 

@@ -21,8 +21,6 @@
  *
  */
 
-/* Created on May 22, 2007 by vivekananda_moosani */
-
 package voi.swing.util;
 
 import java.awt.Component;
@@ -40,7 +38,6 @@ import javax.swing.SwingUtilities;
  * a Frame or Dialog as an ancestor. If no frame or dialog is an ancestor then 
  * a dummy frame is created to be an owner
  * 
- * @author vivekananda_moosani
  */
 public class DialogCreator
 {

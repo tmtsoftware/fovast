@@ -16,7 +16,6 @@ import org.jdom.input.SAXBuilder;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class FovastInstrumentGuiConfig {
 

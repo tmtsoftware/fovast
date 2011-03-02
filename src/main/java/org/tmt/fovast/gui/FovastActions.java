@@ -16,12 +16,30 @@ import javax.swing.JOptionPane;
 import org.jdesktop.application.Action;
 
 /**
- * This class has several actions which user can perform on the UI (in particular menu
- * actions)
+ * This class has several actions which user can perform on the UI (in particular 
+ * menu actions)
  *
  * Action methods simply call methods from the FovastmainComponent class.
  *
- * @author vivekananda_moosani
+ * Note that we denote a method as Action method using @Action annotation.
+ *
+ * Each action annotation has a unique name attribute. (like Menu.File)
+ * In the FovastApplication.properties, each action has settings like
+ *  Menu.File.Action.text = File
+ *  Menu.File.Action.mnemonic = F *  
+ *  Menu.File.NewVisualization.Action.accelerator
+ * 
+ * The fovast action class is parsed by using BSAF API 
+ *             ApplicationContext.getActionMap(fovastActions);
+ * in FovastMainView.prepareMenuBar() function. For each action an object of
+ * ApplicationAction class which implements Swing Action interface is created.
+ * The above call returns a swing ActionMap instance with the names of Actions
+ * annotations as the keys and corresponding Action objects as values.
+ *
+ * BSAF Action annotations also support enabled and selected attributes. Check
+ * how Menu.File.CloseVisualization action is initialized and check usages of
+ * related attributes and constants. 
+ *
  */
 public class FovastActions {
 
@@ -49,7 +67,8 @@ public class FovastActions {
     private static final String SHOW_IMAGE_KEYWORDS_MENU_ENABLED = "showImageKeywordsMenuEnabled";
 
     // properties which can be set to disable / enable menu components or buttons
-    // tied to various action objects
+    // tied to various action objects.
+    // All these variables have getters and setters. To disable all 
     private boolean saveVisualizationMenuEnabled = false;
 
     private boolean closeVisualizationMenuEnabled = false;

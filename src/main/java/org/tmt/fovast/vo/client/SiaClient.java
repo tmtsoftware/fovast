@@ -29,7 +29,6 @@ import uk.ac.starlink.votable.VOStarTable;
  * Client class to fetch images from SIA service
  *
  * 
- * @author vivekananda_moosani
  */
 public class SiaClient {
     // As of now we use a DOMParser .. Should we change to SAX parser.

@@ -53,7 +53,6 @@ import voi.swing.util.ProxySettingsDialog;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class FovastMainView extends FrameView
         implements FovastApplicationState.FovastApplicationStateListener {

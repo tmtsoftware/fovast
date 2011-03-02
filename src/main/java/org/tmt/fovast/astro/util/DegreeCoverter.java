@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
 public class DegreeCoverter {
 
     /**      
-     * @param ravalue (in sexagesimal formats 12:30 or 12h 13m 56.34s etc)
+     * @param value ra in in sexagesimal format (12:30 or 12h 13m 56.34s etc)
      * @return ra in degrees
      * @throws NumberFormatException
      * @throws IllegalFormatException
@@ -150,7 +150,7 @@ public class DegreeCoverter {
     }
 
     /**
-     * @param dec value (in sexagesimal formats 12:30 or 12d 13m 56.34s etc)
+     * @param value dec in sexagesimal format (12:30 or 12d 13m 56.34s etc)
      * @return dec in degrees
      * @throws NumberFormatException
      * @throws IllegalFormatException
@@ -280,6 +280,10 @@ public class DegreeCoverter {
     }
 
 
+    /**
+     * Class to wrap exceptions which occur while parsing RA and DEC
+     * values.
+     */
     public  static class IllegalFormatException extends Exception {
 
         public IllegalFormatException() {
@@ -290,7 +294,8 @@ public class DegreeCoverter {
         }
 
     }
-     public static void main(String[] args) {
+
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 DegreeCoverter dc = new DegreeCoverter();

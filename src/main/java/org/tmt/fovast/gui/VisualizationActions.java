@@ -10,7 +10,6 @@ import org.jdesktop.application.Action;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class VisualizationActions {
 

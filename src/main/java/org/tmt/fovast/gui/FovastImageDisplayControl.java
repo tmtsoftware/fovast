@@ -18,15 +18,13 @@ import jsky.image.gui.DivaMainImageDisplay;
  * 
  * Extends the ImageDisplayControl class by adding support for
  * browsing catalogs and plotting catalog symbols on the image.
-
  * 
- * @author vivekananda_moosani
  */
 public class FovastImageDisplayControl extends ImageDisplayControl{
 
 
     /**
-     * Construct a NavigatorImageDisplayControl widget.
+     * Construct a FovastImageDisplay widget.
      *
      * @param size   the size (width, height) to use for the pan and zoom windows.
      */
@@ -35,7 +33,7 @@ public class FovastImageDisplayControl extends ImageDisplayControl{
     }
 
     /**
-     * Make a NavigatorImageDisplayControl widget with the default settings.
+     * Make a FovastImageDisplay widget with the default settings.
      */
     public FovastImageDisplayControl() {
         super();
@@ -43,7 +41,7 @@ public class FovastImageDisplayControl extends ImageDisplayControl{
 
 
     /**
-     * Make a NavigatorImageDisplayControl widget with the default settings and display the contents
+     * Make a FovastImageDisplay widget with the default settings and display the contents
      * of the image file pointed to by the URL.
      *
      * @param url The URL for the image to load
@@ -54,7 +52,7 @@ public class FovastImageDisplayControl extends ImageDisplayControl{
 
 
     /**
-     * Make a NavigatorImageDisplayControl widget with the default settings and display the contents
+     * Make a FovastImageDisplay widget with the default settings and display the contents
      * of the image file.
      *
      * @param filename The image file to load

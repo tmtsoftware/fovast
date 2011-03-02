@@ -59,9 +59,10 @@ import uk.ac.starlink.votable.VOElementFactory;
 import uk.ac.starlink.votable.VOStarTable;
 
 /**
- * NameResolver class has static methods to resolve object names to RA, DEC
- * getCoordsFromSimbad() uses Simbad name -> RA, DEC resolution service
- * while getCoordsFromNED() uses the NED service
+ * <p>NameResolver class has static methods to resolve object names to RA, DEC</p>
+ * 
+ * <p><code>getCoordsFromSimbad()</code> uses Simbad name -> RA, DEC resolution service
+ * while <code>getCoordsFromNED()</code> uses the NED service </p>
  *
  */
 public class NameResolver {
@@ -69,28 +70,58 @@ public class NameResolver {
     private static Logger logger = LoggerFactory.getLogger(NameResolver.class);
 
     // General constants
+
+    /** Encoding to be used for str - binary conversions */
     private static final String URL_ENCODING_FORMAT = "utf-8";
 
     // NED related constants
+
+    /** 
+     * NED service query status is indicated by an INFO param in the returned
+     * VOTable - This constant holds the name attribute value of that INFO param.
+     */
     public static final String NED_QUERY_STATUS = "QUERY_STATUS";
 
+    /**
+     * NED service query status is indicated by an INFO tag in the returned
+     * VOTable - This constant holds the value of that INFO tag in case of success.
+     */
     public static final String NED_QUERY_STATUS_VALUE_OK = "OK";
 
+    /**
+     * NED service query status is indicated by an INFO tag in the returned
+     * VOTable - This constant holds the value of that INFO tag in case of error.
+     */
     public static final String NED_ERROR_PARAM_NAME = "Error";
 
+    /** NED service URL prefix (includes base url and some get params) */
     private static final String NED_URL_PREFIX = "http://nedwww.ipac.caltech.edu/"
             + "cgi-bin/nph-objsearch?objname=";
 
+    /** NED service URL suffix (more get params to be appended) */
     private static final String NED_URL_SUFFIX = "&extend=no&out_csys=Equatorial&"
             + "out_equinox=J2000.0&obj_sort=RA+or+Longitude&of=xml_main&" + "zv_breaker=30000.0&list_limit=5&img_stamp=NO";
 
+    /** 
+     * Holds value of type attribute of the resource tag in VOTable returned by NED
+     */
     private static final String NED_VOTABLE_RESOURCE_TYPE = "results";
 
+    /**
+     * Name of the column which has RA values in VOTable returned by NED
+     */
     private static final String NED_RA_NAME = "RA(deg)";
 
+    /**
+     * Name of the column which has DEC values in VOTable returned by NED
+     */
     private static final String NED_DEC_NAME = "DEC(deg)";
 
     // Sesame(simbad) related constants
+
+    /**
+     * Base url of SIMBAD service
+     */
     private static final String SESAME_URL_PREFIX = "http://cdsws.u-strasbg.fr/"
             + "axis/services/Sesame?method=sesame&resultType=x&name=";
 
@@ -98,7 +129,7 @@ public class NameResolver {
      * This method resolves the object name using Simbad Service.
      * 
      * @param objectName like m31, m1 etc
-     * @return double array of size 2 containing ra and dec
+     * @return double array of size 2 containing RA and DEC in degrees
      * @throws CouldNotResolveException - if resolution fails
      * @throws OtherException - for other exceptions - used to wrap SAXExceptions,
      *                          IOException etc
@@ -155,7 +186,7 @@ public class NameResolver {
      * method to resolve object name from NED Service. 
      *
      * @param objectName like m31, m1 etc
-     * @return double array of size 2 containing ra and dec
+     * @return double array of size 2 containing RA and DEC in degrees
      * @throws CouldNotResolveException - for other exceptions
      * @throws OtherException - for other exceptions - used to wrap SAXExceptions,
      *                          IOException etc
@@ -309,7 +340,11 @@ public class NameResolver {
     }
 
     /**
-     * Check the cause for actual reason
+     * <p> Wrapper class for exceptions thrown which are not related to service
+     * actual errors, like service is down or could not contact server 
+     * or some XML exception </p>
+     * 
+     * <p>Check the cause for actual reason</p>
      */
     public static class OtherException extends Exception {
 

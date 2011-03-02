@@ -34,7 +34,6 @@ import voi.swing.util.DialogCreator;
 /**
  * Utility class for app configuration (preferences) load/save and editing
  *
- * @author vivekananda_moosani
  */
 public class AppConfiguration {
 

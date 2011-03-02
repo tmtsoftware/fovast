@@ -57,24 +57,27 @@ import org.slf4j.LoggerFactory;
 
 
 /**
+ * <p>Util class for configuring proxy settings for swing applications.</p>
+ *
+ * <p>For showing the dialog the constructor should be called. For initializing
+ * during startup of application, use the static {@link readStoredSettings} 
+ * method.</p>
  * 
- * 
- * @author vivekananda_moosani
  */
 public class ProxySettingsDialog
 {
 
     private static Logger _logger = LoggerFactory.getLogger(ProxySettingsDialog.class);
 
-    public static final String PROPERTIES_FILE = "proxy-settings.props";
-    public static final String PROXY_HOST = "http.proxyHost";
-    public static final String PROXY_PORT = "http.proxyPort";
-    public static final String NON_PROXY_HOSTS = "http.nonProxyHosts";
-    public static final String USE_PROXY = "httpx.useProxy";
-	public static final String PROXY_USER = "httpx.proxyUser";
-	public static final String PROXY_PASSWORD = "httpx.proxyPassword";
-	public static final String REQUIRES_AUTH = "httpx.requiresAuthentication";
-    public static final String SAVE_INFO = "save_info";
+    private static final String PROPERTIES_FILE = "proxy-settings.props";
+    private static final String PROXY_HOST = "http.proxyHost";
+    private static final String PROXY_PORT = "http.proxyPort";
+    private static final String NON_PROXY_HOSTS = "http.nonProxyHosts";
+    private static final String USE_PROXY = "httpx.useProxy";
+	private static final String PROXY_USER = "httpx.proxyUser";
+	private static final String PROXY_PASSWORD = "httpx.proxyPassword";
+	private static final String REQUIRES_AUTH = "httpx.requiresAuthentication";
+    private static final String SAVE_INFO = "save_info";
 
     //proxy settings file
     private File _proxySettingsFile;
@@ -90,22 +93,22 @@ public class ProxySettingsDialog
 	private boolean _storedRequiresAuthentication;
     
     //current system props
-    String systemProxyHost;
-    String systemProxyPort;
-    String systemNonProxyHosts;
-    String systemRequiresAuth;
-    String systemProxyUsername;
-    String systemProxyPassword;
+    private String systemProxyHost;
+    private String systemProxyPort;
+    private String systemNonProxyHosts;
+    private String systemRequiresAuth;
+    private String systemProxyUsername;
+    private String systemProxyPassword;
 
 
     //components
-    JTextField _proxyHostTextField;
-    JTextField _proxyPortTextField;
-    JTextField _nonProxyHostsTextField;
-    JCheckBox _useProxyCheckBox;
-    JCheckBox _saveCheckBox;
-    JButton _okButton;
-    JButton _cancelButton;
+    private JTextField _proxyHostTextField;
+    private JTextField _proxyPortTextField;
+    private JTextField _nonProxyHostsTextField;
+    private JCheckBox _useProxyCheckBox;
+    private JCheckBox _saveCheckBox;
+    private JButton _okButton;
+    private JButton _cancelButton;
 	private JPanel _proxyPanel;
 	private JLabel _proxyHostLabel;
 	private JLabel _proxyPortLabel;
@@ -119,7 +122,8 @@ public class ProxySettingsDialog
     private JDialog _dialog;
 
     /**
-     *
+     * To show the proxy settings dialog
+     * 
      * @param comp - Used to determine parent of the dialog and to set
      *               the relative location dialog
      */
@@ -465,7 +469,7 @@ public class ProxySettingsDialog
 	}
 
 	/**
-     *  
+     *  Sets up components on the dialog
      */
     private void jbInit() {
         _dialog.setTitle("Proxy Settings");
@@ -538,7 +542,7 @@ public class ProxySettingsDialog
         _nonProxyHostsExampleLabel = 
         	new JLabel("Example: localhost|10.*|ps4322|*.xyz.com");
         _proxyPanel.add(_nonProxyHostsExampleLabel, gbc);
-        
+
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 2;
@@ -589,12 +593,18 @@ public class ProxySettingsDialog
     }    
     
     /**
-     * Simple Authenticator class
+     * Simple Authenticator class which overrides {@link getPasswordAuthentication()}
+     * method.
      * 
-     * @author vivekananda_moosani
      */
     public static class SimpleAuthenticator extends Authenticator
     {
+        /**
+         * <p>Makes a <code>PasswordAuthentication</code> object from System properties
+         * http.proxyUser and http.proxyPassword </p>
+         *
+         * @return
+         */
     	protected PasswordAuthentication getPasswordAuthentication() 
     	{
     		
@@ -618,6 +628,13 @@ public class ProxySettingsDialog
     }
     //Simple Authenticator class ends
 
+    /**
+     * <p>
+     * Reads proxy related config from the given file and appropriately populates
+     * System properties. 
+     * </p>
+     * @param settingsFile
+     */
 	public static void readSettingsFile(File settingsFile)
 	{
 	    try

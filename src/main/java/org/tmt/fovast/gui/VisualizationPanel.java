@@ -19,7 +19,6 @@ import org.tmt.fovast.state.VisualizationState;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class VisualizationPanel extends JPanel {
 

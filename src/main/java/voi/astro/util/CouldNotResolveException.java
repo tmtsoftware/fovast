@@ -23,6 +23,10 @@
 
 package voi.astro.util;
 
+/**
+ * Exception raised by {@link NameResolver} when object to ra, dec resolution fails
+ * 
+ */
 public class CouldNotResolveException extends Exception {
 
 	public CouldNotResolveException(Throwable th) {

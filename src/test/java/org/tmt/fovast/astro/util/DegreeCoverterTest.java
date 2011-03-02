@@ -14,7 +14,6 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author disha_gujrathi
  */
 public class DegreeCoverterTest {
 

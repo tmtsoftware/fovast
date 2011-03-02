@@ -13,7 +13,6 @@ import jsky.navigator.NavigatorPane;
 /**
  * Mimicing NavigatorImageDisplay as needed ..
  * 
- * @author vivekananda_moosani
  */
 class FovastImageDisplay extends DivaMainImageDisplay{
 

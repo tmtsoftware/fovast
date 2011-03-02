@@ -36,7 +36,6 @@ import org.tmt.fovast.vo.client.SiaClient;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class VisualizationWorkPanel extends JPanel
         implements VisualizationState.VisualizationStateListener {

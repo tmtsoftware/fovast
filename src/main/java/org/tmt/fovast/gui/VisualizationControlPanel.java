@@ -49,7 +49,6 @@ import org.tmt.fovast.astro.util.DegreeCoverter;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class VisualizationControlPanel extends JPanel
         implements VisualizationState.VisualizationStateListener,

@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
  *
  * Note: This class does not bother about the HTTP cache directives
  * 
- * @author vivekananda_moosani
  */
 public class Cache {
 

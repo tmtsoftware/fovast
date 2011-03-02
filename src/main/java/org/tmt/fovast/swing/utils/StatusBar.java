@@ -16,7 +16,6 @@ import javax.swing.SwingUtilities;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class StatusBar extends JPanel {
 
