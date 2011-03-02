@@ -28,6 +28,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -42,10 +43,12 @@ import voi.astro.util.NameResolver;
 import org.jdesktop.application.ApplicationActionMap;
 import org.jdesktop.application.ApplicationContext;
 import org.jdom.Element;
+import org.jfree.date.SpreadsheetDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
+import org.tmt.fovast.instrumentconfig.FovastConfigHelper;
 
 /**
  *
@@ -82,7 +85,7 @@ public class VisualizationControlPanel extends JPanel
 
     private JLabel imageLoadMsgLabel;
 
-    private JPanel instrumentConfigPanel;
+    private JPanel showTargetPanel;
     
     private VisualizationState visualization;
 
@@ -127,18 +130,6 @@ public class VisualizationControlPanel extends JPanel
         //setPreferredSize(new Dimension(150, 200));
         setLayout(new BorderLayout(0, 0));
         setBorder(BorderFactory.createEmptyBorder());
-
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(
-                10, 10, 10, 10));
-
-        //this has been set after a rough calculation.
-        Dimension mainPanelDimension = new Dimension(340, 30);
-        mainPanel.setPreferredSize(mainPanelDimension);
-        mainPanel.setMinimumSize(mainPanelDimension);
-        mainPanel.setMaximumSize(mainPanelDimension);
-        add(mainPanel);
 
         //raDecPanel & contents
         //
@@ -362,15 +353,15 @@ public class VisualizationControlPanel extends JPanel
         gbc.gridx = 0;
         gbc.weightx = 1;
         gbc.gridwidth = 3;
-        gbc.insets = new Insets(10, 0, 20, 0);
+        gbc.insets = new Insets(10, 0, 10, 0);
         raDecPanel.add(imageLoadMsgLabel, gbc);
 
         //raDecPanel.setBorder(BorderFactory.createLineBorder(Color.GREEN));
-        mainPanel.add(raDecPanel, BorderLayout.NORTH);
 
         
-        //instrumentConfigPanel
-        instrumentConfigPanel = new JPanel();
+        //showTargetPanel
+        showTargetPanel = new JPanel();
+        showTargetPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         JLabel showBackgroundLabel = new JLabel("Show background image");
         JCheckBox showBackgroundCheckbox = new JCheckBox();
@@ -387,67 +378,97 @@ public class VisualizationControlPanel extends JPanel
             }
         });
 
-        //instrumentConfigPanel layout
-        instrumentConfigPanel.setLayout(new GridBagLayout());
+        //showTargetPanel layout
+        showTargetPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbcIcp = new GridBagConstraints();
 
         gbcIcp.gridx = 0;
         gbcIcp.gridy = 0;
         gbcIcp.gridwidth = GridBagConstraints.RELATIVE;
         gbcIcp.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(20, 0, 0, 0);
+        gbc.insets = new Insets(10, 0, 0, 0);
         //showTargetCheckbox.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
-        instrumentConfigPanel.add(showTargetCheckbox, gbcIcp);
+        showTargetPanel.add(showTargetCheckbox, gbcIcp);
 
         gbcIcp.gridx = 1;
         gbcIcp.gridy = 0;
         gbcIcp.gridwidth = GridBagConstraints.REMAINDER;
         gbcIcp.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(20, 0, 0, 0);
-        //showTargetLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
-        instrumentConfigPanel.add(showTargetLabel, gbcIcp);
-
-        gbcIcp.gridx = 0;
-        gbcIcp.gridy = 1;
         gbcIcp.weightx = 1;
-        gbcIcp.weighty = 1;
-        //try {
-        //    instrumentConfigPanel.add(makeInstrumentTree(), gbcIcp);
-        //} catch(Exception ex) {
-        //    logger.error("Error while making instrument config tree", ex);
-        //}
-        instrumentConfigPanel.add(new JLabel(" "), gbcIcp);
+        //showTargetLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        showTargetPanel.add(showTargetLabel, gbcIcp);
 
-        
-        
-        mainPanel.add(instrumentConfigPanel, BorderLayout.CENTER);
+//  JTREE DOES NOT WORK WITH GRID BAG CONSTRAINTS THAT WELLL .. 
+//        gbcIcp.gridx = 0;
+//        gbcIcp.gridy = 1;
+//        gbcIcp.weightx = 1;
+//        gbcIcp.weighty = 1;
+//        gbcIcp.gridwidth = 2;
+//        try {
+//            JTree tree = makeInstrumentTree();
+//            showTargetPanel.add(tree, gbcIcp);
+//        } catch(Exception ex) {
+//            logger.error("Error while making instrument config tree", ex);
+//        }
+//        //showTargetPanel.add(new JLabel(" "), gbcIcp);
+
+        JPanel configPanel = new JPanel(new BorderLayout());
+        configPanel.add(showTargetPanel, BorderLayout.NORTH);
+        try {
+            //JTree tree = makeInstrumentTree();
+            //configPanel.add(tree, BorderLayout.CENTER);
+            configPanel.add(new JPanel(), BorderLayout.CENTER);
+        } catch(Exception ex) {
+            logger.error("Error while making instrument config tree", ex);
+        }
+
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(
+                10, 10, 10, 10));
+        mainPanel.add(raDecPanel, BorderLayout.NORTH);
+        mainPanel.add(configPanel, BorderLayout.CENTER);
+
+        //this has been set after a rough calculation.        
+        Dimension mainPanelDimension = new Dimension(340,
+                mainPanel.getLayout().preferredLayoutSize(this).height);
+        mainPanel.setPreferredSize(mainPanelDimension);
+        //mainPanel.setMinimumSize(mainPanelDimension);
+        //mainPanel.setMaximumSize(mainPanelDimension);
+        add(new JScrollPane(mainPanel));
     }
 
-    private JComponent makeInstrumentTree() throws JDOMException, IOException {
-        FovastInstrumentGuiConfig
-                fovastInstrumentConfig =
-                FovastInstrumentGuiConfig.getFovastInstrumentConfig(
-                VisualizationControlPanel.class.getResource(INSTRUMENT_CONTROL_XML));
+    private JTree makeInstrumentTree() throws FovastInstrumentTree.SomeException {
 
-        DefaultMutableTreeNode rootNode =
-                new DefaultMutableTreeNode("Instrument Config");
-
-//        List<Element> children = document.getRootElement().getChildren();
-//        makeInstrumentTree(rootNode, children);
-
-        JTree instrumentTree = new JTree(rootNode);
-        DefaultTreeCellRenderer defaultTreeCellRenderer =
-                new DefaultTreeCellRenderer();
-        defaultTreeCellRenderer.setOpenIcon(null);
-        defaultTreeCellRenderer.setClosedIcon(null);
-        defaultTreeCellRenderer.setLeafIcon(null);
-        defaultTreeCellRenderer.setBackground(raAfterLabel.getBackground());
-        defaultTreeCellRenderer.setBackgroundNonSelectionColor(raAfterLabel.getBackground());
-        //defaultTreeCellRenderer.setBackgroundSelectionColor(Color.RED);
-        instrumentTree.setCellRenderer(defaultTreeCellRenderer);
-        instrumentTree.setBackground(raAfterLabel.getBackground());
-
-        return instrumentTree;
+        FovastConfigHelper configHelper = new FovastConfigHelper();
+        FovastInstrumentTree instrumentTree = new FovastInstrumentTree(configHelper);
+        return instrumentTree.getJTree();
+        
+//        FovastInstrumentGuiConfig
+//                fovastInstrumentConfig =
+//                FovastInstrumentGuiConfig.getFovastInstrumentConfig(
+//                VisualizationControlPanel.class.getResource(INSTRUMENT_CONTROL_XML));
+//
+//        DefaultMutableTreeNode rootNode =
+//                new DefaultMutableTreeNode("Instrument Config");
+//
+////        List<Element> children = document.getRootElement().getChildren();
+////        makeInstrumentTree(rootNode, children);
+//
+//        JTree instrumentTree = new JTree(rootNode);
+//        DefaultTreeCellRenderer defaultTreeCellRenderer =
+//                new DefaultTreeCellRenderer();
+//        defaultTreeCellRenderer.setOpenIcon(null);
+//        defaultTreeCellRenderer.setClosedIcon(null);
+//        defaultTreeCellRenderer.setLeafIcon(null);
+//        defaultTreeCellRenderer.setBackground(raAfterLabel.getBackground());
+//        defaultTreeCellRenderer.setBackgroundNonSelectionColor(raAfterLabel.getBackground());
+//        //defaultTreeCellRenderer.setBackgroundSelectionColor(Color.RED);
+//        instrumentTree.setCellRenderer(defaultTreeCellRenderer);
+//        instrumentTree.setBackground(raAfterLabel.getBackground());
+//
+//        return instrumentTree;
     }
 
     private void makeInstrumentTree(DefaultMutableTreeNode node,
@@ -720,7 +741,7 @@ public class VisualizationControlPanel extends JPanel
                 decTextField.setText("" + tempRaDec[1]);
             } catch (Exception e) {
                 //Could not resolve. Suppress exception and continue resolving
-                JOptionPane.showMessageDialog(instrumentConfigPanel,
+                JOptionPane.showMessageDialog(showTargetPanel,
                         "<html><body>Could not resolve.<br/>" +
                         "This might be a problem with http proxy settings.<br/>" +
                         "To set http proxy goto File->Proxy Settings");
@@ -733,7 +754,7 @@ public class VisualizationControlPanel extends JPanel
                 decTextField.setText("" + tempRaDec[1]);
             } catch (Exception e) {
                 //Could not resolve. Suppress exception and continue resolving
-                JOptionPane.showMessageDialog(instrumentConfigPanel,
+                JOptionPane.showMessageDialog(showTargetPanel,
                         "<html><body>Could not resolve.<br/>" +
                         "This might be a problem with http proxy settings.<br/>" +
                         "To set http proxy goto File->Proxy Settings");
