@@ -222,7 +222,7 @@ public class VisualizationControlPanel extends JPanel
         decAfterLabel = new JLabel("J2000/FK5");
 
        JPanel raFormatPanel = new JPanel(new FlowLayout());
-       URL urlString=VisualizationControlPanel.class.getResource("input_dialog.gif");
+       URL urlString=VisualizationControlPanel.class.getResource("resources/help.gif");
        raFormatLabel=new JLabel(new ImageIcon(urlString));
        int delay=Integer.MAX_VALUE;
        ToolTipManager.sharedInstance().setDismissDelay(delay);
