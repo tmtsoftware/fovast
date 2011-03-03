@@ -83,7 +83,7 @@ public class FovastInstrumentTree implements ConfigListener {
         //tree settings
         tree.setRootVisible(false);
         tree.setEditable(true);
-        tree.setExpandsSelectedPaths(true);
+        //tree.setExpandsSelectedPaths(true);
         tree.setCellRenderer(new MyTreeCellRenderer(tree));
         tree.setCellEditor(new MyTreeCellRenderer(tree));
         

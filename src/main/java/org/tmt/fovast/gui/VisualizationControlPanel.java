@@ -415,27 +415,32 @@ public class VisualizationControlPanel extends JPanel
         JPanel configPanel = new JPanel(new BorderLayout());
         configPanel.add(showTargetPanel, BorderLayout.NORTH);
         try {
-            //JTree tree = makeInstrumentTree();
-            //configPanel.add(tree, BorderLayout.CENTER);
-            configPanel.add(new JPanel(), BorderLayout.CENTER);
+            JTree tree = makeInstrumentTree();
+            configPanel.add(tree, BorderLayout.CENTER);
+            //configPanel.add(new JPanel(), BorderLayout.CENTER);
         } catch(Exception ex) {
             logger.error("Error while making instrument config tree", ex);
         }
 
 
-        JPanel mainPanel = new JPanel();
+        JPanel mainPanel = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                Dimension dim = getLayout().preferredLayoutSize(this);
+                //dim.width returned is slightly greater than required
+                //(probably because of Grid bag layout being used for some panels)
+                //so setting it to 340 (rough calculation)
+                return new Dimension(340, dim.height);
+            }
+
+        };
         mainPanel.setLayout(new BorderLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(
                 10, 10, 10, 10));
         mainPanel.add(raDecPanel, BorderLayout.NORTH);
         mainPanel.add(configPanel, BorderLayout.CENTER);
 
-        //this has been set after a rough calculation.        
-        Dimension mainPanelDimension = new Dimension(340,
-                mainPanel.getLayout().preferredLayoutSize(this).height);
-        mainPanel.setPreferredSize(mainPanelDimension);
-        //mainPanel.setMinimumSize(mainPanelDimension);
-        //mainPanel.setMaximumSize(mainPanelDimension);
+        
         add(new JScrollPane(mainPanel));
     }
 
