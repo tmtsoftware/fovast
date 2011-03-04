@@ -46,11 +46,10 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         panel.remove(checkbox);
         panel.remove(label);
 
-        if(!tree.isEnabled()) {
-            panel.setEnabled(false);
-            label.setEnabled(false);
-            checkbox.setEnabled(false);
-        }
+        boolean enable = tree.isEnabled();
+        panel.setEnabled(enable);
+        label.setEnabled(enable);
+        checkbox.setEnabled(enable);
 
         checkbox.setFocusPainted(hasFocus);
 

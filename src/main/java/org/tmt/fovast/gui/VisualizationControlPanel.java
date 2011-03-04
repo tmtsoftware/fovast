@@ -103,6 +103,8 @@ public class VisualizationControlPanel extends JPanel
 
     private JLabel decAfterLabel;
 
+    private JTree tree;
+    
     public VisualizationControlPanel(ApplicationContext appContext,
             VisualizationState visualizationState) {
         this.appContext = appContext;
@@ -415,9 +417,10 @@ public class VisualizationControlPanel extends JPanel
         JPanel configPanel = new JPanel(new BorderLayout());
         configPanel.add(showTargetPanel, BorderLayout.NORTH);
         try {
-            JTree tree = makeInstrumentTree();
+            tree = makeInstrumentTree();
             tree.setOpaque(true);
             tree.setBackground(configPanel.getBackground());
+            tree.setEnabled(false);
             configPanel.add(tree, BorderLayout.CENTER);
             //configPanel.add(new JPanel(), BorderLayout.CENTER);
         } catch(Exception ex) {
@@ -618,6 +621,7 @@ public class VisualizationControlPanel extends JPanel
     private void enableDisableShowTargetCheckBox(boolean enable) {
         showTargetCheckbox.setEnabled(enable);
         showTargetLabel.setEnabled(enable);
+        tree.setEnabled(enable);
     }
 
     public void showTargetCbCliked() {
