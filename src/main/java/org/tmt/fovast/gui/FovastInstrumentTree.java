@@ -7,11 +7,11 @@
 
 package org.tmt.fovast.gui;
 
+import java.awt.Color;
+import java.awt.Graphics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.Dimension;
-import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import java.net.URL;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.FovastConfigHelper;
 import org.tmt.fovast.instrumentconfig.FovastConfigHelper.ConfigListener;
 import org.tmt.fovast.instrumentconfig.Value;
-import org.tmt.fovast.swing.utils.MyTreeCellRenderer;
 
 /**
  * <p>Handles showing a JTree from InstrumentTree.xml. On actions on the JTree, it
@@ -36,7 +35,19 @@ public class FovastInstrumentTree implements ConfigListener {
 
     private static Logger logger = LoggerFactory.getLogger(FovastInstrumentTree.class);
 
-    private final static String INSTRUMENT_TREE_XML = "resources/InstrumentTree.xml";
+    private final static String NODE_NAME = "Node";
+
+    private final static String CHECKBOXNODE_NAME = "CheckboxNode";
+
+    private final static String CHECKBOXGROUPNODE_NAME = "CheckboxGroupNode";
+
+    private final static String LABEL_ATTRIBUTE = "label";
+
+    private final static String CONFIGOPTIONID_ATTRIBUTE = "configOptionId";
+
+    private final static String CONFIGOPTIONVALUE_LABEL_ATTRIBUTE = "configOptionValue";
+
+    private final static String INSTRUMENT_TREE_XML = "resources/InstrumentTree.xml";    
 
     private FovastConfigHelper configHelper;
 
@@ -74,27 +85,48 @@ public class FovastInstrumentTree implements ConfigListener {
 
         //add nodes to the tree
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Instrument Config");
+        rootNode.setUserObject(new GroupUserObject("root"));
         DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
         makeTreeNodes(rootElement, rootNode);
 
         //create tree
-        tree = new JTree(treeModel);
+        //overriding as nimbus l&f does not respect the setBackgroundColor on tree.
+        //fix thanks to http://www.jroller.com/santhosh/date/20060216
+        tree = new JTree(treeModel) {
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                Color c = g.getColor();
+                g.setColor(getBackground());
+                g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(c);
+                boolean b = isOpaque();
+                //so that actual paint code does not draw background.
+                setOpaque(false);
+                super.paintComponent(g);
+                setOpaque(b);
+            }
+            
+        };
 
         //tree settings
         tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.setSelectionModel(null);
+        //tree.setEnabled(false);
         tree.setEditable(true);
-        //tree.setExpandsSelectedPaths(true);
-        tree.setCellRenderer(new MyTreeCellRenderer(tree));
-        tree.setCellEditor(new MyTreeCellRenderer(tree));
+        FovastInstrumentTreeCellRenderer renderer = new FovastInstrumentTreeCellRenderer(tree);
+        tree.setCellRenderer(renderer);
+        tree.setCellEditor(new FovastInstrumentTreeCellEditor(tree, renderer));
         
         //show tree fully expanded
-        for( int i = 0; i < tree.getRowCount(); ++i )
-        {
-          tree.expandRow(i);
-        }
+        //for( int i = 0; i < tree.getRowCount(); ++i )
+        //{
+        // tree.expandRow(i);
+        //}
 
         //TODO:
-        //1. show proper rendering components
+        //1. show proper editing components
         //2. attach to config manager
         //3. track config changes .. 
     }
@@ -114,7 +146,24 @@ public class FovastInstrumentTree implements ConfigListener {
         List<Element> children = documentElement.getChildren();
         for(int i=0; i<children.size(); i++) {
             Element child = children.get(i);
-            DefaultMutableTreeNode tNode = new DefaultMutableTreeNode(child);
+            String name = child.getName();
+            String label = child.getAttributeValue(LABEL_ATTRIBUTE);
+            GroupUserObject parentUo = (GroupUserObject)treeNode.getUserObject();
+            UserObject uo = null;
+            if(name.equals(NODE_NAME)) {
+                uo = new GroupUserObject(label);
+            } else if (name.equals(CHECKBOXNODE_NAME)) {
+                uo = new CheckboxUserObject(label,
+                        child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE),
+                        child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE));
+            } else if (name.equals(CHECKBOXGROUPNODE_NAME)) {
+                uo = new CheckboxGroupUserObject(label);
+            } else {
+                assert false : "Unknown element type: " + name;
+            }
+            parentUo.addChild(uo);
+            
+            DefaultMutableTreeNode tNode = new DefaultMutableTreeNode(uo);
             treeNode.add(tNode);
 
             if(treeNode.getChildCount() > 0) {
@@ -141,4 +190,164 @@ public class FovastInstrumentTree implements ConfigListener {
             super(msg);
         }
     }
+
+    /**
+     * Only visible to this class and corresponding cell renderer class
+     * UserObject holds info about a Node in InstrumentTree.xml
+     */
+    static abstract class UserObject implements Cloneable {
+
+        private String label;
+
+        public UserObject(String label) {
+            this.label = label;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public abstract Object clone();
+
+
+        public static interface Editable {
+            public void setSelected(boolean b);
+
+            public boolean isSelected();
+        }
+    }
+
+    /**
+     * UserObject which has children
+     */
+    static class GroupUserObject extends UserObject {
+
+        protected ArrayList<UserObject> children = new ArrayList<UserObject>();
+
+        public GroupUserObject(String label) {
+            super(label);
+        }
+
+        public void addChild(UserObject uo) {
+            children.add(uo);
+        }
+
+        public int getChildCount() {
+            return children.size();
+        }
+
+        public UserObject getChild(int index) {
+            return children.get(index);
+        }
+
+        @Override
+        public Object clone() {
+            //NOTE: Make sure all subtypes of UserObject do implement this method
+            //properly
+            //TODO: this does a shallow copy 
+            GroupUserObject clonedObj = new GroupUserObject(getLabel());
+            clonedObj.children = (ArrayList<UserObject>) children.clone();
+            return clonedObj;
+        }
+
+    }
+    
+    static class CheckboxUserObject extends GroupUserObject 
+            implements UserObject.Editable {
+
+        private String configOptionId;
+
+        private Object configOptionValue;
+
+        private boolean selected;
+
+        public CheckboxUserObject(String label, String configOptionId) {
+            this(label, configOptionId, null);
+        }
+
+        /**
+         *
+         * @param label
+         * @param configOptionId
+         * @param configOptionValue - as of now this is either a string or boolean
+         */
+        public CheckboxUserObject(String label, String configOptionId, Object configOptionValue) {
+            super(label);
+            this.configOptionId = configOptionId;
+            this.configOptionValue = configOptionValue;
+        }
+        
+        public String getConfigOptionId() {
+            return configOptionId;
+        }
+
+        public Object getConfigOptionValue() {
+            return configOptionValue;
+        }
+
+        @Override
+        public void setSelected(boolean b) {
+            this.selected = b;
+        }
+
+        @Override
+        public boolean isSelected() {
+            return selected;
+        }
+
+        @Override
+        public Object clone() {
+            CheckboxUserObject newCuo = new CheckboxUserObject(getLabel(),
+                    getConfigOptionId(), getConfigOptionValue());
+            newCuo.children = (ArrayList<UserObject>) children.clone();
+            return newCuo;
+        }
+
+    }
+
+    static class CheckboxGroupUserObject extends GroupUserObject
+        implements UserObject.Editable {
+
+        public CheckboxGroupUserObject(String label) {
+            super(label);
+        }
+
+        @Override
+        public void setSelected(boolean b) {
+            for(int i=0; i<children.size(); i++) {
+                UserObject child = children.get(i);
+                if(child instanceof CheckboxUserObject) {
+                    ((CheckboxUserObject)child).setSelected(b);
+                } else if(child instanceof CheckboxGroupUserObject) {
+                    ((CheckboxGroupUserObject)child).setSelected(b);
+                }
+            }
+        }
+
+        @Override
+        public boolean isSelected() {
+            for(int i=0; i<children.size(); i++) {
+                UserObject child = children.get(i);
+                if(child instanceof CheckboxUserObject) {
+                    if(!((CheckboxUserObject)child).isSelected())
+                        return false;
+                } else if(child instanceof CheckboxGroupUserObject) {
+                    if(!((CheckboxGroupUserObject)child).isSelected())
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public Object clone() {
+            CheckboxGroupUserObject newCguo = new CheckboxGroupUserObject(
+                    getLabel());
+            newCguo.children = (ArrayList<UserObject>) children.clone();
+            return newCguo;
+        }
+
+    }
+
 }

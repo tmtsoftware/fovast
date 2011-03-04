@@ -416,6 +416,8 @@ public class VisualizationControlPanel extends JPanel
         configPanel.add(showTargetPanel, BorderLayout.NORTH);
         try {
             JTree tree = makeInstrumentTree();
+            tree.setOpaque(true);
+            tree.setBackground(configPanel.getBackground());
             configPanel.add(tree, BorderLayout.CENTER);
             //configPanel.add(new JPanel(), BorderLayout.CENTER);
         } catch(Exception ex) {

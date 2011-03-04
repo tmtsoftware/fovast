@@ -7,11 +7,12 @@
         Defines how the config options should be shown in a JTree
 
         There are three types of Nodes
-        1. Node - a simple node 
-        2. CheckboxNode - shows a checkbox
-        3. GroupNode - just to group sub group nodes. will also have a
-        4. CheckboxGroupNode - GroupNode which also shows a checkbox.
-            Clicking the checkbox simply selects all child nodes
+        1. Node - a simple node (can have child nodes)
+        2. CheckboxNode - extension of Node. Shows a checkbox and is associated
+                with a config option
+        3. CheckboxGroupNode - Node which also shows a checkbox and is not associated
+                with any config option. Just a handy node type which selects all child nodes
+                if selected.
 
         Display of a JTree from this xml is handled by InstrumentTreeHandler.
         If configOptionId and configOptionValue attributes are present then on
@@ -111,10 +112,10 @@
         </CheckboxNode>
         <CheckboxNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
             <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
-                <CheckboxNode configOptionId="iris.ifuimager.lenslet" label="Show"/>
+                <CheckboxNode configOptionId="iris.ifuimager.lenslet" label="Show Lenslet"/>
             </CheckboxNode>
             <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
-                <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show" />
+                <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show Slicer" />
             </CheckboxNode>
         </CheckboxNode>
         <CheckboxGroupNode label="OIWFS Probes">
@@ -139,5 +140,18 @@
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Vignetting Limits"/>
             </CheckboxNode>
         </CheckboxGroupNode>
+    </CheckboxNode>
+    <CheckboxNode configOptionId="nfiraos" label="NFIRAOS">
+        <CheckboxNode configOptionId="nfiraos.limits" label="Show Limits"/>
+        <CheckboxNode configOptionId="nfiraos.lsgasterism" label="Show Laser Guide Star Asterism"/>
+        <CheckboxNode configOptionId="nfiraos.twfs" label="TWFS">
+            <CheckboxNode configOptionId="nfiraos.twfs.detector" label="Show TWFS detector"/>
+            <CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/>
+            <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera Limits"/>
+            <CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/>
+        </CheckboxNode>
+    </CheckboxNode>
+    <CheckboxNode configOptionId="mobie" label="Mobie">
+        <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
     </CheckboxNode>
 </Tree>

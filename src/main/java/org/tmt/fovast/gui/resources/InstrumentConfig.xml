@@ -194,5 +194,13 @@
         </DisplayElement>
 
     </Instrument>
+
+    <Instrument id="mobie">
+
+        <DisplayElement id="mobie.detector">
+
+        </DisplayElement>
+        
+    </Instrument>
     
 </FovastInstrumentConfig>
