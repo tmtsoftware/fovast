@@ -142,9 +142,9 @@ public class FovastApplicationState
     }
 
     private void fireFasVisualizationAdded(VisualizationState visualization, int vizId, String fileName) {
-        for(int i=0; i<genericListeners.size(); i++) {
+        for(int i=0; i<listeners.size(); i++) {
             try {
-                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                ((FovastApplicationStateListener)(listeners.get(i))).
                         fasVisualizationAdded(visualization, vizId, fileName);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
@@ -153,9 +153,9 @@ public class FovastApplicationState
     }
 
     private void fireFasVisualizationSelected(Integer id) {
-        for(int i=0; i<genericListeners.size(); i++) {
+        for(int i=0; i<listeners.size(); i++) {
             try {
-                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                ((FovastApplicationStateListener)(listeners.get(i))).
                         fasVisualizationSelected(id);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
@@ -164,9 +164,9 @@ public class FovastApplicationState
     }
 
     private void fireFasVisualizationRemoved(Integer id) {
-        for(int i=0; i<genericListeners.size(); i++) {
+        for(int i=0; i<listeners.size(); i++) {
             try {
-                ((FovastApplicationStateListener)(genericListeners.get(i))).
+                ((FovastApplicationStateListener)(listeners.get(i))).
                         fasVisualizationRemoved(id);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
