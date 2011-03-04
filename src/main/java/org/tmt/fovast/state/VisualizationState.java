@@ -52,9 +52,9 @@ public class VisualizationState
     }
 
     private void fireVslTargetChanged(double ra, double dec, Object object, Object object0) {
-        for(int i=0; i<genericListeners.size(); i++) {
+        for(int i=0; i<listeners.size(); i++) {
             try {
-                ((VisualizationStateListener)(genericListeners.get(i))).vslTargetChanged(
+                ((VisualizationStateListener)(listeners.get(i))).vslTargetChanged(
                         targetRa, targetRa, null, null);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
@@ -63,9 +63,9 @@ public class VisualizationState
     }
 
     private void fireVslTargetChanged(boolean show) {
-        for(int i=0; i<genericListeners.size(); i++) {
+        for(int i=0; i<listeners.size(); i++) {
             try {
-                ((VisualizationStateListener)(genericListeners.get(i))).vslShowTarget(
+                ((VisualizationStateListener)(listeners.get(i))).vslShowTarget(
                         show);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);

@@ -31,24 +31,24 @@ public class ListenerSupport<T1> {
 
     private static Logger logger = LoggerFactory.getLogger(ListenerSupport.class);
 
-    protected ArrayList genericListeners = new ArrayList();
+    protected ArrayList listeners = new ArrayList();
 
     public ListenerSupport() {
         //nothing to do
     }
 
-    public ArrayList getGenericListeners() {
-        return genericListeners;
+    public ArrayList<T1> getListeners() {
+        return listeners;
     }
 
     public synchronized <T2 extends T1> void addListener(T2 t2) {
-        if (!genericListeners.contains(t2)) {
-            genericListeners.add(t2);
+        if (!listeners.contains(t2)) {
+            listeners.add(t2);
         }
     }
 
     public synchronized <T2 extends T1> void removeListener(T2 t2) {
-        genericListeners.remove(t2);
+        listeners.remove(t2);
     }
 
 // This implementation is tricky to be done correctly
@@ -58,9 +58,9 @@ public class ListenerSupport<T1> {
 // or wrapper type
 //
 //    public synchronized void fireChange(String methodName, Object... args) {
-//        for (int i = 0; i < genericListeners.size(); i++) {
+//        for (int i = 0; i < listeners.size(); i++) {
 //            try {
-//                Object listener = genericListeners.get(i);
+//                Object listener = listeners.get(i);
 //                Class clz = listener.getClass();
 //                Class[] classesArray = new Class[args.length];
 //                for(int j = 0; j < args.length; j++) {
