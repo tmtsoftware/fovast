@@ -279,6 +279,33 @@ public class DegreeCoverter {
         }
     }
 
+	//TODO: Doccomments
+    public static String degToHMS(double deg){
+        deg=deg/15;
+        int h = (int) Math.floor(deg);
+        deg = (deg - h) * 60;
+        int m = (int) Math.floor(deg);
+        double s = (deg - m) * 60;
+        String temp=h+":"+m+":"+s;
+        return  temp;
+    }
+
+	//TODO: Doccomments
+    public static String degToDMS(double deg){
+        String sign="";
+        if(deg < 0)
+        {
+            sign = "-";
+            deg=-deg;
+        }
+        int d = (int) Math.floor(deg);
+        deg = (deg - d) * 60;
+        int m = (int) Math.floor(deg);
+        double s = (deg - m) * 60;
+        String temp=sign+d+":"+m+":"+s;
+        return  temp;
+    }
+
 
     /**
      * Class to wrap exceptions which occur while parsing RA and DEC
@@ -300,8 +327,9 @@ public class DegreeCoverter {
             public void run() {
                 DegreeCoverter dc = new DegreeCoverter();
                 try {
-                    System.out.println(dc.parseAndConvertRa("+2h30s"));
-                    System.out.println(dc.parseAndConvertDec("10d0m30s"));
+                    System.out.println(dc.parseAndConvertRa("0h42m44.323s"));
+                   System.out.println(dc.parseAndConvertDec("-41d16m8.544s"));
+                    System.out.println(dc.degToDMS(-41.26904));
                 } catch (IllegalFormatException ex) {
                     Logger.getLogger(DegreeCoverter.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (NumberFormatException ex) {

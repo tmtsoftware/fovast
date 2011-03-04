@@ -16,11 +16,11 @@ import jsky.navigator.NavigatorPane;
  */
 class FovastImageDisplay extends DivaMainImageDisplay{
 
-    private NavigatorPane _navigatorPane;
+    private FovastNavigatorPane _navigatorPane;
 
     public FovastImageDisplay() {
-        super(new NavigatorPane());
-        _navigatorPane = (NavigatorPane) getCanvasPane();
+        super(new FovastNavigatorPane());
+        _navigatorPane = (FovastNavigatorPane) getCanvasPane();
         _navigatorPane.setImageDisplay(this);
     }
 
@@ -49,5 +49,15 @@ class FovastImageDisplay extends DivaMainImageDisplay{
             repaint();
         }
     }
+
+    public FovastNavigatorPane getNavigatorPane() {
+        return _navigatorPane;
+    }
+
+    public FovastSymbolLayer getSymbolLayer() {
+        return _navigatorPane.getSymbolLayer();
+    }
+
+
 
 }

@@ -41,8 +41,16 @@
         <MenuItem name="Menu.File.CloseAllFitsImages" implState="todo"/>
         <Separator/>
         <MenuItem name="Menu.File.LoadCatalog" implState="todo"/>
-        <MenuItem name="Menu.File.LoadCatalogFromVoArchives" implState="todo"/>
-        <MenuItem name="Menu.File.CloseCatalog" implState="todo"/>
+<!--        <MenuItem name="Menu.File.LoadCatalogFromVoArchives" implState="todo"/>-->
+        <Menu name="Menu.File.LoadCatalogFrom">
+                <MenuItem name="Menu.File.LoadCatalogFrom.GSC2"/>
+                <MenuItem name="Menu.File.LoadCatalogFrom.2MassPsc"/>
+                <MenuItem name="Menu.File.LoadCatalogFrom.USNO"/>
+                <MenuItem name="Menu.File.LoadCatalogFrom.OtherVoCss" implState="todo" />
+        </Menu>
+
+        <Menu name="Menu.File.CloseCatalog">
+        </Menu>
         <MenuItem name="Menu.File.CloseAllCatalogs" implState="todo"/>
         <MenuItem name="Menu.File.ShowCatalogList" implState="todo"/>
         <Separator/>
@@ -53,7 +61,7 @@
     </Menu>
     <Menu name="Menu.View" implState="todo">
         <MenuItem name="Menu.View.DssBackground" type="checkbox" implState="todo"/>
-        <Menu name="Menu.View.Catalogs" implState="todo"/>
+        <Menu name="Menu.View.Catalogs" />
         <Menu name="Menu.View.Images" implState="todo"/>
         <MenuItem name="Menu.View.Annotations" type="checkbox" implState="todo"/>
         <Separator/>

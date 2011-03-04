@@ -10,10 +10,14 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import org.jdesktop.application.Action;
+import org.xml.sax.SAXException;
 
 /**
  * This class has several actions which user can perform on the UI (in particular 
@@ -195,14 +199,49 @@ public class FovastActions {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.File.LoadCatalogFromVoArchives")
-    public void loadCatalogFromVoArchivesAction() {
+//    @Action(name = "Menu.File.LoadCatalogFromVoArchives")
+//    public void loadCatalogFromVoArchivesAction() {
+//        JOptionPane.showMessageDialog(mainComponent, "To be done");
+//    }
+
+    @Action(name = "Menu.File.LoadCatalogFrom")
+    public void loadCatalogFromAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
+    }
+
+    @Action(name = "Menu.File.LoadCatalogFrom.GSC2")
+    public void loadCatalogFromGSC2Action() throws MalformedURLException, SAXException, IOException{
+        //mainView.loadCatalog("http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23","GSC2");
+        mainView.loadCatalog("http://archive.eso.org/skycat/servers/gsc2query?","GSC2");
+    }
+
+    @Action(name = "Menu.File.LoadCatalogFrom.2MassPsc")
+    public void loadCatalogFrom2MassPscAction() throws MalformedURLException, SAXException, IOException {     
+       // mainView.loadCatalog("http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc","2MassPsc");
+         mainView.loadCatalog("http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc","2MassPsc");
+       // mainView.loadCatalog("http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23","2MassPsc");
+    }
+
+    @Action(name = "Menu.File.LoadCatalogFrom.USNO")
+    public void loadCatalogFromUSNOAction() throws MalformedURLException, SAXException, IOException {      
+       // mainView.loadCatalog("http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1","USNO");
+        mainView.loadCatalog("http://archive.eso.org/skycat/servers/usnoa-server?","USNO");
+    }
+
+    @Action(name = "Menu.File.LoadCatalogFrom.OtherVoCss")
+    public void loadCatalogFromOtherVoCssAction() throws MalformedURLException, SAXException, IOException {
+        JOptionPane.showMessageDialog(mainComponent, "To be done");     
     }
 
     @Action(name = "Menu.File.CloseCatalog")
     public void closeCatalogAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
+    }
+
+    @Action(name = "Menu.File.CloseCatalog.Select")
+    public void closeCatalogAction(ActionEvent ae) {
+        //JOptionPane.showMessageDialog(mainComponent, "To be done");
+        mainView.remove((JMenuItem)ae.getSource());
     }
 
     @Action(name = "Menu.File.CloseAllCatalogs")
@@ -243,6 +282,11 @@ public class FovastActions {
     @Action(name = "Menu.View.Catalogs")
     public void viewCatalogsAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
+    }
+
+    @Action(name = "Menu.View.Catalogs.Show/Hide")
+    public void viewCatalogsAction(ActionEvent ae) {
+       mainView.showHide(((JCheckBoxMenuItem) ae.getSource()));
     }
 
     @Action(name = "Menu.View.Images")

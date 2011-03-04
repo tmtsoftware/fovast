@@ -14,10 +14,14 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.geom.Point2D;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import javax.swing.ActionMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -33,7 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-
+import javax.swing.filechooser.FileFilter;
 import org.jdesktop.application.ApplicationAction;
 import org.jdom.Document;
 import org.jdom.Element;
@@ -44,18 +48,21 @@ import org.jdesktop.application.FrameView;
 import org.jdesktop.application.ResourceMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;
 import org.tmt.fovast.swing.utils.StatusBar;
 import org.tmt.fovast.util.AppConfiguration;
+import org.tmt.fovast.util.Cache;
+import org.xml.sax.SAXException;
 import voi.swing.util.ProxySettingsDialog;
 
 /**
  *
  */
 public class FovastMainView extends FrameView
-        implements FovastApplicationState.FovastApplicationStateListener {
+        implements FovastApplicationState.FovastApplicationStateListener, CatalogListener {
 
     private static final Logger logger = LoggerFactory.getLogger(FovastMainView.class);
 
@@ -76,7 +83,17 @@ public class FovastMainView extends FrameView
 
     private static final String TABS_MENUITEM = "Menu.Tabs.TabsMenuItem";
 
+    private static final String CATALOG_MENU = "Menu.View.Catalogs";
+
+    private static final String CATALOG_MENUITEM = "Menu.View.Catalogs.Show/Hide";
+
+    private static final String CATALOG_MENU_CLOSE = "Menu.File.CloseCatalog";
+
+    private static final String CATALOG_MENUITEM_CLOSE = "Menu.File.CloseCatalog.Select";
+
     private static final String TABS_MENUITEM_VIZID_CLIENTPROPERTY = "Viz.Id";
+
+    private static final String CATALOG_CLIENTPROPERTY ="Catalogs";
 
     private static final String MENU_XML_FILE = "resources/menu.xml";
 
@@ -99,6 +116,10 @@ public class FovastMainView extends FrameView
     private static final String MENU_XML_TYPE_ATTRIBUTE_VALUE_DEFAULT = "menuitem";
 
     private static final String MENU_XML_IMPLSTATE_ATTRIBUTE_VALUE_TODO = "todo";
+
+    public static final String[] FITS_EXTENSIONS = {".fits",".fit"};
+
+    public static final String FITS_EXTENSIONS_DESC = "FITS Files (*.fits, *.fit)";
 
     private ApplicationContext appContext;
 
@@ -131,6 +152,10 @@ public class FovastMainView extends FrameView
     private ArrayList<JComponent> tabComponentList = new ArrayList<JComponent>();
 
     private JMenu tabsMenu;
+
+    private JMenu catalogMenu;
+
+    private JMenu catalogCloseMenu;
 
     private JMenuItem selectedMenuItem;
 
@@ -221,6 +246,29 @@ public class FovastMainView extends FrameView
 
     }
 
+    void loadCatalog(String url,String source) throws MalformedURLException, SAXException, IOException{
+        VisualizationPanel vis = getActiveVisPanel();
+        Point2D.Double center=vis.getCenter();
+        Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
+        ConeSearchDialog csd = new ConeSearchDialog(url.trim(),
+          center.x,center.y,2,vis,this,source,cache);
+    }
+
+    void showHide(JCheckBoxMenuItem menuItem){
+        VisualizationPanel vis = getActiveVisPanel();
+        //Set<Catalog> catalogs=vis.getCatalogList();
+        boolean state = menuItem.isSelected();
+        Catalog c = (Catalog)menuItem.getClientProperty(CATALOG_CLIENTPROPERTY);
+        vis.showHide(c,state);
+    }
+
+    void remove(JMenuItem menuItem){        
+        VisualizationPanel vis = getActiveVisPanel();
+        //Set<Catalog> catalogs=vis.getCatalogList();
+        Catalog c = (Catalog)menuItem.getClientProperty(CATALOG_CLIENTPROPERTY);
+        vis.remove(c);
+    }
+
     private void prepareMenuBar() throws Exception {
         SAXBuilder builder = new SAXBuilder();
         Document document =
@@ -264,6 +312,12 @@ public class FovastMainView extends FrameView
             menu.setName(nameAttributeValue);
             if (nameAttributeValue.equals(TABS_MENU)) {
                 tabsMenu = menu;
+            }
+            if(nameAttributeValue.equals(CATALOG_MENU)){
+                catalogMenu = menu;
+            }
+            if(nameAttributeValue.equals(CATALOG_MENU_CLOSE)){
+                catalogCloseMenu = menu;
             }
             if (todo) {
                 menu.setForeground(Color.BLUE);
@@ -386,6 +440,9 @@ public class FovastMainView extends FrameView
                 FovastApplication.getApplication().getConfiguration();
         String dirToOpen = config.getFileDialogDirProperty();
         JFileChooser fc = new JFileChooser(dirToOpen);
+        FileFilter filter = new CustomFilter();
+        fc.addChoosableFileFilter(filter);
+        fc.setFileFilter(filter);
         int retVal = fc.showOpenDialog(getFrame());
         if(retVal == JFileChooser.APPROVE_OPTION) {
             try {
@@ -584,7 +641,46 @@ public class FovastMainView extends FrameView
 
             //enable disable other menus ..
             //activePanel.getMenuItems();
+
+            //add menu item to catalog menu
+            //TODO: On save and rename this menuitem text has to be updated ..
+            catalogMenu.removeAll();
+            catalogCloseMenu.removeAll();
+            Set<Catalog> catalogs=activePanel.getCatalogList();
+            Iterator iter = catalogs.iterator();
+            int i=0;
+            
+            while(iter.hasNext())
+            {
+                Catalog c = (Catalog)iter.next();
+                JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+                menuItem.setSelected(true);
+                menuItem.setAction(menuActions.get(CATALOG_MENUITEM));
+                menuItem.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+                menuItem.setText(c.getLabel());
+                catalogMenu.add(menuItem);
+                JMenuItem menuItem1 = new JMenuItem();
+                menuItem1.setSelected(true);
+                menuItem1.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+                menuItem1.setAction(menuActions.get(CATALOG_MENUITEM_CLOSE));
+                menuItem1.setText(c.getLabel());
+                catalogCloseMenu.add(menuItem1);
+            }
         }
+
+//        if(activePanel != null) {
+//            catalogCloseMenu.removeAll();
+//            Set<Catalog> catalogs=activePanel.getCatalogList();
+//            Iterator iter = catalogs.iterator();
+//            while(iter.hasNext())
+//            {
+//                Catalog c = (Catalog)iter.next();
+//                JMenuItem menuItem1 = new JMenuItem(c.getLabel());
+//                menuItem1.setSelected(true);
+//                menuItem1.setAction(menuActions.get(CATALOG_MENUITEM_CLOSE));
+//                catalogCloseMenu.add(menuItem1);
+//            }
+//        }
     }
 
     private void updateUIForVisualizationRemoved(int removedVizId) {
@@ -636,6 +732,7 @@ public class FovastMainView extends FrameView
         
         //TODO: All this has to be done on viz-open from menu
         VisualizationPanel visPanel = new VisualizationPanel(appContext, visualization);
+		visPanel.addCatalogListener(this);
 
         String visPanelLabel = fileName;
         if (fileName.contains(File.separator)) {
@@ -714,6 +811,42 @@ public class FovastMainView extends FrameView
         createNewVisualization(null);
     }
 
+@Override
+    public void catalogAdded(Catalog c) {
+        //update menu here ..
+        JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
+        menuItem.setAction(menuActions.get(CATALOG_MENUITEM));
+        menuItem.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+        menuItem.setText(c.getLabel());
+        menuItem.setSelected(true);
+        catalogMenu.add(menuItem);
+
+        JMenuItem menuItem1 = new JMenuItem();
+        menuItem1.setAction(menuActions.get(CATALOG_MENUITEM_CLOSE));
+        menuItem1.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+        menuItem1.setText(c.getLabel());
+        catalogCloseMenu.add(menuItem1);
+    }
+
+	@Override
+    public void catalogRemoved(Catalog c){
+        
+        //catalogMenu.remove(menuItemToBeRemoved);
+        
+        for(int i=0;i < catalogMenu.getItemCount();i++)
+        {
+            if(catalogMenu.getItem(i).getClientProperty(CATALOG_CLIENTPROPERTY
+                    ).equals(c)) {
+                catalogMenu.remove(catalogMenu.getItem(i));
+            }
+
+            if(catalogCloseMenu.getItem(i).getClientProperty(CATALOG_CLIENTPROPERTY
+                    ).equals(c)) {
+                catalogCloseMenu.remove(catalogCloseMenu.getItem(i));
+            }
+        }
+    }
+
     private VisualizationPanel getVisualizationPanel(int vizId) {
         for(int i=0; i<tabComponentList.size(); i++) {
             if(tabComponentList.get(i) instanceof VisualizationPanel) {
@@ -724,6 +857,25 @@ public class FovastMainView extends FrameView
             }
         }
         return null;
+    }
+    
+    static class CustomFilter extends javax.swing.filechooser.FileFilter {
+
+        public boolean accept(File f) {
+            if(f.isDirectory())
+                return true;
+            for(int i = 0; i < FITS_EXTENSIONS.length; i++) {
+                if(f.getName().toLowerCase().endsWith(FITS_EXTENSIONS[i]))
+                    return true;
+            }
+            
+            return false;
+        }
+
+        public String getDescription() {
+            return FITS_EXTENSIONS_DESC;
+        }
+
     }
 
 }

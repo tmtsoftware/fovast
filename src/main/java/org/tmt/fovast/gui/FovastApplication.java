@@ -45,6 +45,10 @@ public class FovastApplication extends SingleFrameApplication {
 
     public static final String DOWNLOAD_CACHE_DIR = "downloadCache";
 
+    public static final String DOWNLOAD_CACHE_INDEX_FILE_CATALOG = "downloadCatalogCache.ind";
+
+    public static final String DOWNLOAD_CACHE_DIR_CATALOG = "downloadCatalogCache";
+
     public static final String PROXY_SETTINGS_FILE_KEY =
             "Application.proxySettingsFile";
 
@@ -59,6 +63,8 @@ public class FovastApplication extends SingleFrameApplication {
     private String stateFile;
 
     private Cache dssImageCache;
+
+    private Cache catalogCache;
 
     private AppConfiguration appConfig;
 
@@ -106,6 +112,16 @@ public class FovastApplication extends SingleFrameApplication {
                     new File(applicationContext.getLocalStorage().getDirectory(),
                     DOWNLOAD_CACHE_DIR);
             dssImageCache = new Cache(downloadCacheFile, downloadCacheDir);
+
+
+            File downloadCatalogCacheFile =
+                    new File(applicationContext.getLocalStorage().getDirectory(),
+                    DOWNLOAD_CACHE_INDEX_FILE_CATALOG);
+            //logger.info("App data will be stored in " + downloadCacheFile.toString());
+            File downloadCatalogCacheDir =
+                    new File(applicationContext.getLocalStorage().getDirectory(),
+                    DOWNLOAD_CACHE_DIR_CATALOG);
+            catalogCache = new Cache(downloadCatalogCacheFile, downloadCatalogCacheDir);
 
             //Load proxy settings .. note this method consumes exceptions so need
             //not be put in a try-catch of its own.
@@ -184,6 +200,7 @@ public class FovastApplication extends SingleFrameApplication {
 
             //save dssImageIndex cache
             dssImageCache.save();
+            catalogCache.save();
 
         } catch (Exception ex) {
             logger.warn("Could not store application state ... ", ex);
@@ -200,6 +217,10 @@ public class FovastApplication extends SingleFrameApplication {
 
     public Cache getDssImageCache() {
         return dssImageCache;
+    }
+
+    public Cache getCatalogCache() {
+        return catalogCache;
     }
 
     public AppConfiguration getConfiguration() {

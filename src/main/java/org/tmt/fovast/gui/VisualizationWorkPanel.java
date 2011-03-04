@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -473,4 +475,43 @@ public class VisualizationWorkPanel extends JPanel
     void showImageKeywordsFrame() {
         displayComp.getImageDisplay().viewFitsKeywords();
     }
+
+    public void plotCatalog(Catalog c) throws MalformedURLException, IOException{
+      FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+              ).getSymbolLayer();
+      //FovastTablePlotter plotter = new FovastTablePlotter();
+      FovastTablePlotter plotter=layer.getPlotter();
+      plotter.makeList(c);
+     // layer.setPlotter(plotter);
+      layer.repaint();
+    }
+
+    public void showHide(Catalog c,boolean state){
+        FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+                  ).getSymbolLayer();
+          FovastTablePlotter plotter=layer.getPlotter();
+          plotter.showHide(c,state);
+          layer.repaint();
+    }
+
+    public void remove(Catalog c){
+        FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+                  ).getSymbolLayer();
+          FovastTablePlotter plotter=layer.getPlotter();
+          plotter.remove(c);
+          layer.repaint();
+    }
+
+
+    public Set<Catalog> getCatalogList(){
+      FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+              ).getSymbolLayer();
+      FovastTablePlotter plotter=layer.getPlotter();
+      HashMap<Catalog,ArrayList> catalogDetails=plotter.getCatalogList();     
+      return catalogDetails.keySet();
+      
+    }
+
+
+
 }

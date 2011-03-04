@@ -55,7 +55,7 @@ public class VisualizationState
         for(int i=0; i<listeners.size(); i++) {
             try {
                 ((VisualizationStateListener)(listeners.get(i))).vslTargetChanged(
-                        targetRa, targetRa, null, null);
+                        targetRa, targetDec, null, null);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
             }
