@@ -124,17 +124,12 @@
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Limits"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Vignetting Limits"/>
             </CheckboxNode>
-            <CheckboxNode configOptionId="iris.oiwfs.probe2" label="Probe1">
+            <CheckboxNode configOptionId="iris.oiwfs.probe2" label="Probe2">
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Arm"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Limits"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Vignetting Limits"/>
             </CheckboxNode>
-            <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe1">
-                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Arm"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Limits"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Vignetting Limits"/>
-            </CheckboxNode>
-            <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe1">
+            <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe3">
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Arm"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Limits"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Vignetting Limits"/>
