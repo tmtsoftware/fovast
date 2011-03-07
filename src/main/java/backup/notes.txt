@@ -1,7 +1,17 @@
+* check implementations of clone, equals and hashCode
+    - Value and subclasses
+    - UserObject classes in FovastInstrumentTree
+* When local image is loaded, then clear of ra, dec, object boxes
+* When new image is loaded - instrument settings to be reset.
+3. We have to some how figure out how to show column details (VOTable field attributes) to the user.
+
 (done)setSelected should rise a tree node change event
 (done)when group node is selected .. children are also selected .. then event tree node
     change events shud be raised
-when checkbox is selected on tree ConfigHelper.setConfig() should be called
+(done)when checkbox is selected on tree ConfigHelper.setConfig() should be called
+    - this should be automatically done if the saved editor value is different from older one.
+    - we dont implement equals in UserObject classes .. so it should do a reference equals which would
+        be always false and event would be raised always.
 make config object from XML and also do necessary validations and selections ..
 (done)vis-state should make config object when target is set .. and also
 when target is changed .. config should be cleared to default state ..

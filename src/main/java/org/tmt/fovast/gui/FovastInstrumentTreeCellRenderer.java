@@ -12,6 +12,8 @@ import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.FovastInstrumentTree.*;
 import org.tmt.fovast.gui.FovastInstrumentTree.UserObject.Editable;
 
@@ -26,6 +28,8 @@ import org.tmt.fovast.gui.FovastInstrumentTree.UserObject.Editable;
  */
 public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
 
+    private static final Logger logger = LoggerFactory.getLogger(FovastInstrumentTreeCellRenderer.class);
+    
     private final JTree tree;
     
     private JCheckBox checkbox = new JCheckBox();
@@ -46,6 +50,7 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
 
         panel.remove(checkbox);
         panel.remove(label);
+        checkbox.setSelected(false);
 
         boolean enable = tree.isEnabled();
         panel.setEnabled(enable);
@@ -65,7 +70,9 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
             //go from more specific to less specific in ifelses
             if(userObj instanceof Editable) {
                 checkbox.setText(userObj.getLabel());
-                checkbox.setSelected(((Editable)userObj).isSelected());
+                    checkbox.setSelected(((Editable)userObj).isSelected());
+                logger.debug("userObj: " + userObj.getLabel() + " being shown, selected: "
+                        + ((Editable)userObj).isSelected());
                 panel.add(checkbox);
             } else {
                 label.setText(userObj.getLabel());

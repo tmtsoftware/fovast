@@ -55,8 +55,7 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
             public void actionPerformed(ActionEvent e) {
                 try {
                     UserObject.Editable editable = (UserObject.Editable) currentNodeValue;
-                    editable.setSelected(checkbox.isSelected());
-                    //}
+                    editable.setEditState(checkbox.isSelected());
                 } catch (Exception ex) {
                     logger.error(null, ex);
                 }
@@ -76,7 +75,7 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
             UserObject.Editable editable = (UserObject.Editable) userObj;
             logger.debug("Read value from user object with label "
                     + userObj.getLabel() + " is " + editable.isSelected());
-            currentNodeValue = (UserObject) userObj.clone();
+            currentNodeValue = (UserObject) userObj;
         } else {
             assert false : "there is no userobject associated with the tree node";
         }
@@ -113,6 +112,11 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
     }
 
     public boolean stopCellEditing() {
+        UserObject.Editable editable = (UserObject.Editable)currentNodeValue;
+        if(editable.isEditStateSet()) {
+            editable.setSelected(editable.getEditState());
+            editable.clearEditState();
+        }
         fireEditingStopped();
         return true;
     }

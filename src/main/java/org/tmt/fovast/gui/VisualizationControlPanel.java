@@ -455,45 +455,8 @@ public class VisualizationControlPanel extends JPanel
         FovastInstrumentTree instrumentTree = new FovastInstrumentTree(configHelper);
         return instrumentTree.getJTree();
         
-//        FovastInstrumentGuiConfig
-//                fovastInstrumentConfig =
-//                FovastInstrumentGuiConfig.getFovastInstrumentConfig(
-//                VisualizationControlPanel.class.getResource(INSTRUMENT_CONTROL_XML));
-//
-//        DefaultMutableTreeNode rootNode =
-//                new DefaultMutableTreeNode("Instrument Config");
-//
-////        List<Element> children = document.getRootElement().getChildren();
-////        makeInstrumentTree(rootNode, children);
-//
-//        JTree instrumentTree = new JTree(rootNode);
-//        DefaultTreeCellRenderer defaultTreeCellRenderer =
-//                new DefaultTreeCellRenderer();
-//        defaultTreeCellRenderer.setOpenIcon(null);
-//        defaultTreeCellRenderer.setClosedIcon(null);
-//        defaultTreeCellRenderer.setLeafIcon(null);
-//        defaultTreeCellRenderer.setBackground(raAfterLabel.getBackground());
-//        defaultTreeCellRenderer.setBackgroundNonSelectionColor(raAfterLabel.getBackground());
-//        //defaultTreeCellRenderer.setBackgroundSelectionColor(Color.RED);
-//        instrumentTree.setCellRenderer(defaultTreeCellRenderer);
-//        instrumentTree.setBackground(raAfterLabel.getBackground());
-//
-//        return instrumentTree;
     }
 
-    private void makeInstrumentTree(DefaultMutableTreeNode node,
-            List<Element> elements) {
-        for(int i = 0; i < elements.size(); i++) {
-            Element ele = elements.get(i);
-            String eleId = ele.getAttributeValue("id");
-            String eleLabel = ele.getAttributeValue("id");
-            if(eleLabel == null)
-                eleLabel = eleId;
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(eleLabel);
-            node.add(childNode);
-        }
-    }
-    
     private void validateRaFieldAndShowErrorMsgField() {
         Double ra = null;
         try {

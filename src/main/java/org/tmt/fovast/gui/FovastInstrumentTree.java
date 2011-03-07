@@ -12,6 +12,8 @@ import java.awt.Graphics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import java.net.URL;
@@ -24,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.BooleanValue;
 import org.tmt.fovast.instrumentconfig.ConfigHelper;
 import org.tmt.fovast.instrumentconfig.Config.ConfigListener;
-import org.tmt.fovast.instrumentconfig.StringValue;
 import org.tmt.fovast.instrumentconfig.Value;
 
 /**
@@ -33,7 +34,7 @@ import org.tmt.fovast.instrumentconfig.Value;
  * to changes in instrument config by implementing ConfigListener.</p>
  *
  */
-public class FovastInstrumentTree implements ConfigListener {
+public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
 
     private static Logger logger = LoggerFactory.getLogger(FovastInstrumentTree.class);
 
@@ -77,7 +78,7 @@ public class FovastInstrumentTree implements ConfigListener {
 
     @Override
     public void updateConfig(String confElementId, Value value) {
-        selectNode((DefaultMutableTreeNode)treeModel.getRoot(), confElementId, value);
+        selectNode((CustomDefaultMutableTreeNode)treeModel.getRoot(), confElementId, value);
     }
 
     @Override
@@ -95,10 +96,11 @@ public class FovastInstrumentTree implements ConfigListener {
         Element rootElement = document.getRootElement();
 
         //add nodes to the tree
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Instrument Config");
-        rootNode.setUserObject(new GroupUserObject("root"));
+        CustomDefaultMutableTreeNode rootNode =
+                new CustomDefaultMutableTreeNode(new UserObject("Instrument Config"));
         treeModel = new DefaultTreeModel(rootNode);
         makeTreeNodes(rootElement, rootNode);
+        treeModel.addTreeModelListener(this);
 
         //create tree
         //overriding as nimbus l&f does not respect the setBackgroundColor on tree.
@@ -155,16 +157,16 @@ public class FovastInstrumentTree implements ConfigListener {
      * @param documentElement
      * @param treeNode
      */
-    private void makeTreeNodes(Element documentElement, DefaultMutableTreeNode treeNode) {
+    private void makeTreeNodes(Element documentElement, CustomDefaultMutableTreeNode treeNode) {
         List<Element> children = documentElement.getChildren();
         for(int i=0; i<children.size(); i++) {
             Element child = children.get(i);
             String name = child.getName();
             String label = child.getAttributeValue(LABEL_ATTRIBUTE);
-            GroupUserObject parentUo = (GroupUserObject)treeNode.getUserObject();
+            UserObject parentUo = (UserObject)treeNode.getUserObject();
             UserObject uo = null;
             if(name.equals(NODE_NAME)) {
-                uo = new GroupUserObject(label);
+                uo = new UserObject(label);
             } else if (name.equals(CHECKBOXNODE_NAME)) {
                 String configOptionValue =
                         child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE);
@@ -191,12 +193,9 @@ public class FovastInstrumentTree implements ConfigListener {
             } else {
                 assert false : "Unknown element type: " + name;
             }
-            parentUo.addChild(uo);
-            uo.setParent(parentUo);
 
-            DefaultMutableTreeNode tNode = new DefaultMutableTreeNode(uo);
+            CustomDefaultMutableTreeNode tNode = new CustomDefaultMutableTreeNode(uo);
             treeNode.add(tNode);
-            uo.setTreeNode(tNode);
 
             if(treeNode.getChildCount() > 0) {
                 makeTreeNodes(child, tNode);
@@ -204,7 +203,7 @@ public class FovastInstrumentTree implements ConfigListener {
         }
     }
 
-    private void selectNode(DefaultMutableTreeNode node, String confElementId, Value value) {
+    private synchronized void selectNode(CustomDefaultMutableTreeNode node, String confElementId, Value value) {
         UserObject uo = (UserObject) node.getUserObject();
         //if value is not boolean
         if(uo instanceof CheckboxUserObject) {
@@ -214,34 +213,89 @@ public class FovastInstrumentTree implements ConfigListener {
                 //if not already selected select it and adjust the representation
                 if(!cuo.isSelected()) {
                     cuo.setSelected(true);
-                    treeModel.nodeChanged(node);
-                    
-                    //check if the parent is a CheckboxGroupNode and select it ..
-                    selectCheckboxGroupUserObjectIfNeeded(node);
+                    treeModel.nodeChanged(node);                    
                 }
                 return;
             }
         }
-
-        for(int i=0; i<node.getChildCount(); i++) {
-            selectNode((DefaultMutableTreeNode) node.getChildAt(i), confElementId, value);
-        }
     }
 
     /**
-     * Selects the CheckboxGroupNodes in the tree up to root
-     * Note: the passed tNode is not checked to be CheckboxGroupNode
-     * @param tNode
+     * Selects/Unselects the CheckboxGroupNodes in the tree up to root
+     * Note: the passed associatedTreeNode is not checked to be CheckboxGroupNode
+     * @param associatedTreeNode
      */
-    private void selectCheckboxGroupUserObjectIfNeeded(DefaultMutableTreeNode tNode) {
-        tNode = (DefaultMutableTreeNode) tNode.getParent();
+    private void setSelectedCheckboxGroupNodeTraversingUp(CustomDefaultMutableTreeNode tNode) {
+        tNode = (CustomDefaultMutableTreeNode) tNode.getParent();
         UserObject uo = (UserObject) tNode.getUserObject();
-        if(uo instanceof CheckboxGroupUserObject) {
-            //all CheckboxGroupUserObject nodes are also repainted again .. 
-            treeModel.nodeChanged(tNode);
+        TreeNode[] nodesOnPath = tNode.getPath();
+        for(int i=nodesOnPath.length-1; i>=0; i--) {
+            CustomDefaultMutableTreeNode currNode =
+                    (CustomDefaultMutableTreeNode) nodesOnPath[i];
+            Object currentUserObject  = currNode.getUserObject();
+            if(currentUserObject instanceof CheckboxGroupUserObject) {
+                CheckboxGroupUserObject cguo = (CheckboxGroupUserObject)currentUserObject;
+                if(cguo.isSelected() != cguo.areChildrenSelected()) {
+                    cguo.setSelected(cguo.areChildrenSelected());
+                    //just reevaluate the show logic
+                    treeModel.nodeChanged(currNode);
+                }
+            }
         }
-        selectCheckboxGroupUserObjectIfNeeded(tNode);
     }
+
+    // TREE LISTENER METHODS START =====================
+    private static boolean inTreeNodesChanged = false;
+    ArrayList<TreeNode> nodesToFireChange = new ArrayList<TreeNode>();
+    
+    @Override
+    public synchronized void treeNodesChanged(TreeModelEvent e) {
+
+        Object[] nodesChanged = e.getChildren();
+        for(int i=0; i<nodesChanged.length; i++) {
+            CustomDefaultMutableTreeNode tNode =
+                    (CustomDefaultMutableTreeNode) nodesChanged[i];
+            UserObject uo = (UserObject) tNode.getUserObject();           
+            
+            if (uo instanceof CheckboxGroupUserObject) {
+                boolean b = ((CheckboxGroupUserObject)uo).isSelected();
+                //also set child nodes to have been modified
+                for(int j=0; j<uo.getTreeNode().getChildCount(); j++) {
+                    CustomDefaultMutableTreeNode childTNode =
+                            (CustomDefaultMutableTreeNode) uo.getTreeNode().getChildAt(j);
+                    UserObject childUserObject = (UserObject) childTNode.getUserObject();
+                    if(childUserObject instanceof UserObject.Editable) {
+                        if( b != ((UserObject.Editable)childUserObject).isSelected()) {
+                            ((UserObject.Editable)childUserObject).setSelected(b);
+                            //nodesToFireChange.add(childTNode);
+                            treeModel.nodeChanged(childTNode);
+                        }
+                    }
+                }
+            }
+
+            //setSelectedCheckboxGroupNodeTraversingUp(tNode);
+
+        }
+    }
+
+    
+    @Override
+    public void treeNodesInserted(TreeModelEvent e) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void treeNodesRemoved(TreeModelEvent e) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void treeStructureChanged(TreeModelEvent e) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    // TREE LISTENER METHODS END =====================
 
     /**
      * <p>Exception class which wraps the exceptions thrown during making of
@@ -265,12 +319,13 @@ public class FovastInstrumentTree implements ConfigListener {
     /**
      * Only visible to this class and corresponding cell renderer class
      * UserObject holds info about a Node in InstrumentTree.xml
+     * //TODO: Should we implement equals and hashCode for this and subclasses.
      */
-    static abstract class UserObject implements Cloneable {
+    static class UserObject {
 
         private String label;
         private UserObject parentUo;
-        private DefaultMutableTreeNode tNode;
+        private CustomDefaultMutableTreeNode associatedTreeNode;
 
         public UserObject(String label) {
             this.label = label;
@@ -280,67 +335,59 @@ public class FovastInstrumentTree implements ConfigListener {
             return label;
         }
 
-        public abstract Object clone();
-
-        private void setParent(GroupUserObject parentUo) {
-            this.parentUo = parentUo;
+        public void setTreeNode(CustomDefaultMutableTreeNode tNode) {
+            this.associatedTreeNode = tNode;
         }
 
-        private GroupUserObject getParent() {
-            return (GroupUserObject) this.parentUo;
-        }
-
-        private void setTreeNode(DefaultMutableTreeNode tNode) {
-            this.tNode = tNode;
-        }
-
-        private DefaultMutableTreeNode getTreeNode() {
-            return tNode;
+        public CustomDefaultMutableTreeNode getTreeNode() {
+            return associatedTreeNode;
         }
 
         public static interface Editable {
+
+            public void setEditState(boolean b);
+
+            public boolean getEditState();
+
+            public boolean isEditStateSet();
+
+            public void clearEditState();
+            
             public void setSelected(boolean b);
 
             public boolean isSelected();
-        }
-    }
 
-    /**
-     * UserObject which has children
-     */
-    static class GroupUserObject extends UserObject {
-
-        protected ArrayList<UserObject> children = new ArrayList<UserObject>();
-
-        public GroupUserObject(String label) {
-            super(label);
-        }
-
-        public void addChild(UserObject uo) {
-            children.add(uo);
-        }
-
-        public int getChildCount() {
-            return children.size();
-        }
-
-        public UserObject getChild(int index) {
-            return children.get(index);
-        }
-
-        @Override
-        public Object clone() {
-            //NOTE: Make sure all subtypes of UserObject do implement this method
-            //properly
-            //TODO: this does a shallow copy 
-            GroupUserObject clonedObj = new GroupUserObject(getLabel());
-            clonedObj.children = (ArrayList<UserObject>) children.clone();
-            return clonedObj;
         }
 
     }
+
+//TODO: Leave hierarchy management to DefaultTreeModel
+//    /**
+//     * UserObject which has children
+//     */
+//    static class GroupUserObject extends UserObject {
+//
+//        protected ArrayList<UserObject> children = new ArrayList<UserObject>();
+//
+//        public GroupUserObject(String label) {
+//            super(label);
+//        }
+//
+//        public void addChild(UserObject uo) {
+//            children.add(uo);
+//        }
+//
+//        public int getChildCount() {
+//            return children.size();
+//        }
+//
+//        public UserObject getChild(int index) {
+//            return children.get(index);
+//        }
+//
+//    }
     
-    static class CheckboxUserObject extends GroupUserObject 
+    static class CheckboxUserObject extends UserObject
             implements UserObject.Editable {
 
         private String configOptionId;
@@ -348,6 +395,10 @@ public class FovastInstrumentTree implements ConfigListener {
         private Object configOptionValue;
 
         private boolean selected;
+
+        private boolean editStateSet;
+
+        private boolean editState;
 
         public CheckboxUserObject(String label, String configOptionId) {
             this(label, configOptionId, null);
@@ -384,38 +435,60 @@ public class FovastInstrumentTree implements ConfigListener {
         }
 
         @Override
-        public Object clone() {
-            CheckboxUserObject newCuo = new CheckboxUserObject(getLabel(),
-                    getConfigOptionId(), getConfigOptionValue());
-            newCuo.children = (ArrayList<UserObject>) children.clone();
-            return newCuo;
+        public void setEditState(boolean b) {
+            editState = b;
+            editStateSet = true;
+        }
+
+        @Override
+        public boolean getEditState() {
+            return editState;
+        }
+
+        @Override
+        public boolean isEditStateSet() {
+            return editStateSet;
+        }
+
+        @Override
+        public void clearEditState() {
+            editStateSet = false;
         }
 
     }
 
-    static class CheckboxGroupUserObject extends GroupUserObject
+    static class CheckboxGroupUserObject extends UserObject
         implements UserObject.Editable {
+
+        private boolean editState = false;
+
+        private boolean editStateSet = false;
+
+        private boolean selected = false;
 
         public CheckboxGroupUserObject(String label) {
             super(label);
         }
 
+
         @Override
         public void setSelected(boolean b) {
-            for(int i=0; i<children.size(); i++) {
-                UserObject child = children.get(i);
-                if(child instanceof CheckboxUserObject) {
-                    ((CheckboxUserObject)child).setSelected(b);
-                } else if(child instanceof CheckboxGroupUserObject) {
-                    ((CheckboxGroupUserObject)child).setSelected(b);
-                }
-            }
+            selected = b;
         }
 
         @Override
         public boolean isSelected() {
-            for(int i=0; i<children.size(); i++) {
-                UserObject child = children.get(i);
+            return selected;
+        }
+
+        boolean areChildrenSelected() {
+            //we use the tree node associated for looping through the
+            //child hierarchy
+            CustomDefaultMutableTreeNode tNode = getTreeNode();
+            for(int i=0; i<tNode.getChildCount(); i++) {
+                UserObject child =
+                        (UserObject) ((CustomDefaultMutableTreeNode)tNode
+                            .getChildAt(i)).getUserObject();
                 if(child instanceof CheckboxUserObject) {
                     if(!((CheckboxUserObject)child).isSelected())
                         return false;
@@ -429,13 +502,39 @@ public class FovastInstrumentTree implements ConfigListener {
         }
 
         @Override
-        public Object clone() {
-            CheckboxGroupUserObject newCguo = new CheckboxGroupUserObject(
-                    getLabel());
-            newCguo.children = (ArrayList<UserObject>) children.clone();
-            return newCguo;
+        public void setEditState(boolean b) {
+            editStateSet = true;
+            editState = b;
         }
 
+        @Override
+        public boolean isEditStateSet() {
+            return editStateSet;
+        }
+
+        @Override
+        public boolean getEditState() {
+            return editState;
+        }
+
+        @Override
+        public void clearEditState() {
+            editStateSet = false;
+        }
+    }
+
+    private static class CustomDefaultMutableTreeNode extends DefaultMutableTreeNode {
+
+        public CustomDefaultMutableTreeNode(UserObject uo) {
+            super(uo);
+            ((UserObject)userObject).setTreeNode(this);
+        }
+
+        @Override
+        public void setUserObject(Object userObject) {
+            super.setUserObject(userObject);
+            ((UserObject)userObject).setTreeNode(this);
+        }
     }
 
 }
