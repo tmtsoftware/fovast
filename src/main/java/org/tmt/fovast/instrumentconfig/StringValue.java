@@ -10,7 +10,7 @@ package org.tmt.fovast.instrumentconfig;
 /**
  *
  */
-public class StringValue {
+public class StringValue extends Value {
 
     private String value;
 

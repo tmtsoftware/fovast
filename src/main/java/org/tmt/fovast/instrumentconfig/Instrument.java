@@ -12,17 +12,16 @@ package org.tmt.fovast.instrumentconfig;
  */
 public class Instrument extends Element {
 
-    private boolean selected;
-
     public Instrument(String id) {
         super(id);
+        setValue(new BooleanValue(false));
     }
 
     public boolean isSelected() {
-        return selected;
+        return ((BooleanValue)getValue()).getValue();
     }
 
     public void setSelected(boolean selected) {
-        this.selected = selected;
+        setValue(new BooleanValue(selected));
     }
 }

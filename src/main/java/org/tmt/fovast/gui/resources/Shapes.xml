@@ -1,32 +1,6 @@
 <!-- This file is intended to be used for storing a description of all kinds
 of shapes that will be used in FOVAST -->
 
-<!--
-TODO:
-
-1) Check how shapes have to be put in place
-2) How to show instruments on the work panel
-3) Check how shape zoom is done in JSkyCat
-4) Check if the image is shown North up in FOVAST view
-    - JSky shows it as per pixels .. It does not transform the image
-5) Image WCS - does it have any effect on the way instrument layouts are shown ?
-    - This is a simplistic assumption
-    - Every image CCD have pixels
-    - The charge accumulated on CCD pixels are put in FITS file as is
-        - every pixel value is the FITS image pixel
-    - WCS gives the transformation needed to map pixel x,y in FITS image to a point
-      on sky (RA, DEC)
-    - Depending on if the CCD plane effectively is parallel to the tangent of
-      earth surface at the location or at an angle and if CCD North is parallel
-      to celestial north or not the WCS info differs.
-    - Even the scale (i.e arc-secs a pixel covers in different directions) also
-      has a bearing on the
-
-
-      Scale should not matter for us .. 
-
--->
-
 <Shapes>
 
     <!--

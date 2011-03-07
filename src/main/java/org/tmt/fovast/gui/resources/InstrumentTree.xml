@@ -2,7 +2,6 @@
 
 <!--
     Document   : InstrumentTree.xml
-    Created on : February 23, 2011, 3:06 PM
     Description:
         Defines how the config options should be shown in a JTree
 
@@ -37,7 +36,7 @@
             and set its value. 
 
 
-        Benefits of separating instrument layout in a different XML is that we
+        Benefit of separating instrument layout in a different XML is that we
         separate layout info from actual config info. Drawback happens to be the
         fact that, in the current layout for each config element value we have a
         CheckboxNode with configOptionId and configOptionValue attributes
@@ -45,64 +44,6 @@
 
         ConfigManager depends on InstrumentConfig.xml for validationRules and
         config element type info.
-
-        DisplayElements in config file.
-            Actually display elements should not be in the config file as they
-            have nothing related to the config.
-            What to do about the probe position which is a config element ?
-
-
-        How to capture shape info
-
-        <ShapesLibrary>
-        
-            //shows basic shape info 
-            <Shape type="<sometype>"
-                    rotatable="true"
-                    selectable="true"
-                    resizable="true"
-                    movable="true"
-                     >
-            </Shape>
-            
-            //shows info specific to a type of shape
-            <Shape type="Rectangle">
-            </Shape>
-
-            //Should individual shape elements in a compound shape have
-            //rotatable, selectable, resizable, movable constraints .. ???
-            <Shape type="CompoundShape">
-                //Shape elements as children. 
-            </Shape>            
-        </Shapes>
-
-        We also have to capture dependency between shapes.
-        For example in IRIS and Mobie if the detector shape rotates, then
-            other shapes have to be rotated as well.
-            
-        For OIWFS probes, when probe detector is dragged probe arm, vignetting
-        limits, normal limits also have to move along ... in here probe detector
-        subshape can be marked as master among the shapes in the compound shape. 
-
-        How to tie display elements with config options ?
-            - Should display elements and config options be in the same XML.
-            - How to tie layout xml with display elements
-            - How to tie display elements and config options
-
-        Position in InstrumentControl.xml should have 
-
-        How would one configure an instrument
-            - select one or more values from possible values for a config element
-              (UI element : drop down select box or checkboxes or radio buttons)
-            - choose one of two options
-              (UI element: radio button)
-            - simply select some setting
-              (UI element: single checkbox)
-            - there could be dependency between config elements ..
-               i.e you can only configure one option if some other option is chosen
-            - what to do if a certain option does not apply .. leave it blank or
-              set it to its default value ? 
-              
 -->
 
 <Tree>

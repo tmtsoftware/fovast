@@ -48,7 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
-import org.tmt.fovast.instrumentconfig.FovastConfigHelper;
+import org.tmt.fovast.instrumentconfig.ConfigHelper;
 
 /**
  *
@@ -451,7 +451,7 @@ public class VisualizationControlPanel extends JPanel
 
     private JTree makeInstrumentTree() throws FovastInstrumentTree.SomeException {
 
-        FovastConfigHelper configHelper = new FovastConfigHelper();
+        ConfigHelper configHelper = new ConfigHelper();
         FovastInstrumentTree instrumentTree = new FovastInstrumentTree(configHelper);
         return instrumentTree.getJTree();
         

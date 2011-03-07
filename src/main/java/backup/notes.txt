@@ -1,0 +1,93 @@
+(done)setSelected should rise a tree node change event
+(done)when group node is selected .. children are also selected .. then event tree node
+    change events shud be raised
+when checkbox is selected on tree ConfigHelper.setConfig() should be called
+make config object from XML and also do necessary validations and selections ..
+(done)vis-state should make config object when target is set .. and also
+when target is changed .. config should be cleared to default state ..
+the config tree should also be reset 
+
+========
+
+        DisplayElements in config file.
+            Actually display elements should not be in the config file as they
+            have nothing related to the config.
+            What to do about the probe position which is a config element ?
+
+========
+
+TODO:
+
+1) Check how shapes have to be put in place
+2) How to show instruments on the work panel
+3) Check how shape zoom is done in JSkyCat
+4) Check if the image is shown North up in FOVAST view
+    - JSky shows it as per pixels .. It does not transform the image
+5) Image WCS - does it have any effect on the way instrument layouts are shown ?
+    - This is a simplistic assumption
+    - Every image CCD have pixels
+    - The charge accumulated on CCD pixels are put in FITS file as is
+        - every pixel value is the FITS image pixel
+    - WCS gives the transformation needed to map pixel x,y in FITS image to a point
+      on sky (RA, DEC)
+    - Depending on if the CCD plane effectively is parallel to the tangent of
+      earth surface at the location or at an angle and if CCD North is parallel
+      to celestial north or not the WCS info differs.
+    - Even the scale (i.e arc-secs a pixel covers in different directions) also
+      has a bearing on the
+
+
+      Scale should not matter for us ..
+
+
+        How to capture shape info
+
+        <ShapesLibrary>
+
+            //shows basic shape info
+            <Shape type="<sometype>"
+                    rotatable="true"
+                    selectable="true"
+                    resizable="true"
+                    movable="true"
+                     >
+            </Shape>
+
+            //shows info specific to a type of shape
+            <Shape type="Rectangle">
+            </Shape>
+
+            //Should individual shape elements in a compound shape have
+            //rotatable, selectable, resizable, movable constraints .. ???
+            <Shape type="CompoundShape">
+                //Shape elements as children.
+            </Shape>
+        </Shapes>
+
+        We also have to capture dependency between shapes.
+        For example in IRIS and Mobie if the detector shape rotates, then
+            other shapes have to be rotated as well.
+
+        For OIWFS probes, when probe detector is dragged probe arm, vignetting
+        limits, normal limits also have to move along ... in here probe detector
+        subshape can be marked as master among the shapes in the compound shape.
+
+        How to tie display elements with config options ?
+            - Should display elements and config options be in the same XML.
+            - How to tie layout xml with display elements
+            - How to tie display elements and config options
+
+        Position in InstrumentControl.xml should have
+
+        How would one configure an instrument
+            - select one or more values from possible values for a config element
+              (UI element : drop down select box or checkboxes or radio buttons)
+            - choose one of two options
+              (UI element: radio button)
+            - simply select some setting
+              (UI element: single checkbox)
+            - there could be dependency between config elements ..
+               i.e you can only configure one option if some other option is chosen
+            - what to do if a certain option does not apply .. leave it blank or
+              set it to its default value ?
+

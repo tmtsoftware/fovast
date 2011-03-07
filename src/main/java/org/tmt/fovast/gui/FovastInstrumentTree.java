@@ -21,8 +21,10 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tmt.fovast.instrumentconfig.FovastConfigHelper;
-import org.tmt.fovast.instrumentconfig.FovastConfigHelper.ConfigListener;
+import org.tmt.fovast.instrumentconfig.BooleanValue;
+import org.tmt.fovast.instrumentconfig.ConfigHelper;
+import org.tmt.fovast.instrumentconfig.Config.ConfigListener;
+import org.tmt.fovast.instrumentconfig.StringValue;
 import org.tmt.fovast.instrumentconfig.Value;
 
 /**
@@ -49,15 +51,24 @@ public class FovastInstrumentTree implements ConfigListener {
 
     private final static String INSTRUMENT_TREE_XML = "resources/InstrumentTree.xml";    
 
-    private FovastConfigHelper configHelper;
+    private ConfigHelper configHelper;
 
-    private JTree tree; 
+    private JTree tree;
+    
+    private DefaultTreeModel treeModel;
 
-    public FovastInstrumentTree(FovastConfigHelper configHelper) throws SomeException{
+    public FovastInstrumentTree(ConfigHelper configHelper) throws SomeException{
         try {
             this.configHelper = configHelper;
-            //this methods makes a JTree from the xml file and also
-            //sets the state of the tree according to current config state.
+            configHelper.addConfigListener(this);
+            
+            //The load method has to either read from default
+            //InstrumentTree.xml or the tree state file (which would be similar
+            //except that it would also note if the node has been expanded
+            //and if the checkbox was selected)
+            //TODO: still to code from the saved state file ...
+            //TODO: whether to select a checkbox can be made from config object
+            //as well .. expansion state has to be made out from state file. 
             loadAndInitializeInstrumentTree();
         } catch(Exception ex) {
             throw new SomeException(ex);
@@ -65,12 +76,12 @@ public class FovastInstrumentTree implements ConfigListener {
     }
 
     @Override
-    public boolean updateConfig(String confElementId, Value value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void updateConfig(String confElementId, Value value) {
+        selectNode((DefaultMutableTreeNode)treeModel.getRoot(), confElementId, value);
     }
 
     @Override
-    public boolean batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
+    public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -86,7 +97,7 @@ public class FovastInstrumentTree implements ConfigListener {
         //add nodes to the tree
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Instrument Config");
         rootNode.setUserObject(new GroupUserObject("root"));
-        DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+        treeModel = new DefaultTreeModel(rootNode);
         makeTreeNodes(rootElement, rootNode);
 
         //create tree
@@ -138,7 +149,9 @@ public class FovastInstrumentTree implements ConfigListener {
     /**
      * <p>Make tree nodes from document element children and add them to passed
      * treeNode.</p>
-     *
+     * Creates a UserObject corresponding to children of documentElement
+     * and attaches them as children to treeNode's userobject
+     * 
      * @param documentElement
      * @param treeNode
      */
@@ -153,23 +166,81 @@ public class FovastInstrumentTree implements ConfigListener {
             if(name.equals(NODE_NAME)) {
                 uo = new GroupUserObject(label);
             } else if (name.equals(CHECKBOXNODE_NAME)) {
+                String configOptionValue =
+                        child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE);
+                Value value = null;
+                //TODO: We should also support other value types
+                //TODO: Adding a static method in Value class to create a
+                //proper object given a string representation would help. 
+                if(configOptionValue == null) {
+                    value = new BooleanValue(false);
+                } else {
+                    //TODO: take a call on this method
+                    //this is needed  assuming all types of values (string, position..)
+                    //have a string form.
+                    //Alternately complex value objects can be put in InstrumentTree.xml by
+                    //allowing the CheckboxUserGroupObject to have a <Value> child
+                    //(like the one in InstrumentConfig.xml)
+                    value = Value.createValueFromStringForm(configOptionValue);
+                }
+
                 uo = new CheckboxUserObject(label,
-                        child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE),
-                        child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE));
+                        child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE), value);
             } else if (name.equals(CHECKBOXGROUPNODE_NAME)) {
                 uo = new CheckboxGroupUserObject(label);
             } else {
                 assert false : "Unknown element type: " + name;
             }
             parentUo.addChild(uo);
-            
+            uo.setParent(parentUo);
+
             DefaultMutableTreeNode tNode = new DefaultMutableTreeNode(uo);
             treeNode.add(tNode);
+            uo.setTreeNode(tNode);
 
             if(treeNode.getChildCount() > 0) {
                 makeTreeNodes(child, tNode);
             }
         }
+    }
+
+    private void selectNode(DefaultMutableTreeNode node, String confElementId, Value value) {
+        UserObject uo = (UserObject) node.getUserObject();
+        //if value is not boolean
+        if(uo instanceof CheckboxUserObject) {
+            CheckboxUserObject cuo = (CheckboxUserObject)uo;
+            if(cuo.getConfigOptionId().equals(confElementId) &&
+                    cuo.getConfigOptionValue().equals(value)) {
+                //if not already selected select it and adjust the representation
+                if(!cuo.isSelected()) {
+                    cuo.setSelected(true);
+                    treeModel.nodeChanged(node);
+                    
+                    //check if the parent is a CheckboxGroupNode and select it ..
+                    selectCheckboxGroupUserObjectIfNeeded(node);
+                }
+                return;
+            }
+        }
+
+        for(int i=0; i<node.getChildCount(); i++) {
+            selectNode((DefaultMutableTreeNode) node.getChildAt(i), confElementId, value);
+        }
+    }
+
+    /**
+     * Selects the CheckboxGroupNodes in the tree up to root
+     * Note: the passed tNode is not checked to be CheckboxGroupNode
+     * @param tNode
+     */
+    private void selectCheckboxGroupUserObjectIfNeeded(DefaultMutableTreeNode tNode) {
+        tNode = (DefaultMutableTreeNode) tNode.getParent();
+        UserObject uo = (UserObject) tNode.getUserObject();
+        if(uo instanceof CheckboxGroupUserObject) {
+            //all CheckboxGroupUserObject nodes are also repainted again .. 
+            treeModel.nodeChanged(tNode);
+        }
+        selectCheckboxGroupUserObjectIfNeeded(tNode);
     }
 
     /**
@@ -198,6 +269,8 @@ public class FovastInstrumentTree implements ConfigListener {
     static abstract class UserObject implements Cloneable {
 
         private String label;
+        private UserObject parentUo;
+        private DefaultMutableTreeNode tNode;
 
         public UserObject(String label) {
             this.label = label;
@@ -209,6 +282,21 @@ public class FovastInstrumentTree implements ConfigListener {
 
         public abstract Object clone();
 
+        private void setParent(GroupUserObject parentUo) {
+            this.parentUo = parentUo;
+        }
+
+        private GroupUserObject getParent() {
+            return (GroupUserObject) this.parentUo;
+        }
+
+        private void setTreeNode(DefaultMutableTreeNode tNode) {
+            this.tNode = tNode;
+        }
+
+        private DefaultMutableTreeNode getTreeNode() {
+            return tNode;
+        }
 
         public static interface Editable {
             public void setSelected(boolean b);

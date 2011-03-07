@@ -38,10 +38,6 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
     private VisualizationWorkPanel workPanel;
 
     private ArrayList<CatalogListener> catalogListeners = new ArrayList<CatalogListener>();
-    public void setWorkPanel (VisualizationWorkPanel workPanel)
-    {
-        this.workPanel=workPanel;
-    }
 
     public VisualizationPanel(ApplicationContext appContext,
             VisualizationState visualization) {

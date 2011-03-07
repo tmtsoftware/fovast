@@ -22,7 +22,7 @@ public class Element {
 
     private String selectByDefault;
 
-    private EnableConditions enableConditions;
+    private EnableConditions enableConditions = new EnableConditions();
 
     private ArrayList<Element> elements = new ArrayList<Element>();
 

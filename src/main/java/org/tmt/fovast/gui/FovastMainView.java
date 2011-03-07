@@ -49,6 +49,7 @@ import org.jdesktop.application.ResourceMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
+import org.tmt.fovast.instrumentconfig.ConfigHelper;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;

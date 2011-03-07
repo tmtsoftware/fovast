@@ -13,6 +13,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.tmt.fovast.gui.FovastInstrumentTree.*;
+import org.tmt.fovast.gui.FovastInstrumentTree.UserObject.Editable;
 
 /**
  * <p>Custom TreeCellRenderer for FOVAST instrument config panel.</p>
@@ -62,15 +63,9 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
                                         value).getUserObject();
         if(userObj != null) {
             //go from more specific to less specific in ifelses
-            if(userObj instanceof CheckboxUserObject) {
-                CheckboxUserObject cuo = (CheckboxUserObject) userObj;
+            if(userObj instanceof Editable) {
                 checkbox.setText(userObj.getLabel());
-                checkbox.setSelected(cuo.isSelected());
-                panel.add(checkbox);
-            } else if(userObj instanceof FovastInstrumentTree.CheckboxGroupUserObject) {
-                CheckboxGroupUserObject cguo = (CheckboxGroupUserObject) userObj;
-                checkbox.setText(userObj.getLabel());
-                checkbox.setSelected(cguo.isSelected());
+                checkbox.setSelected(((Editable)userObj).isSelected());
                 panel.add(checkbox);
             } else {
                 label.setText(userObj.getLabel());

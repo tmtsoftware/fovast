@@ -9,6 +9,8 @@ package org.tmt.fovast.state;
 import org.tmt.fovast.mvc.ListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmt.fovast.instrumentconfig.Config;
+import org.tmt.fovast.instrumentconfig.ConfigHelper;
 
 
 /**
@@ -25,20 +27,21 @@ public class VisualizationState
 
     private boolean showTarget;
 
+    private Config config;
+
     public VisualizationState() {
+        
     }
 
     public void setTarget(double ra, double dec) {
-        this.targetRa = ra;
-        this.targetDec = dec;
-
-        fireVslTargetChanged(ra, dec, null, null);
+        setTarget(ra, dec, null, null);
     }
 
     public void setTarget(double ra, double dec, String raEntered, String decEntered) {
         this.targetRa = ra;
         this.targetDec = dec;
-
+        //this.config = ConfigHelper.loadDefaultConfig();
+        
         fireVslTargetChanged(ra, dec, raEntered, decEntered);
     }
 

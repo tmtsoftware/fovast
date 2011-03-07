@@ -2,7 +2,6 @@
 
 <!--
     Document   : InstrumentControl.xml
-    Created on : February 8, 2011, 1:09 PM
     Description:
         Includes info on what all config options are present, their possible values
         and display elements associated with each config
@@ -11,9 +10,7 @@
         instrument config options. It also has info on what config option
         depends on what other config option.
         
-        Config elements will be shown as a JTree
-        Display elements are also to be shown in the above tree but with an option
-            to show them or hide them.
+        Display elements are the figures shown on the image.
         Config elements are the settings to be done on the telescope
         DisplayElements are purely for visualization purpose. They can be saved
             in FOVAST for restoring the app to exactly same state where it was
@@ -22,17 +19,15 @@
         For ConfigElements selectByDefault if true indicates that the option has
             to be auto-set as and when the parent element is set. By default this
             is false
-        For a config option if no Values child is present, then its of boolean type
+        For a config option type is determinded by the type attribute. Possible 
+            values can be indicated using the Values child element.
        
         Nesting of ConfigOptions indicates a parent child relation.
-        A ConfigOption is enabled in GUI only if the parent config option is enabled
-        Value of a config option only makes sense if its enabled and if its parent
-        is set to true. (i,e parent config options are of boolean type)
+        Value of a config option only makes sense if its enabled (all enable 
+        conditions are true) and if its parent is set to some value.
 
-        NOTE: For saving a visualization's state, we can use the same XML tags
-        All we need for that XML with the following tags
-            Instrument, ConfigOption
-        These tags would have only the id attribute and Value child element. 
+        NOTE: For saving a visualization, we can use the same XML tags with an
+        additional value attribute indicating the value set .. 
 -->
 
 <FovastInstrumentConfig>

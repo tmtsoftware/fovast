@@ -12,15 +12,9 @@ package org.tmt.fovast.instrumentconfig;
  */
 public class ConfigOption extends Element {
 
-    private String label;
-
     private String type;
 
     private Values possibleValues;
-
-    private Value value;
-
-    private EnableConditions enableConditions;
 
     public ConfigOption(String id) {
         super(id);
@@ -42,12 +36,5 @@ public class ConfigOption extends Element {
         this.possibleValues = values;
     }
 
-    public Value getValue() {
-        return value;
-    }
-
-    public void setValue(Value value) {
-        this.value = value;
-    }
 }
 
