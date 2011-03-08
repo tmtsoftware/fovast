@@ -54,19 +54,23 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
     public void addCatalog(Catalog c) {
         try {
             workPanel.plotCatalog(c);
-            for(int i=0; i<catalogListeners.size(); i++) {
-                try {
-                    CatalogListener cl = catalogListeners.get(i);
-                    cl.catalogAdded(c);
-                } catch(Exception ex) {
-                    logger.error(null, ex);
-                }
-            }
+//            for(int i=0; i<catalogListeners.size(); i++) {
+//                try {
+//                    CatalogListener cl = catalogListeners.get(i);
+//                    cl.catalogAdded(c);
+//                } catch(Exception ex) {
+//                    logger.error(null, ex);
+//                }
+//            }
         } catch (MalformedURLException ex) {
             logger.error(null, ex);
         } catch (IOException ex) {
             logger.error(null, ex);
         }
+    }
+
+    public boolean isImageLoaded(){
+        return workPanel.isImageLoaded();
     }
 
     public Set<Catalog> getCatalogList(){
@@ -161,14 +165,14 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
 
     void remove(Catalog c){
         workPanel.remove(c);
-        for(int i=0; i<catalogListeners.size(); i++) {
-                try {
-                    CatalogListener cl = catalogListeners.get(i);
-                    cl.catalogRemoved(c);
-                } catch(Exception ex) {
-                    logger.error(null, ex);
-                }
-            }
+//        for(int i=0; i<catalogListeners.size(); i++) {
+//                try {
+//                    CatalogListener cl = catalogListeners.get(i);
+//                    cl.catalogRemoved(c);
+//                } catch(Exception ex) {
+//                    logger.error(null, ex);
+//                }
+//            }
     }
 
 //    public void plot() throws MalformedURLException, SAXException, IOException{
@@ -181,11 +185,11 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
     }
 
     public void addCatalogListener(CatalogListener cl) {
-        catalogListeners.add(cl);
+        workPanel.addCatalogListener(cl);
     }
 
     public void removeCatalogListener(CatalogListener cl) {
-        catalogListeners.remove(cl);
+        workPanel.removeCatalogListener(cl);
     }
 
 

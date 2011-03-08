@@ -60,6 +60,10 @@ public class FovastActions {
 
     private static final String SHOW_GRID_MENU_ENABLED = "showGridMenuEnabled";
 
+    private static final String SHOW_CATALOG_MENU_SELECTED = "showCatalogMenuSelected";
+
+    private static final String SHOW_CATALOG_MENU_ENABLED = "showCatalogMenuEnabled";
+
     private static final String SHOW_IMAGE_COLORS_MENU_ENABLED = "showImageColorsMenuEnabled";
 
     private static final String SHOW_IMAGE_CUTLEVELS_MENU_ENABLED= "showImageCutLevelsMenuEnabled";
@@ -84,6 +88,10 @@ public class FovastActions {
     private boolean showGridMenuSelected = false;
 
     private boolean showGridMenuEnabled = false;
+
+    private boolean showCatalogMenuSelected = false;
+
+    private boolean showCatalogMenuEnabled = false;
 
     private boolean showImageColorsMenuEnabled = false;
 
@@ -204,7 +212,8 @@ public class FovastActions {
 //        JOptionPane.showMessageDialog(mainComponent, "To be done");
 //    }
 
-    @Action(name = "Menu.File.LoadCatalogFrom")
+    @Action(name = "Menu.File.LoadCatalogFrom",enabledProperty = SHOW_GRID_MENU_ENABLED,
+        selectedProperty = SHOW_GRID_MENU_SELECTED)
     public void loadCatalogFromAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
@@ -238,15 +247,18 @@ public class FovastActions {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.File.CloseCatalog.Select")
+    @Action(name = "Menu.File.CloseCatalog.Select",enabledProperty = SHOW_GRID_MENU_ENABLED,
+        selectedProperty = SHOW_GRID_MENU_SELECTED)
     public void closeCatalogAction(ActionEvent ae) {
         //JOptionPane.showMessageDialog(mainComponent, "To be done");
         mainView.remove((JMenuItem)ae.getSource());
     }
 
-    @Action(name = "Menu.File.CloseAllCatalogs")
+    @Action(name = "Menu.File.CloseAllCatalogs",enabledProperty = SHOW_GRID_MENU_ENABLED,
+        selectedProperty = SHOW_GRID_MENU_SELECTED)
     public void closeAllCatalogsAction() {
-        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        //JOptionPane.showMessageDialog(mainComponent, "To be done");
+        mainView.removeForNewFile();
     }
 
     @Action(name = "Menu.File.ShowCatalogList")
@@ -478,6 +490,17 @@ public class FovastActions {
 
     public boolean isShowGridMenuSelected() {
         return showGridMenuSelected;
+    }
+
+    public void setShowCatalogMenuEnabled(boolean newValue) {
+        boolean oldValue = this.showCatalogMenuEnabled;
+        this.showCatalogMenuEnabled = newValue;
+        firePropertyChangeEvent(SHOW_CATALOG_MENU_ENABLED, oldValue, newValue);
+
+    }
+
+    public boolean isShowCatalogMenuSelected() {
+        return showCatalogMenuSelected;
     }
 
     public void setShowGridMenuSelected(boolean newValue) {

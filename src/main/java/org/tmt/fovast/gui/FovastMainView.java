@@ -249,10 +249,15 @@ public class FovastMainView extends FrameView
 
     void loadCatalog(String url,String source) throws MalformedURLException, SAXException, IOException{
         VisualizationPanel vis = getActiveVisPanel();
-        Point2D.Double center=vis.getCenter();
-        Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
-        ConeSearchDialog csd = new ConeSearchDialog(url.trim(),
-          center.x,center.y,2,vis,this,source,cache);
+        if(vis.isImageLoaded()){
+            Point2D.Double center=vis.getCenter();
+            Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
+            ConeSearchDialog csd = new ConeSearchDialog(url.trim(),
+              center.x,center.y,2,vis,this,source,cache);
+        }
+        else{
+            JOptionPane.showMessageDialog(vis,"Load an image to load a catalog");
+        }
     }
 
     void showHide(JCheckBoxMenuItem menuItem){
@@ -435,8 +440,18 @@ public class FovastMainView extends FrameView
         //return visualization;
     }
 
+    void removeForNewFile(){
+        VisualizationPanel vis = getActiveVisPanel();
+        for(int i = 0 ;i < catalogCloseMenu.getItemCount() ;i++){
+            JMenuItem menuItem = catalogCloseMenu.getItem(i);
+            Catalog c = (Catalog)menuItem.getClientProperty(CATALOG_CLIENTPROPERTY);
+            vis.remove(c);
+        }
+        catalogMenu.removeAll();
+        catalogCloseMenu.removeAll();
+    }
     void createNewVisualizationFromImageFile(boolean newPanel) {
-        //TODO: Use filters  (*.fits, *.fit, All files)
+        //TODO: Use filters  (*.fits, *.fit, All files)              
         AppConfiguration config =
                 FovastApplication.getApplication().getConfiguration();
         String dirToOpen = config.getFileDialogDirProperty();
@@ -454,6 +469,7 @@ public class FovastMainView extends FrameView
                 else {
                     //this creates a visualization object and updates the app-model with it
                     getActiveVisPanel().setImageAndCenter(fc.getSelectedFile().getAbsolutePath());
+                    removeForNewFile();
                 }
                 //controller.createNewVisualization(fc.getSelectedFile());
             } catch (Exception ex) {
@@ -714,6 +730,7 @@ public class FovastMainView extends FrameView
                 fovastActions.setSaveVisualizationMenuEnabled(false);
                 fovastActions.setCloseVisualizationMenuEnabled(false);
                 fovastActions.setShowGridMenuEnabled(false);
+                fovastActions.setShowCatalogMenuEnabled(false);
                 fovastActions.setShowImageColorsMenuEnabled(false);
                 fovastActions.setShowImageCutLevelsMenuEnabled(false);
                 fovastActions.setShowImageExtensionsMenuEnabled(false);
@@ -763,6 +780,7 @@ public class FovastMainView extends FrameView
         fovastActions.setSaveVisualizationMenuEnabled(true);
         fovastActions.setCloseVisualizationMenuEnabled(true);
         fovastActions.setShowGridMenuEnabled(true);
+        fovastActions.setShowCatalogMenuEnabled(true);
         fovastActions.setShowImageColorsMenuEnabled(true);
         fovastActions.setShowImageCutLevelsMenuEnabled(true);
         fovastActions.setShowImageExtensionsMenuEnabled(true);

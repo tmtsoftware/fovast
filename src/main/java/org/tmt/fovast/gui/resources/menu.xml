@@ -51,7 +51,7 @@
 
         <Menu name="Menu.File.CloseCatalog">
         </Menu>
-        <MenuItem name="Menu.File.CloseAllCatalogs" implState="todo"/>
+        <MenuItem name="Menu.File.CloseAllCatalogs"/>
         <MenuItem name="Menu.File.ShowCatalogList" implState="todo"/>
         <Separator/>
         <MenuItem name="Menu.File.ProxySettings"/>

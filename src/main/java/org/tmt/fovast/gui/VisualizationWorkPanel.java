@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
@@ -32,6 +33,7 @@ import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.util.Cache;
 import org.tmt.fovast.vo.client.SiaClient;
@@ -74,6 +76,8 @@ public class VisualizationWorkPanel extends JPanel
     private boolean gridShown = false;
 
     private boolean inSetTargetEvent = false;
+
+    private ArrayList<CatalogListener> catalogListeners = new ArrayList<CatalogListener>();
 
     public VisualizationWorkPanel(ApplicationContext appContext,
             VisualizationState visualization) {
@@ -132,6 +136,15 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     private void loadImage(final double ra, final double dec) {
+
+        Set<Catalog> catalogs = getCatalogList();
+        Iterator iter = catalogs.iterator();
+        while(iter.hasNext())
+        {
+            Catalog c = (Catalog)iter.next();
+            remove(c);
+        }
+        
 
         if(targetRa == ra && targetDec == dec) {
             return; // nothing to do as image is already loaded. 
@@ -276,6 +289,10 @@ public class VisualizationWorkPanel extends JPanel
 
     }
 
+    public boolean isImageLoaded(){
+       return targetSet;
+    }
+
     private void showTarget(boolean show) {
         DivaImageGraphics canvasGraphics =
                 (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
@@ -368,6 +385,14 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     void setImage(final String fitsImage) throws IOException, FitsException {
+        
+        Set<Catalog> catalogs = getCatalogList();
+        Iterator iter = catalogs.iterator();
+        while(iter.hasNext())
+        {
+            Catalog c = (Catalog)iter.next();
+            remove(c);
+        }
 //        try {
 //                    Thread th=new Thread() {
 //                    @Override
@@ -484,6 +509,14 @@ public class VisualizationWorkPanel extends JPanel
       plotter.makeList(c);
      // layer.setPlotter(plotter);
       layer.repaint();
+      for(int i=0; i<catalogListeners.size(); i++) {
+                try {
+                    CatalogListener cl = catalogListeners.get(i);
+                    cl.catalogAdded(c);
+                } catch(Exception ex) {
+                    logger.error(null, ex);
+                }
+            }
     }
 
     public void showHide(Catalog c,boolean state){
@@ -500,6 +533,14 @@ public class VisualizationWorkPanel extends JPanel
           FovastTablePlotter plotter=layer.getPlotter();
           plotter.remove(c);
           layer.repaint();
+          for(int i=0; i<catalogListeners.size(); i++) {
+                try {
+                    CatalogListener cl = catalogListeners.get(i);
+                    cl.catalogRemoved(c);
+                } catch(Exception ex) {
+                    logger.error(null, ex);
+                }
+          }
     }
 
 
@@ -512,6 +553,12 @@ public class VisualizationWorkPanel extends JPanel
       
     }
 
+    public void addCatalogListener(CatalogListener cl) {
+        catalogListeners.add(cl);
+    }
 
+    public void removeCatalogListener(CatalogListener cl) {
+        catalogListeners.remove(cl);
+    }
 
 }
