@@ -12,7 +12,7 @@ import java.util.ArrayList;
 /**
  *
  */
-public class Element {
+public class ConfigElement {
 
     private String id;
 
@@ -24,13 +24,13 @@ public class Element {
 
     private EnableConditions enableConditions = new EnableConditions();
 
-    private ArrayList<Element> elements = new ArrayList<Element>();
+    private ArrayList<ConfigElement> elements = new ArrayList<ConfigElement>();
 
     private ArrayList<DisplayElement> displayElements = new ArrayList<DisplayElement>();
 
-    private Element parent;
+    private ConfigElement parent;
 
-    public Element(String id) {
+    public ConfigElement(String id) {
         this.id = id;
         enableConditions = new EnableConditions();
         enableConditions.setCondition(new AlwaysTrueCondition());
@@ -76,19 +76,19 @@ public class Element {
         this.displayElements.add(displayElement);
     }
 
-    public ArrayList<Element> getElements() {
+    public ArrayList<ConfigElement> getElements() {
         return elements;
     }
 
-    public void addElement(Element element) {
+    public void addElement(ConfigElement element) {
         this.elements.add(element);
     }
 
-    public Element getParent() {
+    public ConfigElement getParent() {
         return parent;
     }
 
-    public void setParent(Element parent) {
+    public void setParent(ConfigElement parent) {
         this.parent = parent;
     }
 

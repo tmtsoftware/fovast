@@ -4,6 +4,7 @@ package org.tmt.fovast.gui;
  *
  * @author Disha_Gujrathi
  */
+import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;
 import uk.ac.starlink.table.StarTable;
 
@@ -16,9 +17,10 @@ import uk.ac.starlink.table.StarTable;
 public class MyTableModel extends AbstractTableModel {
 
     String[] columnNames = null;
-    Object[][] data = null;
+    ArrayList<Object[]> data = new ArrayList<Object[]>();
     int _flag = 0;
     StarTable table;
+    
     public MyTableModel(StarTable table) {
         this.table=table;
     }
@@ -35,12 +37,15 @@ public class MyTableModel extends AbstractTableModel {
 
     // Return column count.
     public int getColumnCount() {
-        return columnNames.length;
+        if(columnNames != null)
+            return columnNames.length;
+        else
+            return 0;
     }
 
     // Return row count
     public int getRowCount() {
-        return data.length;
+        return data.size();
     }
 
     // Return column name of the specified column
@@ -50,7 +55,7 @@ public class MyTableModel extends AbstractTableModel {
 
     // Return the value of a particular cell
     public Object getValueAt(int row, int col) {
-        return data[row][col];
+        return data.get(row)[col];
     }
 
     // Return the datatype of particular column.
@@ -72,14 +77,25 @@ public class MyTableModel extends AbstractTableModel {
 
     // Initiallize the data array
     public void initiallize(int numRows, int numCols) {
-        data = new Object[numRows][];
-        for (int i = 0; i < data.length; i++) {
-            data[i] = new Object[numCols];
-        }
+        //this.numCols = numCols;
     }
 
     public void setValueAt(Object value, int row, int col) {
-        data[row][col] = value;
+        
+        if(row >= data.size()) {
+            for( int i = data.size();i<=row ;i++){
+                data.add(new Object[getColumnCount()]);
+            }
+        }
+        Object[] rowObj = data.get(row);
+        rowObj[col] = value;
         fireTableCellUpdated(row, col);
+    }
+
+    void clear() {
+        columnNames = null;
+        data = new ArrayList<Object[]>();
+        _flag = 0;
+        table = null;
     }
 }

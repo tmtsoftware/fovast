@@ -258,7 +258,7 @@ public class FovastActions {
         selectedProperty = SHOW_GRID_MENU_SELECTED)
     public void closeAllCatalogsAction() {
         //JOptionPane.showMessageDialog(mainComponent, "To be done");
-        mainView.removeForNewFile();
+        mainView.removeAll();
     }
 
     @Action(name = "Menu.File.ShowCatalogList")

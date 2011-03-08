@@ -10,7 +10,7 @@ package org.tmt.fovast.instrumentconfig;
 /**
  *
  */
-public class ConfigOption extends Element {
+public class ConfigOption extends ConfigElement {
 
     private String type;
 

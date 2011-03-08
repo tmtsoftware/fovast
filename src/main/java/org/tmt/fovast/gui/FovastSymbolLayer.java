@@ -16,11 +16,13 @@ import diva.canvas.VisibleComponent;
 
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
+import java.util.Set;
+import jsky.image.gui.BasicImageDisplay;
+import jsky.image.gui.ImageGraphicsHandler;
 
-import jsky.catalog.gui.TablePlotter;
-import jsky.image.gui.MainImageDisplay;
 
-public class FovastSymbolLayer extends CanvasLayer implements VisibleComponent{
+public class FovastSymbolLayer extends CanvasLayer implements VisibleComponent {//,ImageGraphicsHandler{
 
 /**
  * A CanvasLayer used for drawing catalog symbols.
@@ -60,11 +62,23 @@ public class FovastSymbolLayer extends CanvasLayer implements VisibleComponent{
     
     public void setImageDisplay(FovastImageDisplay imageDisplay) {
         _fPlotter.setImageDisplay(imageDisplay);
+       // imageDisplay.addImageGraphicsHandler(this);
 
     }
 
     public FovastTablePlotter getPlotter(){
         return _fPlotter;
     }
+
+//    @Override
+//    public void drawImageGraphics(BasicImageDisplay bid, Graphics2D gd) {
+//        Set<Catalog> catalogs=_fPlotter.getCatalogList().keySet();
+//        Iterator iter = catalogs.iterator();
+//        while(iter.hasNext())
+//        {
+//            Catalog c = (Catalog)iter.next();
+//            _fPlotter.makeList(c);
+//        }
+//    }
 
 }

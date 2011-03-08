@@ -13,11 +13,11 @@ package org.tmt.fovast.instrumentconfig;
 
 public class EqualityCondition extends Condition {
 
-    private Element element;
+    private ConfigElement element;
 
     private String value;
 
-    public EqualityCondition(Element element, String value) {
+    public EqualityCondition(ConfigElement element, String value) {
         this.element = element;
         this.value = value;
     }

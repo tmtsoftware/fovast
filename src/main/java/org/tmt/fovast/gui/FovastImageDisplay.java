@@ -7,6 +7,7 @@
 
 package org.tmt.fovast.gui;
 
+import java.awt.geom.AffineTransform;
 import jsky.image.gui.DivaMainImageDisplay;
 import jsky.navigator.NavigatorPane;
 
@@ -58,6 +59,19 @@ class FovastImageDisplay extends DivaMainImageDisplay{
         return _navigatorPane.getSymbolLayer();
     }
 
+    /**
+     * Transform the image graphics using the given AffineTransform.
+     */
+    protected void transformGraphics(AffineTransform trans) {
+        super.transformGraphics(trans);
+        if (_navigatorPane != null) {
+            FovastTablePlotter plotter = _navigatorPane.getSymbolLayer().getPlotter();
+            if (plotter != null) {
+                plotter.transformGraphics(trans);
+                _navigatorPane.getSymbolLayer().repaint();
+            }
+        }
+    }
 
 
 }

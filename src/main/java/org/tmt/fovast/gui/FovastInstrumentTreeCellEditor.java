@@ -73,7 +73,7 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
         
         if(userObj != null) {
             UserObject.Editable editable = (UserObject.Editable) userObj;
-            logger.debug("Read value from user object with label "
+            logger.trace("Read value from user object with label "
                     + userObj.getLabel() + " is " + editable.isSelected());
             currentNodeValue = (UserObject) userObj;
         } else {
@@ -100,7 +100,9 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
                 DefaultMutableTreeNode value = (DefaultMutableTreeNode)
                         path.getLastPathComponent();
                 UserObject uo = (UserObject) value.getUserObject();
-                return uo instanceof UserObject.Editable;
+                return 
+                        ( (uo instanceof UserObject.Editable) &&
+                            (!uo.isDisabled()) );
             }
         }
 

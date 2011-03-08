@@ -5,11 +5,13 @@
 
 package org.tmt.fovast.gui;
 
+import diva.canvas.Figure;
 import gnu.jel.DVMap;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -19,7 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import jsky.coords.CoordinateConverter;
 import jsky.image.graphics.ShapeUtil;
-import jsky.util.JavaExpr;
+import jsky.util.java2d.ShapeUtilities;
 
 /**
  *
@@ -32,7 +34,8 @@ public class FovastTablePlotter{
     private int colorNumber=0;
     private boolean show=true;
     private HashMap<Catalog,ArrayList> catalogList = new LinkedHashMap<Catalog,ArrayList>();
-    private HashMap<Catalog, Boolean> catalogDisplayList = new HashMap<Catalog, Boolean>();
+    private HashMap<Catalog, Boolean> catalogDisplayList = new LinkedHashMap<Catalog, Boolean>();
+    private HashMap<Catalog, SymbolTable> catalogSymbolList = new LinkedHashMap<Catalog, SymbolTable>();
 
     public void setImageDisplay(FovastImageDisplay imageDisplay) {
         _display = imageDisplay;
@@ -51,22 +54,40 @@ public class FovastTablePlotter{
     public HashMap<Catalog, Boolean> getCatalogDisplayList() {
         return catalogDisplayList;
     }
+
+    /**
+     * @return the catalogSymbolList
+     */
+    public HashMap<Catalog, SymbolTable> getCatalogSymbolList() {
+        return catalogSymbolList;
+    }
+
     public void makeList(Catalog c){
+        
         Object[][] data=c.getData();
-//        st.setSymbol("square");
-//        st.setColour("red");
-//        SymbolTable st = new SymbolTable();
-//        st.setRatio(1);
-//        st.setAngle(0);
-//        st.setLabel("");
-//        st.setSize(4);
-//        st.setUnits("image");
-        double ratio=1;
-        double angle=0;
-        String label="";
-        int symbolSize=4;
-        String units="image";
-        int symbolSetSize = SymbolTable.getSymbolSetSize();
+        SymbolTable st = null;
+        if(getCatalogSymbolList().get(c) == null) {
+            st = new SymbolTable();
+            int symbolSetSize = SymbolTable.getSymbolSetSize();
+            st.setSymbol(SymbolTable.getSymbols(symbolNumber%symbolSetSize));
+            st.setSymbolColor(SymbolTable.getColours(symbolNumber%SymbolTable.getColorSetSize()));
+            st.setRatio(1);
+            st.setAngle(0);
+            st.setLabel("");
+            st.setSize(4);
+            st.setUnits("image");
+            symbolNumber++;
+            catalogSymbolList.put(c, st);
+        } else {
+            st = getCatalogSymbolList().get(c);
+        }
+
+//        double ratio=1;
+//        double angle=0;
+//        String label="";
+//        int symbolSize=4;
+//        String units="image";
+        
         ArrayList<Shape> figureList = new ArrayList<Shape>();
         for (int i = 0; i < data.length; i++) {
             Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
@@ -79,17 +100,18 @@ public class FovastTablePlotter{
                 continue;
             }
             coordinateConverter.convertCoords(pos, CoordinateConverter.USER, CoordinateConverter.SCREEN, false);
-            Point2D.Double size = new Point2D.Double(symbolSize, symbolSize);
-            int sizeType = getCoordType(units);
+            Point2D.Double size = new Point2D.Double(st.getSize(), st.getSize());
+            int sizeType = getCoordType(st.getUnits());
             coordinateConverter.convertCoords(size, sizeType, CoordinateConverter.SCREEN, true);
             // get the Shape object for the symbol
-            Shape shape = makeShape(SymbolTable.getSymbols(symbolNumber%symbolSetSize),
-                    pos.x, pos.y, Math.max(size.x, size.y), ratio, angle);
+            Shape shape = makeShape(st.getSymbol(),
+                    pos.x, pos.y, Math.max(size.x, size.y), st.getRatio(), st.getAngle());
             figureList.add(shape);         
         }
+        if(getCatalogDisplayList().get(c) == null) {
+             getCatalogDisplayList().put(c, Boolean.TRUE);
+        }
         getCatalogList().put(c, figureList);
-        getCatalogDisplayList().put(c, Boolean.TRUE);
-        symbolNumber++;
     }
 
     public void showHide(Catalog c,boolean state){
@@ -103,25 +125,27 @@ public class FovastTablePlotter{
     public void remove(Catalog c){
         getCatalogList().remove(c);
         getCatalogDisplayList().remove(c);
+        getCatalogSymbolList().remove(c);
     }
     
     public void paintSymbols(Graphics2D g, Rectangle2D region){      
-            BasicStroke s1 = new BasicStroke();            
-            g.setPaintMode();
-            Iterator iter = catalogList.keySet().iterator();
-            int j=0;
-            while(iter.hasNext()){
-                Catalog c = (Catalog)iter.next();
-                Color color = SymbolTable.getColours(j++%SymbolTable.getColorSetSize());
-                if((catalogDisplayList.get(c)) == true){
-                    for(int i = 0;i < (catalogList.get(c)).size();i++){
-                        g.setColor(color);
-                        g.setStroke(s1);
-                        g.draw((Shape)catalogList.get(c).get(i));
-                    }
+        BasicStroke s1 = new BasicStroke();
+        g.setPaintMode();
+        Iterator iter = catalogList.keySet().iterator();
+        int j=0;
+        while(iter.hasNext()){
+            Catalog c = (Catalog)iter.next();
+            SymbolTable st = getCatalogSymbolList().get(c);
+            Color color = st.getSymbolColor();
+            if((catalogDisplayList.get(c)) == true){
+                for(int i = 0;i < (catalogList.get(c)).size();i++){
+                    g.setColor(color);
+                    g.setStroke(s1);
+                    g.draw((Shape)catalogList.get(c).get(i));
                 }
-        }
-    }
+            }
+         }
+     }
         
 
 
@@ -309,5 +333,28 @@ protected Shape makeShape(String symbol, double x, double y, double size,
         p.x = p.x * cosa + p.y * sina + center.x;
         p.y = -tmp * sina + p.y * cosa + center.y;
     }
+
+    /**
+     * Transform the plot symbols using the given AffineTransform
+     * (called when the image is transformed, to keep the plot symbols up to date).
+     */
+    public void transformGraphics(AffineTransform trans) {
+        Iterator iter = catalogList.keySet().iterator();
+        int j=0;
+        while(iter.hasNext()){
+            Catalog c = (Catalog)iter.next();
+            SymbolTable st = getCatalogSymbolList().get(c);
+            Color color = st.getSymbolColor();
+            //if((catalogDisplayList.get(c)) == true){
+                ArrayList<Shape> shapeList = catalogList.get(c);
+                for(int i = 0;i < shapeList.size();i++){                    
+                    Shape oldShape = shapeList.get(i);
+                    shapeList.remove(i);
+                    shapeList.add(i, ShapeUtilities.transformModify(oldShape, trans));
+                }
+            //}
+        }
+    }
+
 }
 

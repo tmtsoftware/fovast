@@ -10,7 +10,7 @@ package org.tmt.fovast.instrumentconfig;
 /**
  *
  */
-public class Instrument extends Element {
+public class Instrument extends ConfigElement {
 
     public Instrument(String id) {
         super(id);

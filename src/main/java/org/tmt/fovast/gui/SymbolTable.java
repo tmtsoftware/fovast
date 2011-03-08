@@ -15,11 +15,11 @@ import java.awt.Shape;
  * @author Disha_Gujrathi
  */
 public class SymbolTable {
-//    private String symbol;
-//
+    private String symbol;
+
 //    private String colour;
 //
-//    private Color symbolColor;
+    private Color symbolColor;
 
     private static Color[] colours = {Color.YELLOW,
                                Color.BLUE,
@@ -56,31 +56,16 @@ public class SymbolTable {
     /**
      * @return the symbol
      */
-//    public String getSymbol() {
-//        return symbol;
-//    }
+    public String getSymbol() {
+        return symbol;
+    }
 
     /**
      * @param symbol the symbol to set
      */
-//    public void setSymbol(String symbol) {
-//        this.symbol = symbol;
-//    }
-
-    /**
-     * @return the colour
-     */
-//    public Color getColour() {
-//        return symbolColor;
-//    }
-
-    /**
-     * @param colour the colour to set
-     */
-//    public void setColour(String colour) {
-//        this.colour = colour;
-//        symbolColor=Color.red;
-//    }
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
 
     /**
      * @return the ratio
@@ -167,6 +152,20 @@ public class SymbolTable {
 
     public static int getSymbolSetSize() {
         return symbols.length;
+    }
+
+    /**
+     * @return the symbolColor
+     */
+    public Color getSymbolColor() {
+        return symbolColor;
+    }
+
+    /**
+     * @param symbolColor the symbolColor to set
+     */
+    public void setSymbolColor(Color symbolColor) {
+        this.symbolColor = symbolColor;
     }
 
 }

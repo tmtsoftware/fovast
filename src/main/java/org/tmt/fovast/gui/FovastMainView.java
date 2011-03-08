@@ -19,6 +19,7 @@ import java.io.File;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -49,7 +50,6 @@ import org.jdesktop.application.ResourceMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
-import org.tmt.fovast.instrumentconfig.ConfigHelper;
 import org.tmt.fovast.state.FovastApplicationState;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.swing.utils.ExtendedTabbedPane;
@@ -251,9 +251,26 @@ public class FovastMainView extends FrameView
         VisualizationPanel vis = getActiveVisPanel();
         if(vis.isImageLoaded()){
             Point2D.Double center=vis.getCenter();
-            Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
+            Cache cache = ((FovastApplication) appContext.getApplication()).getCatalogCache();
+            Set<Catalog> catalogs = vis.getCatalogList();
+            Iterator iter = catalogs.iterator();
+            HashMap<String,Object> prop;
+            ArrayList<Catalog> tempList=new ArrayList<Catalog>();
+            while(iter.hasNext())
+            {
+                Catalog c = (Catalog)iter.next();
+                prop = c.getProperties();
+                if(source.equals(prop.get("type"))){
+                    tempList.add(c);
+                }
+            }
+            Catalog tempC;
+            if(!tempList.isEmpty())
+               tempC = tempList.get(tempList.size()-1);
+            else
+               tempC=null;
             ConeSearchDialog csd = new ConeSearchDialog(url.trim(),
-              center.x,center.y,2,vis,this,source,cache);
+              center.x,center.y,2,vis,this,source,cache,tempC);
         }
         else{
             JOptionPane.showMessageDialog(vis,"Load an image to load a catalog");
@@ -440,10 +457,11 @@ public class FovastMainView extends FrameView
         //return visualization;
     }
 
-    void removeForNewFile(){
+    void removeAll(){
         VisualizationPanel vis = getActiveVisPanel();
-        for(int i = 0 ;i < catalogCloseMenu.getItemCount() ;i++){
-            JMenuItem menuItem = catalogCloseMenu.getItem(i);
+        //for(int i = 0 ;i < catalogCloseMenu.getItemCount() ;i++){
+        while(catalogCloseMenu.getItemCount()>0){
+            JMenuItem menuItem = catalogCloseMenu.getItem(0);
             Catalog c = (Catalog)menuItem.getClientProperty(CATALOG_CLIENTPROPERTY);
             vis.remove(c);
         }
@@ -469,7 +487,7 @@ public class FovastMainView extends FrameView
                 else {
                     //this creates a visualization object and updates the app-model with it
                     getActiveVisPanel().setImageAndCenter(fc.getSelectedFile().getAbsolutePath());
-                    removeForNewFile();
+                    //removeAll();
                 }
                 //controller.createNewVisualization(fc.getSelectedFile());
             } catch (Exception ex) {

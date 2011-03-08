@@ -1,6 +1,7 @@
 package org.tmt.fovast.gui;
 
 import java.util.HashMap;
+import uk.ac.starlink.table.StarTable;
 
 /*
  * To change this template, choose Tools | Templates
@@ -20,6 +21,8 @@ public class Catalog {
     private String[] ColNames;
 
     private HashMap<String , Object> properties = new HashMap<String, Object>();
+
+    private StarTable starTable;
 
     /**
      * @return the data
@@ -74,6 +77,20 @@ public class Catalog {
      * @param properties the properties to set
      */
     public void setProperties(HashMap<String, Object> properties) {
-        this.properties = properties;
+        this.properties=properties;
+    }
+
+    /**
+     * @return the starTable
+     */
+    public StarTable getStarTable() {
+        return starTable;
+    }
+
+    /**
+     * @param starTable the starTable to set
+     */
+    public void setStarTable(StarTable starTable) {
+        this.starTable = starTable;
     }
 }

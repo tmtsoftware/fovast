@@ -52,26 +52,30 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         panel.remove(label);
         checkbox.setSelected(false);
 
-        boolean enable = tree.isEnabled();
-        panel.setEnabled(enable);
-        label.setEnabled(enable);
-        checkbox.setEnabled(enable);
+        
 
-        checkbox.setFocusPainted(hasFocus);
+        //checkbox.setFocusPainted(hasFocus);
 
         panel.setBackground(tree.getBackground());        
         label.setBackground(tree.getBackground());
 
-
         //We know the value is of type DefaultMutableTreeNode
         UserObject userObj = (UserObject)((DefaultMutableTreeNode)
                                         value).getUserObject();
+
+        boolean enable = tree.isEnabled() && userObj.isDisabled();
+        panel.setEnabled(enable);
+        label.setEnabled(enable);
+        checkbox.setEnabled(enable);
+
+
+
         if(userObj != null) {
             //go from more specific to less specific in ifelses
             if(userObj instanceof Editable) {
                 checkbox.setText(userObj.getLabel());
                     checkbox.setSelected(((Editable)userObj).isSelected());
-                logger.debug("userObj: " + userObj.getLabel() + " being shown, selected: "
+                logger.trace("userObj: " + userObj.getLabel() + " being shown, selected: "
                         + ((Editable)userObj).isSelected());
                 panel.add(checkbox);
             } else {

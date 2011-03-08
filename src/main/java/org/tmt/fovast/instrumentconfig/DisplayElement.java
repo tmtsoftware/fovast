@@ -18,7 +18,7 @@ public class DisplayElement {
 
     private boolean showByDefault;
 
-    private Element parent;
+    private ConfigElement parent;
 
     public DisplayElement(String id) {
         this.id = id;
@@ -48,11 +48,11 @@ public class DisplayElement {
         this.showByDefault = showByDefault;
     }
 
-    public Element getParent() {
+    public ConfigElement getParent() {
         return parent;
     }
 
-    public void setParent(Element parent) {
+    public void setParent(ConfigElement parent) {
         this.parent = parent;
     }
 }

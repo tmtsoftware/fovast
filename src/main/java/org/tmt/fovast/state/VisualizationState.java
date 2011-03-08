@@ -30,7 +30,6 @@ public class VisualizationState
     private Config config;
 
     public VisualizationState() {
-        
     }
 
     public void setTarget(double ra, double dec) {
@@ -40,9 +39,15 @@ public class VisualizationState
     public void setTarget(double ra, double dec, String raEntered, String decEntered) {
         this.targetRa = ra;
         this.targetDec = dec;
-        //this.config = ConfigHelper.loadDefaultConfig();
         
         fireVslTargetChanged(ra, dec, raEntered, decEntered);
+
+        try {
+            this.config = Config.loadDefaultConfig();
+            fireVslConfigChanged(config);
+        } catch(Exception ex) {
+            logger.error("!!!!! Could not read instrument config .. ", ex);
+        }
     }
 
     public Double[] getTarget() {
@@ -76,6 +81,16 @@ public class VisualizationState
         }
     }
 
+    private void fireVslConfigChanged(Config c) {
+        for(int i=0; i<listeners.size(); i++) {
+            try {
+                ((VisualizationStateListener)(listeners.get(i))
+                        ).vslConfigChanged(c);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
     //TODO: Code equals and .. other methods ..
 
 
@@ -85,6 +100,7 @@ public class VisualizationState
                 String raEntered, String decEntered);
 
         public void vslShowTarget(boolean show);
-        
+
+        public void vslConfigChanged(Config config);
     }
 }

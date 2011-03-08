@@ -19,9 +19,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import java.text.NumberFormat;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -31,19 +29,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JOptionPane;
-import javax.swing.tree.*;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import org.jdom.JDOMException;
+import org.tmt.fovast.gui.FovastInstrumentTree.SomeException;
+import org.tmt.fovast.instrumentconfig.Config;
 import voi.astro.util.NameResolver;
 
 import org.jdesktop.application.ApplicationActionMap;
 import org.jdesktop.application.ApplicationContext;
-import org.jdom.Element;
-import org.jfree.date.SpreadsheetDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
@@ -104,6 +99,10 @@ public class VisualizationControlPanel extends JPanel
     private JLabel decAfterLabel;
 
     private JTree tree;
+
+    private JPanel configPanel;
+
+    private ConfigHelper configHelper;
     
     public VisualizationControlPanel(ApplicationContext appContext,
             VisualizationState visualizationState) {
@@ -414,14 +413,11 @@ public class VisualizationControlPanel extends JPanel
 //        }
 //        //showTargetPanel.add(new JLabel(" "), gbcIcp);
 
-        JPanel configPanel = new JPanel(new BorderLayout());
+        configPanel = new JPanel(new BorderLayout());
         configPanel.add(showTargetPanel, BorderLayout.NORTH);
         try {
-            tree = makeInstrumentTree();
-            tree.setOpaque(true);
-            tree.setBackground(configPanel.getBackground());
-            tree.setEnabled(false);
-            configPanel.add(tree, BorderLayout.CENTER);
+            //passing null for config to make a dummy tree
+            makeInstrumentTree(false, null);
             //configPanel.add(new JPanel(), BorderLayout.CENTER);
         } catch(Exception ex) {
             logger.error("Error while making instrument config tree", ex);
@@ -449,12 +445,24 @@ public class VisualizationControlPanel extends JPanel
         add(new JScrollPane(mainPanel));
     }
 
-    private JTree makeInstrumentTree() throws FovastInstrumentTree.SomeException {
+    private void makeInstrumentTree(boolean enabled, Config config)
+            throws FovastInstrumentTree.SomeException {
 
-        ConfigHelper configHelper = new ConfigHelper();
-        FovastInstrumentTree instrumentTree = new FovastInstrumentTree(configHelper);
-        return instrumentTree.getJTree();
-        
+        if(tree != null)
+            configPanel.remove(tree);
+        FovastInstrumentTree instrumentTree = null;
+        if(config != null) {
+            configHelper = new ConfigHelper(config);
+            instrumentTree = new FovastInstrumentTree(configHelper);
+        }
+        else {
+            instrumentTree = new FovastInstrumentTree(null);
+        }
+        tree = instrumentTree.getJTree();
+        tree.setOpaque(true);
+        tree.setBackground(configPanel.getBackground());
+        tree.setEnabled(enabled);
+        configPanel.add(tree, BorderLayout.CENTER);
     }
 
     private void validateRaFieldAndShowErrorMsgField() {
@@ -584,7 +592,8 @@ public class VisualizationControlPanel extends JPanel
     private void enableDisableShowTargetCheckBox(boolean enable) {
         showTargetCheckbox.setEnabled(enable);
         showTargetLabel.setEnabled(enable);
-        tree.setEnabled(enable);
+        if(tree != null)
+            tree.setEnabled(enable);
     }
 
     public void showTargetCbCliked() {
@@ -606,6 +615,17 @@ public class VisualizationControlPanel extends JPanel
     public void vslShowTarget(boolean show) {
         updateUIForShowTarget(show);
     }
+
+    @Override
+    public void vslConfigChanged(Config config) {
+        try {
+            makeInstrumentTree(true, config);
+            configHelper.fireInitialEvents();
+        } catch (SomeException ex) {
+            logger.error("!!!! Error making instrument tree", ex);
+        }
+    }
+
 
     //
     //VisualizationStateListener overrides end ...

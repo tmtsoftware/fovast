@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Vector;
+import java.util.Map.Entry;
 import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Collection;
@@ -163,7 +164,7 @@ public class Cache {
                 index.put(url.toString(), relativePath);                
             }
 
-            checkSize();
+            //checkSize();
             return fileToStore;
         } catch (Exception ex) {
             logger.warn("Exception while saving the file to cache", ex);
@@ -224,12 +225,19 @@ public class Cache {
     public synchronized void save() {
         PrintWriter writer = null;
         try {
+            int numToRemove = index.size() - maxEntries;
             writer = new PrintWriter(downloadCacheFile);
-            Iterator<String> ite = index.keySet().iterator();
+            Iterator<Entry<String, String>> ite = index.entrySet().iterator();
             while (ite.hasNext()) {
-                String key = ite.next();
-                writer.println(key);
-                writer.println(index.get(key));
+                Entry<String, String> entry = ite.next();
+                String key = entry.getKey();
+                if(numToRemove > 0) {
+                    ite.remove();
+                    numToRemove--;
+                } else {
+                    writer.println(key);
+                    writer.println(entry.getValue());
+                }
             }
         } catch (Exception ex) {
             // donot do any thing
@@ -306,16 +314,16 @@ public class Cache {
         return childPath.substring(downloadCacheDir.getCanonicalPath().length() + 1);
     }
 
-    /**
-     * maintains the num entries below max entries
-     */
-    private void checkSize() {
-        if (index.size() > maxEntries) {
-            Iterator<String> ite = index.keySet().iterator();
-            String key = ite.next();
-            remove(key);
-        }
-    }
+//    /**
+//     * maintains the num entries below max entries
+//     */
+//    private void checkSize() {
+//        if (index.size() > maxEntries) {
+//            Iterator<String> ite = index.keySet().iterator();
+//            String key = ite.next();
+//            remove(key);
+//        }
+//    }
 
     /**
      * Deletes the given entry from cache and corresponding file in cache dir

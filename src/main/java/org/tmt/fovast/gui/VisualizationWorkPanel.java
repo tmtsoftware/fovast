@@ -34,6 +34,8 @@ import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
+import org.tmt.fovast.instrumentconfig.Config;
+import org.tmt.fovast.instrumentconfig.Value;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.util.Cache;
 import org.tmt.fovast.vo.client.SiaClient;
@@ -42,7 +44,8 @@ import org.tmt.fovast.vo.client.SiaClient;
  *
  */
 public class VisualizationWorkPanel extends JPanel
-        implements VisualizationState.VisualizationStateListener {
+        implements VisualizationState.VisualizationStateListener,
+        Config.ConfigListener {
 
     private static Logger logger = LoggerFactory.getLogger(VisualizationWorkPanel.class);
 
@@ -135,6 +138,13 @@ public class VisualizationWorkPanel extends JPanel
         showTarget(show);
     }
 
+    @Override
+    public void vslConfigChanged(Config config) {
+        clearConfigDisplayElements();
+        config.addConfigListener(this);
+    }
+
+
     private void loadImage(final double ra, final double dec) {
 
         Set<Catalog> catalogs = getCatalogList();
@@ -142,6 +152,7 @@ public class VisualizationWorkPanel extends JPanel
         while(iter.hasNext())
         {
             Catalog c = (Catalog)iter.next();
+            iter.remove();
             remove(c);
         }
         
@@ -386,12 +397,14 @@ public class VisualizationWorkPanel extends JPanel
 
     void setImage(final String fitsImage) throws IOException, FitsException {
         
-        Set<Catalog> catalogs = getCatalogList();
-        Iterator iter = catalogs.iterator();
+        Set<Catalog> tempCatalogs = getCatalogList();
+        Iterator iter = tempCatalogs.iterator();
+        Catalog tempC;
         while(iter.hasNext())
         {
-            Catalog c = (Catalog)iter.next();
-            remove(c);
+            tempC = (Catalog)iter.next();
+            iter.remove();
+            remove(tempC);
         }
 //        try {
 //                    Thread th=new Thread() {
@@ -559,6 +572,26 @@ public class VisualizationWorkPanel extends JPanel
 
     public void removeCatalogListener(CatalogListener cl) {
         catalogListeners.remove(cl);
+    }
+
+    private void clearConfigDisplayElements() {
+        
+        //TODO: throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void updateConfig(String confElementId, Value value) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void enableConfig(String confElementId, boolean enable) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
