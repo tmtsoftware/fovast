@@ -7,14 +7,11 @@
 
 package org.tmt.fovast.instrumentconfig;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
-import org.jdom.input.DOMBuilder;
 import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

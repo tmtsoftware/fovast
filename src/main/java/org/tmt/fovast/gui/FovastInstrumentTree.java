@@ -12,11 +12,14 @@ import java.awt.Graphics;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import java.net.URL;
+import javax.swing.DefaultCellEditor;
+import javax.swing.event.CellEditorListener;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -34,7 +37,7 @@ import org.tmt.fovast.instrumentconfig.Value;
  * to changes in instrument config by implementing ConfigListener.</p>
  *
  */
-public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
+public class FovastInstrumentTree implements ConfigListener, CellEditorListener {
 
     private static Logger logger = LoggerFactory.getLogger(FovastInstrumentTree.class);
 
@@ -83,7 +86,9 @@ public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
 
     @Override
     public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        for(int i = 0; i < confElementIds.size(); i++) {
+            updateConfig(confElementIds.get(i), values.get(i));
+        }
     }
 
     private void loadAndInitializeInstrumentTree() 
@@ -100,7 +105,6 @@ public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
                 new CustomDefaultMutableTreeNode(new UserObject("Instrument Config"));
         treeModel = new DefaultTreeModel(rootNode);
         makeTreeNodes(rootElement, rootNode);
-        treeModel.addTreeModelListener(this);
 
         //create tree
         //overriding as nimbus l&f does not respect the setBackgroundColor on tree.
@@ -130,7 +134,10 @@ public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
         tree.setEditable(true);
         FovastInstrumentTreeCellRenderer renderer = new FovastInstrumentTreeCellRenderer(tree);
         tree.setCellRenderer(renderer);
-        tree.setCellEditor(new FovastInstrumentTreeCellEditor(tree, renderer));
+        FovastInstrumentTreeCellEditor editor =
+                new FovastInstrumentTreeCellEditor(tree, renderer);
+        tree.setCellEditor(editor);
+        editor.addCellEditorListener(this);
         
         //show tree fully expanded
         //for( int i = 0; i < tree.getRowCount(); ++i )
@@ -247,52 +254,47 @@ public class FovastInstrumentTree implements ConfigListener, TreeModelListener {
     // TREE LISTENER METHODS START =====================
     private static boolean inTreeNodesChanged = false;
     ArrayList<TreeNode> nodesToFireChange = new ArrayList<TreeNode>();
-    
-    @Override
-    public synchronized void treeNodesChanged(TreeModelEvent e) {
 
-        Object[] nodesChanged = e.getChildren();
-        for(int i=0; i<nodesChanged.length; i++) {
-            CustomDefaultMutableTreeNode tNode =
-                    (CustomDefaultMutableTreeNode) nodesChanged[i];
-            UserObject uo = (UserObject) tNode.getUserObject();           
-            
-            if (uo instanceof CheckboxGroupUserObject) {
-                boolean b = ((CheckboxGroupUserObject)uo).isSelected();
-                //also set child nodes to have been modified
-                for(int j=0; j<uo.getTreeNode().getChildCount(); j++) {
-                    CustomDefaultMutableTreeNode childTNode =
-                            (CustomDefaultMutableTreeNode) uo.getTreeNode().getChildAt(j);
-                    UserObject childUserObject = (UserObject) childTNode.getUserObject();
-                    if(childUserObject instanceof UserObject.Editable) {
-                        if( b != ((UserObject.Editable)childUserObject).isSelected()) {
-                            ((UserObject.Editable)childUserObject).setSelected(b);
-                            //nodesToFireChange.add(childTNode);
-                            treeModel.nodeChanged(childTNode);
+    @Override
+    public void editingStopped(ChangeEvent e) {
+        FovastInstrumentTreeCellEditor editor = 
+                (FovastInstrumentTreeCellEditor) e.getSource();
+        UserObject uo = (UserObject) editor.getCellEditorValue();
+        CustomDefaultMutableTreeNode tNode =
+                (CustomDefaultMutableTreeNode) uo.getTreeNode();
+
+        //this would just select CheckGroupNodes up the hierarchy
+        //nothing to be sent through ConfigHelpe
+        setSelectedCheckboxGroupNodeTraversingUp(tNode);
+
+        //need to ConfigHelper methods for these
+        if (uo instanceof CheckboxGroupUserObject) {
+            boolean b = ((CheckboxGroupUserObject)uo).isSelected();
+            //also set child nodes to have been modified
+            for(int j=0; j<uo.getTreeNode().getChildCount(); j++) {
+                CustomDefaultMutableTreeNode childTNode =
+                        (CustomDefaultMutableTreeNode) uo.getTreeNode().getChildAt(j);
+                UserObject childUserObject = (UserObject) childTNode.getUserObject();
+                if(childUserObject instanceof UserObject.Editable) {
+                    if( b != ((UserObject.Editable)childUserObject).isSelected()) {
+                        ((UserObject.Editable)childUserObject).setSelected(b);
+                        //nodesToFireChange.add(childTNode);
+                        treeModel.nodeChanged(childTNode);
+                        //update config
+                        if(childUserObject instanceof CheckboxUserObject) {
+                            CheckboxUserObject cuo = (CheckboxUserObject)childUserObject;
+                            configHelper.setConfig(cuo.getConfigOptionId(),
+                                    (Value) cuo.getConfigOptionValue());
                         }
                     }
                 }
             }
-
-            //setSelectedCheckboxGroupNodeTraversingUp(tNode);
-
         }
     }
 
-    
     @Override
-    public void treeNodesInserted(TreeModelEvent e) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void treeNodesRemoved(TreeModelEvent e) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void treeStructureChanged(TreeModelEvent e) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void editingCanceled(ChangeEvent e) {
+        //nothing to be done here
     }
 
     // TREE LISTENER METHODS END =====================
