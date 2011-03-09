@@ -12,7 +12,7 @@ import java.util.ArrayList;
 /**
  *
  */
-public class ConfigElement {
+public abstract class ConfigElement {
 
     private String id;
 
@@ -20,7 +20,7 @@ public class ConfigElement {
 
     private Value value;
 
-    private String selectByDefault;
+    private boolean selectByDefault;
 
     private EnableConditions enableConditions = new EnableConditions();
 
@@ -30,6 +30,8 @@ public class ConfigElement {
 
     private ConfigElement parent;
 
+    private boolean enabled;
+    
     public ConfigElement(String id) {
         this.id = id;
         enableConditions = new EnableConditions();
@@ -60,11 +62,11 @@ public class ConfigElement {
         this.label = label;
     }
 
-    public String getSelectByDefault() {
+    public boolean isSelectByDefault() {
         return selectByDefault;
     }
 
-    public void setSelectByDefault(String selectByDefault) {
+    public void setSelectByDefault(boolean selectByDefault) {
         this.selectByDefault = selectByDefault;
     }
 
@@ -74,6 +76,7 @@ public class ConfigElement {
 
     public void addDisplayElement(DisplayElement displayElement) {
         this.displayElements.add(displayElement);
+        displayElement.setParent(this);
     }
 
     public ArrayList<ConfigElement> getElements() {
@@ -82,6 +85,7 @@ public class ConfigElement {
 
     public void addElement(ConfigElement element) {
         this.elements.add(element);
+        element.setParent(this);
     }
 
     public ConfigElement getParent() {
@@ -98,5 +102,13 @@ public class ConfigElement {
 
     public void setValue(Value value) {
         this.value = value;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

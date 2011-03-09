@@ -581,7 +581,7 @@ public class VisualizationWorkPanel extends JPanel
 
     @Override
     public void updateConfig(String confElementId, Value value) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        //TODO: throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -591,7 +591,7 @@ public class VisualizationWorkPanel extends JPanel
 
     @Override
     public void enableConfig(String confElementId, boolean enable) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        //TODO: throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

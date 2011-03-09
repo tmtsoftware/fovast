@@ -14,7 +14,11 @@ public class ConfigOption extends ConfigElement {
 
     private String type;
 
-    private Values possibleValues;
+    private PossibleValues possibleValues;
+
+    private boolean captured;
+
+    private String captureElementId;
 
     public ConfigOption(String id) {
         super(id);
@@ -28,13 +32,28 @@ public class ConfigOption extends ConfigElement {
         this.type = type;
     }
 
-    public Values getPossibleValues() {
+    public void setPossibleValues(PossibleValues possibleValues) {
+        this.possibleValues = possibleValues;
+    }
+
+    public PossibleValues getPossibleValues() {
         return possibleValues;
     }
 
-    public void getPossibleValues(Values values) {
-        this.possibleValues = values;
+    public void setCaptured(boolean captured) {
+        this.captured = captured;
     }
 
+    public boolean isCaptured() {
+        return captured;
+    }
+
+    void setCaptureElementId(String captureElementId) {
+        this.captureElementId = captureElementId;
+    }
+
+    public String getCaptureElementId() {
+        return captureElementId;
+    }
 }
 

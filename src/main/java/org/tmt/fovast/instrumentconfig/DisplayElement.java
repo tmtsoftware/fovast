@@ -20,6 +20,10 @@ public class DisplayElement {
 
     private ConfigElement parent;
 
+    private boolean visible;
+
+    private boolean enabled;
+
     public DisplayElement(String id) {
         this.id = id;
     }
@@ -54,6 +58,22 @@ public class DisplayElement {
 
     public void setParent(ConfigElement parent) {
         this.parent = parent;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 }
 

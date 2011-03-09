@@ -20,14 +20,25 @@
             to be auto-set as and when the parent element is set. By default this
             is false
         For a config option type is determinded by the type attribute. Possible 
-            values can be indicated using the Values child element.
+            values can be indicated using the PossibleValues child element.
        
         Nesting of ConfigOptions indicates a parent child relation.
         Value of a config option only makes sense if its enabled (all enable 
         conditions are true) and if its parent is set to some value.
 
         NOTE: For saving a visualization, we can use the same XML tags with an
-        additional value attribute indicating the value set .. 
+        additional value attribute indicating the value set ..
+
+        NOTE: We dont interpret selectMode attribute as of now. The only mode
+        supported is mutuallyExclusive .. meaning config can take any one value
+        of the possible values. 
+
+        NOTE on types: type attribute can take bool, string, int, float, position as values
+        position is a generic type which has two values. does not really specify
+        if its wcs or image position etc
+        int is internally a java long
+        float is internally a java double precision float
+
 -->
 
 <FovastInstrumentConfig>
@@ -39,10 +50,10 @@
             <!-- Possible values for this config
             and selectMode="mutuallyExclusive" indicates only one of the values
             can be set and is the default selectMode -->
-            <Values selectMode="mutuallyExclusive">
+            <PossibleValues selectMode="mutuallyExclusive">
                 <Value default="true">Imaging</Value>
                 <Value>IFU</Value>
-            </Values>
+            </PossibleValues>
             
             <!--
                 Detector is 17x17 arc seconds in size
@@ -75,7 +86,7 @@
             <DisplayElement id="iris.sciencedetector" showByDefault="true">
 
                 <EnableConditions>
-                    <condition element="iris.mode" value="Imaging" />
+                    <Condition element="iris.mode" value="Imaging" />
                 </EnableConditions>
 
             </DisplayElement>
@@ -83,18 +94,18 @@
             <ConfigOption id="iris.ifuimager" type="string">
 
                 <EnableConditions>
-                    <condition element="iris.mode" value="IFU"/>
+                    <Condition element="iris.mode" value="IFU"/>
                 </EnableConditions>
 
-                <Values>
+                <PossibleValues>
                     <Value>Lenslet</Value>
                     <Value>Slicer</Value>
-                </Values>
+                </PossibleValues>
 
                 <DisplayElement id="iris.ifuimager.lenslet">
 
                     <EnableConditions>
-                        <condition element="iris.ifuimager" value="Lenslet" />
+                        <Condition element="iris.ifuimager" value="Lenslet" />
                     </EnableConditions>
 
                 </DisplayElement>
@@ -102,7 +113,7 @@
                 <DisplayElement id="iris.ifuimager.lenslet">
 
                     <EnableConditions>
-                        <condition element="iris.ifuimager" value="Slicer" />
+                        <Condition element="iris.ifuimager" value="Slicer" />
                     </EnableConditions>
 
                 </DisplayElement>
@@ -144,11 +155,11 @@
             <!-- NFIRAOS elements should be selected and shown only when an
             instrument which is to be mount on it is selected. IRIS is one such
             instrument -->
-            <!-- By default type is "xor" -->
-            <Condition type="or">
-                <Condition element="iris" value="true"></Condition>
-                <!-- condition tags for other NFIRAOS mounted instruments to come -->
-            </Condition>
+            <!--Condition type="or">
+                <Condition element="iris" value="true"></Condition>                
+                ~~~ condition tags for other NFIRAOS mounted instruments to come ~~~
+            </Condition-->
+            <Condition element="iris" value="true"/>            
         </EnableConditions>
 
         <DisplayElement id="nfiraos.limits">

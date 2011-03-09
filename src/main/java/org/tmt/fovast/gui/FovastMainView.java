@@ -178,6 +178,9 @@ public class FovastMainView extends FrameView
         initComponents();
 
         fovastState.addListener(this);
+
+        //show a vispanel by default
+        createNewVisualization();
     }
 
     private void initComponents() {

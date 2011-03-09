@@ -63,7 +63,7 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         UserObject userObj = (UserObject)((DefaultMutableTreeNode)
                                         value).getUserObject();
 
-        boolean enable = tree.isEnabled() && userObj.isDisabled();
+        boolean enable = tree.isEnabled() && !userObj.isDisabled();
         panel.setEnabled(enable);
         label.setEnabled(enable);
         checkbox.setEnabled(enable);

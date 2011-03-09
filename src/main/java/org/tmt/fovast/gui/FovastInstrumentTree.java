@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.event.ChangeEvent;
 import javax.swing.JTree;
@@ -24,7 +25,6 @@ import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.BooleanValue;
-import org.tmt.fovast.instrumentconfig.Config;
 import org.tmt.fovast.instrumentconfig.Config.ConfigListener;
 import org.tmt.fovast.instrumentconfig.ConfigHelper;
 import org.tmt.fovast.instrumentconfig.Value;
@@ -59,6 +59,9 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     
     private DefaultTreeModel treeModel;
 
+    private HashMap<String, ArrayList<UserObject>> confIdUserObjectMap =
+            new HashMap<String, ArrayList<UserObject>>();
+
     /**
      * The passed config if null shows a dummy tree
      *
@@ -86,7 +89,7 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
 
     @Override
     public void updateConfig(String confElementId, Value value) {
-        selectNode((CustomDefaultMutableTreeNode)treeModel.getRoot(), confElementId, value);
+        selectNode(confElementId, value);
     }
 
     @Override
@@ -98,7 +101,7 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
 
     @Override
     public void enableConfig(String confElementId, boolean enable) {
-        enableNode((CustomDefaultMutableTreeNode)treeModel.getRoot(), confElementId, enable);
+        enableNode(confElementId, enable);
     }
 
     
@@ -204,8 +207,10 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                     value = Value.createValueFromStringForm(configOptionValue);
                 }
 
-                uo = new CheckboxUserObject(label,
-                        child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE), value);
+                String configOptId = child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE);
+                uo = new CheckboxUserObject(label, configOptId, value);
+                addToConfigIdUserObjectMap(configOptId, uo);
+
             } else if (name.equals(CHECKBOXGROUPNODE_NAME)) {
                 uo = new CheckboxGroupUserObject(label);
             } else {
@@ -221,39 +226,46 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
         }
     }
 
-    private synchronized void selectNode(CustomDefaultMutableTreeNode node, String confElementId,
-            Value value) {
-        UserObject uo = (UserObject) node.getUserObject();
-        //if value is not boolean
-        if(uo instanceof CheckboxUserObject) {
-            CheckboxUserObject cuo = (CheckboxUserObject)uo;
-            if(cuo.getConfigOptionId().equals(confElementId)) {
+    private synchronized void selectNode(String confElementId, Value value) {
+
+        ArrayList<UserObject> uoList = confIdUserObjectMap.get(confElementId);
+
+        for(int i=0; i<uoList.size(); i++) {
+            UserObject uo = uoList.get(i);
+            //if value is not boolean
+            if(uo instanceof CheckboxUserObject) {
+                CheckboxUserObject cuo = (CheckboxUserObject)uo;
                 if(cuo.getConfigOptionValue().equals(value)) {
                     //if not already selected select it and adjust the representation
                     if(!cuo.isSelected()) {
                         cuo.setSelected(true);
-                        treeModel.nodeChanged(node);
+                        treeModel.nodeChanged(uo.getTreeNode());
                     }
+                    return;
                 }
-                return;
+            }
+            else {
+                assert false : "As of now only CheckboxUserObject have confElementId";
             }
         }
     }
 
-    private synchronized void enableNode(CustomDefaultMutableTreeNode node, String confElementId,
+    private synchronized void enableNode(String confElementId,
             boolean enabled) {
-        UserObject uo = (UserObject) node.getUserObject();
-        //if value is not boolean
-        if(uo instanceof CheckboxUserObject) {
-            CheckboxUserObject cuo = (CheckboxUserObject)uo;
-            if(cuo.getConfigOptionId().equals(confElementId)) {
-                //if not already selected select it and adjust the representation
-                if(cuo.isDisabled() == !enabled) {
-                    cuo.setDisabled(enabled);
-                    treeModel.nodeChanged(node);
-                    setEnabledCheckboxGroupNodeTraversingUp(node);
+        ArrayList<UserObject> uoList = confIdUserObjectMap.get(confElementId);
+
+        for(int i=0; i<uoList.size(); i++) {
+            UserObject uo = uoList.get(i);
+            //if value is not boolean
+            if(uo instanceof CheckboxUserObject) {
+                CheckboxUserObject cuo = (CheckboxUserObject)uo;
+                if(cuo.isDisabled() == enabled) { //note we are checking disabled with enabled
+                    cuo.setDisabled(!enabled);
+                    treeModel.nodeChanged(cuo.getTreeNode());
                 }
-                return;
+            }
+            else {
+                assert false : "As of now only CheckboxUserObject have confElementId";
             }
         }
     }
@@ -308,10 +320,16 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     public void editingStopped(ChangeEvent e) {
         FovastInstrumentTreeCellEditor editor = 
                 (FovastInstrumentTreeCellEditor) e.getSource();
-        UserObject uo = (UserObject) editor.getCellEditorValue();
+
+        UserObject uo = (UserObject) editor.getCellEditorValue();        
+
+        editingStopped(uo);
+    }
+
+    private void editingStopped(UserObject uo) {
+
         CustomDefaultMutableTreeNode tNode =
                 (CustomDefaultMutableTreeNode) uo.getTreeNode();
-
         //this would just select CheckGroupNodes up the hierarchy
         //nothing to be sent through ConfigHelpe
         setSelectedCheckboxGroupNodeTraversingUp(tNode);
@@ -334,16 +352,31 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                             CheckboxUserObject cuo = (CheckboxUserObject)childUserObject;
                             configHelper.setConfig(cuo.getConfigOptionId(),
                                     (Value) cuo.getConfigOptionValue());
+                        } else if(childUserObject instanceof CheckboxGroupUserObject) {
+                            editingStopped(childUserObject);
                         }
                     }
                 }
             }
+        } else if(uo instanceof CheckboxUserObject) {
+            CheckboxUserObject cuo = (CheckboxUserObject)uo;
+            configHelper.setConfig(cuo.getConfigOptionId(),
+                    (Value) cuo.getConfigOptionValue());
         }
     }
 
     @Override
     public void editingCanceled(ChangeEvent e) {
         //nothing to be done here
+    }
+
+    private void addToConfigIdUserObjectMap(String configOptId, UserObject uo) {
+        ArrayList<UserObject> uoList = confIdUserObjectMap.get(configOptId);
+        if(uoList == null) {
+            uoList = new ArrayList<UserObject>();
+            confIdUserObjectMap.put(configOptId, uoList);
+        }
+        uoList.add(uo);
     }
 
     // TREE LISTENER METHODS END =====================
