@@ -188,6 +188,8 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
             UserObject uo = null;
             if(name.equals(NODE_NAME)) {
                 uo = new UserObject(label);
+                String configOptId = child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE);
+                addToConfigIdUserObjectMap(configOptId, uo);
             } else if (name.equals(CHECKBOXNODE_NAME)) {
                 String configOptionValue =
                         child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE);
@@ -196,7 +198,8 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 //TODO: Adding a static method in Value class to create a
                 //proper object given a string representation would help. 
                 if(configOptionValue == null) {
-                    value = new BooleanValue(false);
+                    //leave it null .. 
+                    //value = new BooleanValue(false);
                 } else {
                     //TODO: take a call on this method
                     //this is needed  assuming all types of values (string, position..)
@@ -228,8 +231,43 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
 
     private synchronized void selectNode(String confElementId, Value value) {
 
+        logger.debug("in selectNode ... " + confElementId);
+        
         ArrayList<UserObject> uoList = confIdUserObjectMap.get(confElementId);
+        if(uoList == null) {
+            logger.warn("in selectNode ... element unknown " + confElementId);
+            return;
+        }
 
+        //TODO: will be changed if multi valued attributes come into picture ..
+        
+        if(uoList.size() == 1) {
+            //check if the uoList is of size 1 and if the value is null ..
+            UserObject uo = uoList.get(0);
+            if(uo instanceof CheckboxUserObject) {
+                CheckboxUserObject cuo = (CheckboxUserObject)uo;
+                //if null it means its a simple config which is either turned on / off
+                //in this case use the selected flag
+                if(cuo.getConfigOptionValue() == null) {
+                    boolean isSel = false;
+                    if(value != null)
+                        isSel = ((BooleanValue)value).getValue();
+                    if(isSel != cuo.isSelected()) {
+                        logger.debug("in selectNode (changing selection)... " + confElementId);
+                        cuo.setSelected(isSel);
+                        treeModel.nodeChanged(uo.getTreeNode());
+                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                    }
+                    return;
+                }
+            } else if(uo instanceof UserObject) {
+                //nothing to do .. its a simple non editable user object
+            }
+            else {
+                assert false : "As of now only CheckboxUserObject/UserObject have confElementId";
+            }
+        }
+        
         for(int i=0; i<uoList.size(); i++) {
             UserObject uo = uoList.get(i);
             //if value is not boolean
@@ -238,34 +276,55 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 if(cuo.getConfigOptionValue().equals(value)) {
                     //if not already selected select it and adjust the representation
                     if(!cuo.isSelected()) {
+                        logger.debug("in selectNode (changing selection)... " + confElementId);
                         cuo.setSelected(true);
                         treeModel.nodeChanged(uo.getTreeNode());
+                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
                     }
-                    return;
+                    //return;
+                } else { //we only support single valued config .. so disabling other options
+                    if(cuo.isSelected()) {
+                        logger.debug("in selectNode (changing selection)... " + confElementId);
+                        cuo.setSelected(false);
+                        treeModel.nodeChanged(uo.getTreeNode());
+                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                    }
                 }
-            }
-            else {
-                assert false : "As of now only CheckboxUserObject have confElementId";
+            } else if(uo instanceof UserObject) {
+                //nothing to do .. its a simple non editable user object
+            } else {
+                assert false : "As of now only CheckboxUserObject/UserObject have confElementId";
             }
         }
+
     }
 
     private synchronized void enableNode(String confElementId,
             boolean enabled) {
+//        if(confElementId.equals("nfiraos")) {
+//            logger.debug("in enableNode ... " + confElementId);
+//        }
+        logger.debug("in enableNode ... " + confElementId);
+
         ArrayList<UserObject> uoList = confIdUserObjectMap.get(confElementId);
 
+        if(uoList == null) {
+            logger.warn("in enableNode ... element unknown " + confElementId);
+            return;
+        }
+        
         for(int i=0; i<uoList.size(); i++) {
             UserObject uo = uoList.get(i);
             //if value is not boolean
-            if(uo instanceof CheckboxUserObject) {
-                CheckboxUserObject cuo = (CheckboxUserObject)uo;
-                if(cuo.isDisabled() == enabled) { //note we are checking disabled with enabled
-                    cuo.setDisabled(!enabled);
-                    treeModel.nodeChanged(cuo.getTreeNode());
+            if(uo instanceof CheckboxUserObject || uo instanceof UserObject) {
+                if(uo.isDisabled() == enabled) { //note we are checking disabled with enabled
+                    logger.debug("in enableNode (changing enable)... " + confElementId);
+                    uo.setDisabled(!enabled);
+                    treeModel.nodeChanged(uo.getTreeNode());
+                    setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
                 }
-            }
-            else {
-                assert false : "As of now only CheckboxUserObject have confElementId";
+            } else {
+                assert false : "As of now only CheckboxUserObject/UserObject have confElementId";
             }
         }
     }
@@ -308,6 +367,12 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                     //just reevaluate the show logic
                     treeModel.nodeChanged(currNode);
                 }
+                if(cguo.isDisabled() != cguo.areChildrenDisabled()) {
+                    cguo.setDisabled(cguo.areChildrenDisabled());
+                    //just reevaluate the show logic
+                    treeModel.nodeChanged(currNode);
+                }
+
             }
         }
     }
@@ -332,26 +397,29 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 (CustomDefaultMutableTreeNode) uo.getTreeNode();
         //this would just select CheckGroupNodes up the hierarchy
         //nothing to be sent through ConfigHelpe
+        //note this call also enables above group nodes .. 
         setSelectedCheckboxGroupNodeTraversingUp(tNode);
 
         //need to ConfigHelper methods for these
         if (uo instanceof CheckboxGroupUserObject) {
-            boolean b = ((CheckboxGroupUserObject)uo).isSelected();
+            boolean recentlySelected = ((CheckboxGroupUserObject)uo).isSelected();
             //also set child nodes to have been modified
             for(int j=0; j<uo.getTreeNode().getChildCount(); j++) {
                 CustomDefaultMutableTreeNode childTNode =
                         (CustomDefaultMutableTreeNode) uo.getTreeNode().getChildAt(j);
                 UserObject childUserObject = (UserObject) childTNode.getUserObject();
                 if(childUserObject instanceof UserObject.Editable) {
-                    if( b != ((UserObject.Editable)childUserObject).isSelected()) {
-                        ((UserObject.Editable)childUserObject).setSelected(b);
+                    if( recentlySelected != ((UserObject.Editable)childUserObject).isSelected()) {
+                        ((UserObject.Editable)childUserObject).setSelected(recentlySelected);
                         //nodesToFireChange.add(childTNode);
                         treeModel.nodeChanged(childTNode);
                         //update config
                         if(childUserObject instanceof CheckboxUserObject) {
                             CheckboxUserObject cuo = (CheckboxUserObject)childUserObject;
-                            configHelper.setConfig(cuo.getConfigOptionId(),
-                                    (Value) cuo.getConfigOptionValue());
+                            Object value = cuo.getConfigOptionValue();
+                            if(value == null) //means its simple on/off config
+                                value = new BooleanValue(cuo.isSelected());
+                            configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
                         } else if(childUserObject instanceof CheckboxGroupUserObject) {
                             editingStopped(childUserObject);
                         }
@@ -360,8 +428,10 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
             }
         } else if(uo instanceof CheckboxUserObject) {
             CheckboxUserObject cuo = (CheckboxUserObject)uo;
-            configHelper.setConfig(cuo.getConfigOptionId(),
-                    (Value) cuo.getConfigOptionValue());
+            Object value = cuo.getConfigOptionValue();
+            if(value == null) //means its simple on/off config
+                value = new BooleanValue(cuo.isSelected());
+            configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
         }
     }
 
@@ -407,14 +477,25 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
      */
     static class UserObject {
 
+        private String configOptionId;
         private String label;
         private UserObject parentUo;
         private CustomDefaultMutableTreeNode associatedTreeNode;
-        private boolean disabled;
+        private boolean disabled = true;
 
         public UserObject(String label) {
             this.label = label;
         }
+        
+        public UserObject(String label, String configOptionId) {
+            this.label = label;
+            this.configOptionId = configOptionId;
+        }
+
+        public String getConfigOptionId() {
+            return configOptionId;
+        }
+
 
         public String getLabel() {
             return label;
@@ -483,8 +564,6 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     static class CheckboxUserObject extends UserObject
             implements UserObject.Editable {
 
-        private String configOptionId;
-
         private Object configOptionValue;
 
         private boolean selected;
@@ -504,13 +583,8 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
          * @param configOptionValue - as of now this is either a string or boolean
          */
         public CheckboxUserObject(String label, String configOptionId, Object configOptionValue) {
-            super(label);
-            this.configOptionId = configOptionId;
+            super(label, configOptionId);
             this.configOptionValue = configOptionValue;
-        }
-        
-        public String getConfigOptionId() {
-            return configOptionId;
         }
 
         public Object getConfigOptionValue() {

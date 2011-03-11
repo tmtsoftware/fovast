@@ -40,8 +40,9 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
 
     public FovastInstrumentTreeCellRenderer(JTree tree) {
         this.tree = tree;
-        panel.setOpaque(true);
-        label.setOpaque(true);
+        panel.setOpaque(false);
+        label.setOpaque(false);
+        checkbox.setOpaque(false);
     }
 
 

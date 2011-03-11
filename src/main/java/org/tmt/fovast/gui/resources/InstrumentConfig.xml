@@ -43,7 +43,11 @@
 
 <FovastInstrumentConfig>
     
-    <Instrument id="iris">
+    <Instrument id="iris" selectByDefault="true" selectOnEnable="true">
+
+        <EnableConditions>
+                <Condition element="mobie" value="false" />
+        </EnableConditions>
 
         <ConfigOption id="iris.mode" selectByDefault="true" type="string">
 
@@ -110,7 +114,7 @@
 
                 </DisplayElement>
 
-                <DisplayElement id="iris.ifuimager.lenslet">
+                <DisplayElement id="iris.ifuimager.slicer">
 
                     <EnableConditions>
                         <Condition element="iris.ifuimager" value="Slicer" />
@@ -123,8 +127,10 @@
             <!-- For each probe we have to store the probe tip RA, DEC
                 Can select stars beneath it.
             -->
-            <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true"
-                type="position" captured="true" captureElement="iris.oiwfs.probe1.arm">
+            <ConfigOption id="iris.oiwfs.probe1">
+
+               <ConfigOption id="iris.oiwfs.probe1.position" 
+                    type="position" captured="true" captureElement="iris.oiwfs.probe1.arm"/>
 
                <DisplayElement id="iris.oiwfs.probe1.arm">
                </DisplayElement>
@@ -137,12 +143,32 @@
 
             </ConfigOption>
 
-            <ConfigOption id="iris.oiwfs.probe2" selectByDefault="true">
+            <ConfigOption id="iris.oiwfs.probe2">
+               <ConfigOption id="iris.oiwfs.probe2.position"
+                    type="position" captured="true" captureElement="iris.oiwfs.probe2.arm"/>
 
+               <DisplayElement id="iris.oiwfs.probe2.arm">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe2.limits">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe2.vignettingLimits">
+               </DisplayElement>
             </ConfigOption>
 
-            <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
+            <ConfigOption id="iris.oiwfs.probe3">
+               <ConfigOption id="iris.oiwfs.probe3.position"
+                    type="position" captured="true" captureElement="iris.oiwfs.probe3.arm"/>
 
+               <DisplayElement id="iris.oiwfs.probe3.arm">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe3.limits">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe3.vignettingLimits">
+               </DisplayElement>
             </ConfigOption>
 
         </ConfigOption>
@@ -150,7 +176,7 @@
         
     </Instrument>
     
-    <Instrument id="nfiraos" >
+    <Instrument id="nfiraos" selectOnEnable="true">
         <EnableConditions>
             <!-- NFIRAOS elements should be selected and shown only when an
             instrument which is to be mount on it is selected. IRIS is one such
@@ -201,7 +227,11 @@
 
     </Instrument>
 
-    <Instrument id="mobie">
+    <Instrument id="mobie" selectOnEnable="true">
+
+        <EnableConditions>
+                <Condition element="iris" value="false" />
+        </EnableConditions>
 
         <DisplayElement id="mobie.detector">
 

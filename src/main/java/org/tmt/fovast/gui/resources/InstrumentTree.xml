@@ -49,7 +49,7 @@
 <Tree>
     <CheckboxNode configOptionId="iris" label="IRIS">
         <CheckboxNode configOptionId="iris.mode" configOptionValue="Imaging" label="Imaging">
-            <CheckboxNode configOptionId="iris.imagingdetector" label="Show Imaging Detector" />
+            <CheckboxNode configOptionId="iris.sciencedetector" label="Show Imaging Detector" />
         </CheckboxNode>
         <CheckboxNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
             <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
@@ -62,31 +62,33 @@
         <CheckboxGroupNode label="OIWFS Probes">
             <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Arm"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Limits"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Vignetting Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.vignettingLimits" label="Show Vignetting Limits"/>
             </CheckboxNode>
             <CheckboxNode configOptionId="iris.oiwfs.probe2" label="Probe2">
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Arm"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Limits"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Vignetting Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.vignettingLimits" label="Show Vignetting Limits"/>
             </CheckboxNode>
             <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe3">
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Arm"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Limits"/>
-                <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Vignetting Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.vignettingLimits" label="Show Vignetting Limits"/>
             </CheckboxNode>
         </CheckboxGroupNode>
     </CheckboxNode>
-    <CheckboxNode configOptionId="nfiraos" label="NFIRAOS">
+    <Node configOptionId="nfiraos" label="NFIRAOS">
+    <!--CheckboxNode configOptionId="nfiraos" label="NFIRAOS"-->
         <CheckboxNode configOptionId="nfiraos.limits" label="Show Limits"/>
         <CheckboxNode configOptionId="nfiraos.lsgasterism" label="Show Laser Guide Star Asterism"/>
         <CheckboxNode configOptionId="nfiraos.twfs" label="TWFS">
             <CheckboxNode configOptionId="nfiraos.twfs.detector" label="Show TWFS detector"/>
-            <CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/>
-            <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera Limits"/>
-            <CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/>
         </CheckboxNode>
-    </CheckboxNode>
+        <CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/>
+        <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera Limits"/>
+        <CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/>
+    <!--/CheckboxNode-->
+    </Node>
     <CheckboxNode configOptionId="mobie" label="Mobie">
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
     </CheckboxNode>
