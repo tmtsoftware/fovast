@@ -6,7 +6,9 @@
  */
 package org.tmt.fovast.gui;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import nom.tam.fits.FitsException;
 import java.awt.BorderLayout;
@@ -23,7 +25,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JCheckBoxMenuItem;
@@ -35,6 +40,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -42,11 +48,13 @@ import javax.swing.filechooser.FileFilter;
 import org.jdesktop.application.ApplicationAction;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.FrameView;
 import org.jdesktop.application.ResourceMap;
+import org.openide.awt.DropDownButtonFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
@@ -80,9 +88,13 @@ public class FovastMainView extends FrameView
     private static final String TAB_CLOSE_MESSAGE_KEY =
             keyPrefix + "TabCloseMessage";
 
+    private static final String ICON_FOR_MISSING_ICON_KEY = "Application.iconForMissingIcon";
+
     private static final String TABS_MENU = "Menu.Tabs";
 
     private static final String TABS_MENUITEM = "Menu.Tabs.TabsMenuItem";
+
+    private static final String LOAD_CATALOG_MENU_ITEM_PREFIX = "Menu.File.LoadCatalogFrom.";
 
     private static final String CATALOG_MENU = "Menu.View.Catalogs";
 
@@ -96,7 +108,9 @@ public class FovastMainView extends FrameView
 
     private static final String CATALOG_CLIENTPROPERTY ="Catalogs";
 
-    private static final String MENU_XML_FILE = "resources/menu.xml";
+    private static final String MENU_XML_FILE_PROPERTY = "Application.menuFile";
+
+    private static final String TOOLBAR_XML_FILE_PROPERTY = "Application.toolbarFile";
 
     private static final String MENU_XML_NAME_ATTRIBUTE = "name";
 
@@ -104,11 +118,11 @@ public class FovastMainView extends FrameView
 
     private static final String MENU_XML_IMPLSTATE_ATTRIBUTE = "implState";
 
-    private static final String MENU_XML_NAME_ATTRIBUTE_VALUE_MENU = "Menu";
+    private static final String MENU_XML_MENU_ELEMENT_NAME = "Menu";
 
-    private static final String MENU_XML_NAME_ATTRIBUTE_VALUE_MENUITEM = "MenuItem";
+    private static final String MENU_XML_MENUITEM_ELEMENT_NAME = "MenuItem";
 
-    private static final String MENU_XML_NAME_ATTRIBUTE_VALUE_SEPARATOR = "Separator";
+    private static final String MENU_XML_SEPARATOR_ELEMENT_NAME = "Separator";
 
     private static final String MENU_XML_TYPE_ATTRIBUTE_VALUE_CHECKBOX = "checkbox";
 
@@ -117,6 +131,14 @@ public class FovastMainView extends FrameView
     private static final String MENU_XML_TYPE_ATTRIBUTE_VALUE_DEFAULT = "menuitem";
 
     private static final String MENU_XML_IMPLSTATE_ATTRIBUTE_VALUE_TODO = "todo";
+
+    private static final String TOOLBAR_XML_TOOLBAR_ELEMENT_NAME = "ToolBar";
+
+    private static final String TOOLBAR_XML_TOOLBARITEM_ELEMENT_NAME = "ToolBarItem";
+
+    private static final String TOOLBAR_XML_SEPARATOR_ELEMENT_NAME = "Separator";
+
+    private static final String TOOLBAR_XML_TOOLBARDROPDOWNITEM_ELEMENT_NAME = "ToolBarDropDownItem";
 
     public static final String[] FITS_EXTENSIONS = {".fits",".fit"};
 
@@ -134,6 +156,8 @@ public class FovastMainView extends FrameView
     private JMenuBar menuBar = new JMenuBar();
 
     private ActionMap menuActions;
+
+    private ActionMap toolBarActions;
 
     private JToolBar toolBar = new JToolBar();
 
@@ -158,6 +182,12 @@ public class FovastMainView extends FrameView
 
     private JMenu catalogCloseMenu;
 
+    private JPopupMenu gsc2Menu = new JPopupMenu();
+
+    private JPopupMenu massMenu = new JPopupMenu();
+
+    private JPopupMenu usnoMenu = new JPopupMenu();
+
     private JMenuItem selectedMenuItem;
 
     private FovastActions fovastActions;
@@ -178,9 +208,6 @@ public class FovastMainView extends FrameView
         initComponents();
 
         fovastState.addListener(this);
-
-        //show a vispanel by default
-        createNewVisualization();
     }
 
     private void initComponents() {
@@ -201,7 +228,12 @@ public class FovastMainView extends FrameView
         setMenuBar(menuBar);
 
         //prepare toolbar
-        prepareToolbar();
+        try {
+            prepareToolbar();
+        } catch (Exception ex) {
+            logger.error("Closing app due to toolbar creation failure... ", ex);
+            System.exit(FovastApplication.ERROR_RETURN_CODE);
+        }        
         contentPane.add(toolBar, BorderLayout.NORTH);
 
         //Prepare tabbed center window
@@ -298,8 +330,8 @@ public class FovastMainView extends FrameView
     private void prepareMenuBar() throws Exception {
         SAXBuilder builder = new SAXBuilder();
         Document document =
-                builder.build(FovastMainView.class.getResource(
-                MENU_XML_FILE));
+                builder.build(FovastMainView.class.getResource(resourceMap.getString(
+                            MENU_XML_FILE_PROPERTY)));
         fovastActions = new FovastActions(this);
         menuActions =
                 appContext.getActionMap(fovastActions);
@@ -332,19 +364,18 @@ public class FovastMainView extends FrameView
             todo = true;
         }
 
-        //TODO: set text, icon, action-method, tooltip, accelerator properly
-        if (elementName.equals(MENU_XML_NAME_ATTRIBUTE_VALUE_MENU)) {
+        //TODO: set text, icon, viewAction-method, tooltip, accelerator properly
+        if (elementName.equals(MENU_XML_MENU_ELEMENT_NAME)) {
             JMenu menu = new JMenu();
             menu.setName(nameAttributeValue);
             if (nameAttributeValue.equals(TABS_MENU)) {
                 tabsMenu = menu;
-            }
-            if(nameAttributeValue.equals(CATALOG_MENU)){
+            } else if(nameAttributeValue.equals(CATALOG_MENU)){
                 catalogMenu = menu;
-            }
-            if(nameAttributeValue.equals(CATALOG_MENU_CLOSE)){
+            } else if(nameAttributeValue.equals(CATALOG_MENU_CLOSE)){
                 catalogCloseMenu = menu;
             }
+
             if (todo) {
                 menu.setForeground(Color.BLUE);
             }
@@ -361,7 +392,7 @@ public class FovastMainView extends FrameView
             }
 
             return menu;
-        } else if (elementName.equals(MENU_XML_NAME_ATTRIBUTE_VALUE_MENUITEM)) {
+        } else if (elementName.equals(MENU_XML_MENUITEM_ELEMENT_NAME)) {
             JMenuItem menuItem = null;
             if (typeAttributeValue.equals(MENU_XML_TYPE_ATTRIBUTE_VALUE_CHECKBOX)) {
                 menuItem = new JCheckBoxMenuItem();
@@ -380,8 +411,13 @@ public class FovastMainView extends FrameView
                 menuItem.setAction(action);
             }
 
+            if(nameAttributeValue.startsWith(LOAD_CATALOG_MENU_ITEM_PREFIX)) {
+                menuItem.setIcon(null);
+            }
+
             return menuItem;
-        } else if (elementName.equals(MENU_XML_NAME_ATTRIBUTE_VALUE_SEPARATOR)) {
+            
+        } else if (elementName.equals(MENU_XML_SEPARATOR_ELEMENT_NAME)) {
             return new JSeparator();
         } else {
             logger.error("Unknown element type: " + menuElement.toString());
@@ -389,12 +425,97 @@ public class FovastMainView extends FrameView
         }
     }
 
-    private void prepareToolbar() {
-        JButton button = new JButton(" .. TBD .. ");
-        button.setPreferredSize(new Dimension(200, 30));
-        button.setEnabled(false);
-        toolBar.add(button);
+    private void prepareToolbar() throws JDOMException, IOException, Exception {
+//        JButton button = new JButton(" .. TBD .. ");
+//        button.setPreferredSize(new Dimension(200, 30));
+//        button.setEnabled(false);
+//        toolBar.add();
         //TODO: prepare toolbar
+        SAXBuilder builder = new SAXBuilder();
+        Document document =
+                builder.build(FovastMainView.class.getResource(
+                    resourceMap.getString(TOOLBAR_XML_FILE_PROPERTY)));
+        //fovastActions = new FovastActions(this);
+        toolBarActions = menuActions;
+                //appContext.getActionMap(fovastActions);
+
+
+        List<Element> children = document.getRootElement().getChildren();
+        for (int i = 0; i < children.size(); i++) {
+            Element child = children.get(i);
+            JComponent item = prepareToolBarItems(child);
+            //toolBar.add(item);
+        }
+    }
+
+    private JComponent prepareToolBarItems(Element toolBarElement) throws Exception{
+        String elementName = toolBarElement.getName();
+        String nameAttributeValue = toolBarElement.getAttributeValue(MENU_XML_NAME_ATTRIBUTE);
+        if (elementName.equals(TOOLBAR_XML_TOOLBAR_ELEMENT_NAME)) {
+           List<Element> children = toolBarElement.getChildren();
+            for (int i = 0; i < children.size(); i++) {
+                Element child = children.get(i);
+                JComponent menuComponent = prepareToolBarItems(child);
+                toolBar.add(menuComponent);
+            }
+
+            return toolBar;
+        } else if (elementName.equals(TOOLBAR_XML_TOOLBARITEM_ELEMENT_NAME)) {
+            JButton button= new JButton();
+            ApplicationAction action = (ApplicationAction) toolBarActions.get(nameAttributeValue);
+            if (action != null) {
+                button.setAction(action);
+            }
+            button.setText("");
+            return button;
+        } else if (elementName.equals(TOOLBAR_XML_SEPARATOR_ELEMENT_NAME)) {
+            return new JToolBar.Separator();
+        }
+//       else if (elementName.equals("special")) {
+//           final JPopupMenu popup = new JPopupMenu();
+//           JButton dropDownButton = dropDownButton = DropDownButtonFactory.createDropDownButton(new ImageIcon(
+//            getClass().getResource("Palette.gif")),popup);
+//           dropDownButton.addActionListener(new ActionListener() {
+//                @Override
+//                public void actionPerformed(ActionEvent e) {
+//              // VisualizationPanel vis = getActiveVisPanel();
+//            for(int i = 0 ;i < catalogMenu.getItemCount() ;i++){
+//                JMenuItem menuItem = catalogMenu.getItem(i);
+//                popup.add(menuItem);
+//            }
+//                }
+//            });
+//           return dropDownButton;
+//
+//        }
+        else if (elementName.equals(TOOLBAR_XML_TOOLBARDROPDOWNITEM_ELEMENT_NAME)) {
+            JButton dropDownButton;
+            Icon missingIcon = new ImageIcon(getApplication().getClass(
+                    ).getResource(resourceMap.getString(ICON_FOR_MISSING_ICON_KEY)));
+            if(nameAttributeValue.equalsIgnoreCase("Menu.File.LoadCatalogFrom.GSC2")){
+               dropDownButton = dropDownButton = DropDownButtonFactory.createDropDownButton(
+                       missingIcon, gsc2Menu);
+            }else if(nameAttributeValue.equalsIgnoreCase("Menu.File.LoadCatalogFrom.2MassPsc")){
+               dropDownButton = dropDownButton = DropDownButtonFactory.createDropDownButton(
+                       missingIcon, massMenu);
+            }else if(nameAttributeValue.equalsIgnoreCase("Menu.File.LoadCatalogFrom.USNO")){
+               dropDownButton = dropDownButton = DropDownButtonFactory.createDropDownButton(
+                       missingIcon, usnoMenu);
+            }else{
+               dropDownButton = dropDownButton = DropDownButtonFactory.createDropDownButton(
+                       missingIcon, new JPopupMenu());
+            }
+            ApplicationAction action = (ApplicationAction) toolBarActions.get(nameAttributeValue);
+            if (action != null) {
+                dropDownButton.setAction(action);
+            }
+            dropDownButton.setText("");
+            return dropDownButton;
+        }
+        else {
+            logger.error("Unknown element type: " + toolBarElement.toString());
+            throw new Exception("Unknown element type in menu.xml");
+        }
     }
 
     public void prepareStatusBar() {
@@ -470,6 +591,9 @@ public class FovastMainView extends FrameView
         }
         catalogMenu.removeAll();
         catalogCloseMenu.removeAll();
+        gsc2Menu.removeAll();
+        usnoMenu.removeAll();
+        massMenu.removeAll();
     }
     void createNewVisualizationFromImageFile(boolean newPanel) {
         //TODO: Use filters  (*.fits, *.fit, All files)              
@@ -684,6 +808,9 @@ public class FovastMainView extends FrameView
             //TODO: On save and rename this menuitem text has to be updated ..
             catalogMenu.removeAll();
             catalogCloseMenu.removeAll();
+            gsc2Menu.removeAll();
+            usnoMenu.removeAll();
+            massMenu.removeAll();
             Set<Catalog> catalogs=activePanel.getCatalogList();
             Iterator iter = catalogs.iterator();
             int i=0;
@@ -693,13 +820,33 @@ public class FovastMainView extends FrameView
                 Catalog c = (Catalog)iter.next();
                 JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
                 menuItem.setSelected(true);
-                menuItem.setAction(menuActions.get(CATALOG_MENUITEM));
+                Action viewAction = makeCatalogViewAction(
+                        activePanel.isCatalogShown(c));
+                menuItem.setAction(viewAction);
                 menuItem.putClientProperty(CATALOG_CLIENTPROPERTY,c);
                 menuItem.setText(c.getLabel());
                 catalogMenu.add(menuItem);
+
+                JCheckBoxMenuItem menuItem2 = new JCheckBoxMenuItem();
+                menuItem2.setSelected(true);
+                menuItem2.setAction(viewAction); //toolBarActions.get(CATALOG_MENUITEM));
+                menuItem2.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+                menuItem2.setName(c.getLabel());
+                menuItem2.setText(c.getLabel());
+                if(c.getLabel().contains("GSC2")){
+                    gsc2Menu.add(menuItem2);
+               }else if(c.getLabel().contains("2Mass")){
+                    massMenu.add(menuItem2);
+                }else if(c.getLabel().contains("USNO")){
+                    usnoMenu.add(menuItem2);
+                }
+
+                //For close menu
                 JMenuItem menuItem1 = new JMenuItem();
                 menuItem1.setSelected(true);
                 menuItem1.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+                //NOTE: We are attaching the same viewAction for different catalog
+                //close menuitems ..
                 menuItem1.setAction(menuActions.get(CATALOG_MENUITEM_CLOSE));
                 menuItem1.setText(c.getLabel());
                 catalogCloseMenu.add(menuItem1);
@@ -855,11 +1002,27 @@ public class FovastMainView extends FrameView
     public void catalogAdded(Catalog c) {
         //update menu here ..
         JCheckBoxMenuItem menuItem = new JCheckBoxMenuItem();
-        menuItem.setAction(menuActions.get(CATALOG_MENUITEM));
+        Action viewAction = makeCatalogViewAction(true);
+        menuItem.setAction(viewAction);
         menuItem.putClientProperty(CATALOG_CLIENTPROPERTY,c);
         menuItem.setText(c.getLabel());
-        menuItem.setSelected(true);
+        //need not be done as viewAction would have the selected prop set
+        //menuItem.setSelected(true);
         catalogMenu.add(menuItem);
+
+        JCheckBoxMenuItem menuItem2 = new JCheckBoxMenuItem();
+        menuItem2.setSelected(true);
+        menuItem2.setAction(viewAction);
+        menuItem2.putClientProperty(CATALOG_CLIENTPROPERTY,c);
+        menuItem2.setName(c.getLabel());
+        menuItem2.setText(c.getLabel());
+        if(c.getLabel().contains("GSC2")){
+            gsc2Menu.add(menuItem2);
+        }else if(c.getLabel().contains("2Mass")){
+            massMenu.add(menuItem2);
+        }else if(c.getLabel().contains("USNO")){
+            usnoMenu.add(menuItem2);
+        }
 
         JMenuItem menuItem1 = new JMenuItem();
         menuItem1.setAction(menuActions.get(CATALOG_MENUITEM_CLOSE));
@@ -884,6 +1047,27 @@ public class FovastMainView extends FrameView
                     ).equals(c)) {
                 catalogCloseMenu.remove(catalogCloseMenu.getItem(i));
             }
+            if(c.getLabel().contains("GSC2")){
+                for(int j=0; j<gsc2Menu.getComponentCount();j++){
+                    if(c.getLabel().equals(gsc2Menu.getComponent(j).getName())) {
+                        gsc2Menu.remove(gsc2Menu.getComponent(j));
+                    }
+                }
+            }
+            if(c.getLabel().contains("USNO")){
+                for(int j=0; j<usnoMenu.getComponentCount();j++){
+                    if(c.getLabel().equals(usnoMenu.getComponent(j).getName())) {
+                        usnoMenu.remove(usnoMenu.getComponent(j));
+                    }
+                }
+            }
+            if(c.getLabel().contains("2Mass")){
+                for(int j=0; j<massMenu.getComponentCount();j++){
+                    if(c.getLabel().equals(massMenu.getComponent(j).getName())) {
+                        massMenu.remove(massMenu.getComponent(j));
+                    }
+                }
+            }
         }
     }
 
@@ -897,6 +1081,49 @@ public class FovastMainView extends FrameView
             }
         }
         return null;
+    }
+
+    private Action makeCatalogViewAction(boolean selected) {
+        Action commonViewAction = menuActions.get(CATALOG_MENUITEM);
+        AbstractAction viewAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //boolean selectedVal = (Boolean) getValue(Action.SELECTED_KEY);
+                fovastActions.viewCatalogAction(e);
+                //putValue(Action.SELECTED_KEY, !selectedVal);
+
+            }
+        };
+        viewAction.setEnabled(commonViewAction.isEnabled());
+        //ACCELERATOR_KEY, ACTION_COMMAND_KEY, DEFAULT, LONG_DESCRIPTION, MNEMONIC_KEY, NAME, SHORT_DESCRIPTION,
+        //SMALL_ICON, SELECTED_KEY ...
+        viewAction.putValue(Action.ACCELERATOR_KEY,
+                commonViewAction.getValue(Action.ACCELERATOR_KEY));
+        viewAction.putValue(Action.LONG_DESCRIPTION,
+                commonViewAction.getValue(Action.LONG_DESCRIPTION));
+        viewAction.putValue(Action.MNEMONIC_KEY,
+                commonViewAction.getValue(Action.MNEMONIC_KEY));
+        viewAction.putValue(Action.SHORT_DESCRIPTION,
+                commonViewAction.getValue(Action.SHORT_DESCRIPTION));
+        viewAction.putValue(Action.SMALL_ICON,
+                commonViewAction.getValue(Action.SMALL_ICON));
+//        Boolean selected = (Boolean) commonViewAction.getValue(Action.SELECTED_KEY);
+//        if(selected == null)
+//            selected = false;
+//        viewAction.putValue(Action.SELECTED_KEY, selected);
+        viewAction.putValue(Action.SELECTED_KEY, selected);
+        return viewAction;
+    }
+
+    void doPostStartupWork() {
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                //show a vispanel by default
+                createNewVisualization();
+            }
+        });
     }
     
     static class CustomFilter extends javax.swing.filechooser.FileFilter {
