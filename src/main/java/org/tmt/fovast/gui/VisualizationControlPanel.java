@@ -55,7 +55,9 @@ public class VisualizationControlPanel extends JPanel
     private static Logger logger = LoggerFactory.getLogger(VisualizationControlPanel.class);
 
     private final static String INSTRUMENT_CONTROL_XML = "resources/InstrumentControl.xml";
-    
+
+    private final static String HELP_ICON = "resources/images/Help24.gif";
+
     private ApplicationContext appContext;
 
     ApplicationActionMap actionMap;
@@ -214,7 +216,7 @@ public class VisualizationControlPanel extends JPanel
         decAfterLabel = new JLabel("J2000/FK5");
 
        JPanel raFormatPanel = new JPanel(new FlowLayout());
-       URL urlString=VisualizationControlPanel.class.getResource("resources/help.gif");
+       URL urlString=VisualizationControlPanel.class.getResource(HELP_ICON);
        raFormatLabel=new JLabel(new ImageIcon(urlString));
        int delay=Integer.MAX_VALUE;
        ToolTipManager.sharedInstance().setDismissDelay(delay);
@@ -463,6 +465,7 @@ public class VisualizationControlPanel extends JPanel
         tree.setBackground(configPanel.getBackground());
         tree.setEnabled(enabled);
         configPanel.add(tree, BorderLayout.CENTER);
+        configPanel.revalidate();
     }
 
     private void validateRaFieldAndShowErrorMsgField() {

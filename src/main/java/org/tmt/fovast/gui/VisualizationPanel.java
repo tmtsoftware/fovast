@@ -175,6 +175,10 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
 //            }
     }
 
+    public boolean isCatalogShown(Catalog c) {
+        return workPanel.isCatalogShown(c);
+    }
+
 //    public void plot() throws MalformedURLException, SAXException, IOException{
 //        workPanel.plot();
 //    }

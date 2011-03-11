@@ -566,6 +566,13 @@ public class VisualizationWorkPanel extends JPanel
       
     }
 
+    public boolean isCatalogShown(Catalog c) {
+      FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+              ).getSymbolLayer();
+      FovastTablePlotter plotter=layer.getPlotter();
+      return plotter.getCatalogDisplayList().get(c);
+    }
+
     public void addCatalogListener(CatalogListener cl) {
         catalogListeners.add(cl);
     }
