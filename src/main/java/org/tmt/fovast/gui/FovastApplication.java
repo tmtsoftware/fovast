@@ -68,6 +68,8 @@ public class FovastApplication extends SingleFrameApplication {
 
     private AppConfiguration appConfig;
 
+    private FovastMainView mainView;
+
     public FovastApplication() {
     }
 
@@ -156,7 +158,7 @@ public class FovastApplication extends SingleFrameApplication {
     protected void startup() {
 
         //initialize main frame for the app
-        FovastMainView mainView = new FovastMainView();
+        mainView = new FovastMainView();
         
         show(mainView);
 
@@ -167,6 +169,12 @@ public class FovastApplication extends SingleFrameApplication {
         //Need to get rid of it
         //mainFrame.setExtendedState(FovastMainView.MAXIMIZED_BOTH);
         
+    }
+
+    @Override
+    protected void ready() {
+        super.ready();
+        mainView.doPostStartupWork();
     }
 
     /**
