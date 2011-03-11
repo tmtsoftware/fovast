@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!--
+    Copyright 2011 TMT. (only to modifications)
+
+    This file is based on sample_xhtml.xml file in samples/ant_sample folder
+    from DITA toolkit 1.4.3 which is licensed under Apache v2.0 license.
+
+    Original copyright text follows in below comments.
+ -->
+
+<!-- This file is part of the DITA Open Toolkit project hosted on 
+     Sourceforge.net. See the accompanying license.txt file for 
+     applicable licenses.-->
+<!-- (c) Copyright IBM Corp. 2004, 2006 All Rights Reserved. -->
+
+<!-- 
+  | basedir can be specified to other places base on your need.
+  |
+  | Note: input, output, and temp directories will base on the basedir if 
+  | they are relative paths.
+  * -->
+
+<project name="fovastDesignNotes" default="all" basedir=".">
+  <!-- Set a property for each environment variable -->
+  <property environment="env"/>
+  <property name="env.CLASSPATH" value="${DITA_DIR}${file.separator}lib{path.separator}${env.CLASSPATH}"/>
+  <property name="env.CLASSPATH" value="${DITA_DIR}${file.separator}lib${file.separator}dost.jar{path.separator}${env.CLASSPATH}"/>
+  <property name="env.CLASSPATH" value="${DITA_DIR}${file.separator}lib${file.separator}resolver.jar{path.separator}${env.CLASSPATH}"/>
+  <property name="env.CLASSPATH" value="${DITA_DIR}${file.separator}lib${file.separator}icu4j.jar{path.separator}${env.CLASSPATH}"/>
+  <property name="env.CLASSPATH" value="${DITA_DIR}${file.separator}lib${file.separator}icu4j.jar{path.separator}${env.CLASSPATH}"/>
+  <!--
+NEW_CLASSPATH="$DITA_DIR/lib/saxon/saxon9.jar:$DITA_DIR/lib/saxon/saxon9-dom.jar:$NEW_CLASSPATH"
+NEW_CLASSPATH="$DITA_DIR/lib/saxon/saxon9-dom4j.jar:$DITA_DIR/lib/saxon/saxon9-jdom.jar:$NEW_CLASSPATH"
+NEW_CLASSPATH="$DITA_DIR/lib/saxon/saxon9-s9api.jar:$DITA_DIR/lib/saxon/saxon9-sql.jar:$NEW_CLASSPATH"
+NEW_CLASSPATH="$DITA_DIR/lib/saxon/saxon9-xom.jar:$DITA_DIR/lib/saxon/saxon9-xpath.jar:$DITA_DIR/lib/saxon/saxon9-xqj.jar:$NEW_CLASSPATH"
+-->
+
+  <property name="args.logdir" value="log"></property>
+  <property name="dita.extname" value=".dita"/>
+
+  <!-- comment this setting in the imported files -->
+  <property name="dita.dir" value="/mnt/windows_d/ProgramFiles/DITA-OT1.4.3"/>
+
+  <!-- also comment out / remove these properties in the imported files -->
+  <property name="args.input" value="hierarchy.ditamap"/>
+  <property name="output.dir" value="out"/>
+
+  
+  <import file="build_xhtml.xml"/>
+  <!--import file="sample_eclipsehelp.xml"/>
+  <import file="sample_javahelp.xml"/>
+  <import file="sample_htmlhelp.xml"/>
+  <import file="sample_pdf.xml"/>
+  <import file="sample_docbook.xml"/-->
+  
+  <!-- invoke all of the sample targets -->
+  <!-- depends="sample2xhtml, sample2eclipsehelp, sample2javahelp, sample2htmlhelp, sample2pdf, sample2docbook" -->
+  <target name="all" 
+    depends="build2xhtml"
+    />
+</project>

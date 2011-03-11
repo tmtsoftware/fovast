@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN"
+ "../dtd/map.dtd">
+<!-- This file is part of the DITA Open Toolkit project hosted on 
+	Sourceforge.net. See the accompanying license.txt file for 
+	applicable licenses.-->
+<!-- (C) Copyright IBM Corporation 2001, 2005. All Rights Reserved.
+	*-->
+<map title="FOVAST Design Notes">
+<topicref href="home.dita" type="topic">
+
+	<!--topicref href="concepts/threedplots.dita" type="concept">
+		<topicref href="tasks/threedscatter.dita" type="task" />
+		<topicref href="tasks/threedhisto.dita" type="task" />
+		<topicref href="concepts/surfaceplot.dita" type="concept">
+			<topicref href="tasks/surfaceploteq.dita" type="task" />
+			<topicref href="tasks/surfaceplotfile.dita" type="task" />
+		</topicref>
+	</topicref-->
+
+</topicref>
+</map>
