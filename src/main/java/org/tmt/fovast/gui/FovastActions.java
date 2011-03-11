@@ -297,7 +297,7 @@ public class FovastActions {
     }
 
     @Action(name = "Menu.View.Catalogs.Show/Hide")
-    public void viewCatalogsAction(ActionEvent ae) {
+    public void viewCatalogAction(ActionEvent ae) {
        mainView.showHide(((JCheckBoxMenuItem) ae.getSource()));
     }
 
