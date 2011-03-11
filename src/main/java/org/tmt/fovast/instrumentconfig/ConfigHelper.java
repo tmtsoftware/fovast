@@ -8,7 +8,8 @@
 package org.tmt.fovast.instrumentconfig;
 
 import java.util.ArrayList;
-import org.tmt.fovast.gui.FovastInstrumentTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,6 +17,8 @@ import org.tmt.fovast.gui.FovastInstrumentTree;
  */
 public class ConfigHelper implements Config.ConfigListener{
 
+    private static Logger logger = LoggerFactory.getLogger(ConfigHelper.class);
+    
     public Config config;
 
     public ConfigHelper(Config config) {
@@ -38,8 +41,16 @@ public class ConfigHelper implements Config.ConfigListener{
                     || configOption.getEnableConditions().getCondition() == null
                     || configOption.getEnableConditions().getCondition(
                             ) instanceof AlwaysTrueCondition) {
+                logger.debug("Enabling .. config element " + configOption.getId());
                 config.enableConfig(configOption.getId(), true);
-                checkDependants(configOption.getId());
+                checkDependants(configOption.getId(), true);
+            }
+
+            if(configOption.isSelectByDefault()) {
+                config.enableConfig(configOption.getId(), true);
+                config.setConfig(configOption.getId(),
+                        configOption.getPossibleValues().getDefaultValue());
+                checkDependants(configOption.getId(), false);
             }
         }
 
@@ -52,56 +63,163 @@ public class ConfigHelper implements Config.ConfigListener{
     public void setConfig(String confElementId, Value value) {
         if(value == null && config.getConfig(confElementId) == null) {
             //do nothing
+            return;
         }
         if(value == null || !value.equals(config.getConfig(confElementId))) {
             Object obj = config.configElementMap.get(confElementId);
-            if(obj instanceof DisplayElement) {
-                if(value == null && !((DisplayElement)obj).isVisible()) {
-                    //NOTE: do nothing .. we treat null = false for display elements
-                }
-            }
-
+//            if(obj instanceof DisplayElement) {
+//                if(value == null && !((DisplayElement)obj).isVisible()) {
+//                    //NOTE: do nothing .. we treat null = false for display elements
+//                    return;
+//                }
+//            }
+            logger.debug("Setting .. config element " + confElementId);
             config.setConfig(confElementId, value);
-            checkDependants(confElementId);
+            //checkDependants(confElementId, false);
         }
     }
 
-    private void checkDependants(String confElementId) {
-//        if(configOption.isSelectByDefault()) {
-//            if(configOption.getType().equals(Config.TYPE_ATTRIBUTE_VALUE_BOOLEAN)) {
-//                config.setConfig(configOption.getId(), null);
-//            }
-//        }
+    private void checkDependants(String confElementId, boolean calledOnEnable) {
+        logger.debug("Checking dependents for .. config element " + confElementId);
+        //get a list of dependants
+        Object objWhoseDepsAreBeingEvaled =
+                config.configElementMap.get(confElementId);
+        ArrayList dependants = (ArrayList) config.configOptionDependentsMap.get(
+                objWhoseDepsAreBeingEvaled);
+        if(dependants == null)
+            return;
+        //for each dependant
+        for(int i=0; i<dependants.size(); i++) {            
+            Object obj = dependants.get(i);
+            if(obj instanceof ConfigOption) {
+                ConfigOption co = (ConfigOption)obj;
+                String depConfElementId = co.getId();
+                logger.debug("Checking config element " + depConfElementId);
+                ConfigOption parent = co.getParent();
 
-        //TODO: 
-        //1. get a list of dependants
-        //2. for each dependant 
-        //3.    if the dep is ConfigOption then run enableConditions, 
-        //4.        if it is true and option is not enabled .. then enable it ..
-        //5.        else if option is not disabled .. then disable it.
-        //6.    if dep is DependencyElement do
-        //7.        do some thing similar to 3
-        //8.    now check for selection conditions
-        //9.    check if selectByDefault or showByDefault is true then
-        //10.       if not selected already select/show it
+                boolean parentEnabled = false;
+                boolean parentSelected = false;
+                if(parent == null) { // for main configNodes
+                    parentEnabled = true;
+                    parentSelected = true;
+                }
+                else {
+                    parentEnabled = parent.isEnabled() ;
+                    if(parent.getType().equals(Config.TYPE_ATTRIBUTE_VALUE_BOOLEAN))
+                        parentSelected = (parent.getValue() != null) &&
+                                (parent.getValue().equals(new BooleanValue(true)));
+                    else
+                        parentSelected = (parent.getValue() != null);
+                }
 
+                boolean shouldBeEnabled = parentEnabled && parentSelected &&
+                        (co.getEnableConditions().getCondition().isTrue());
+
+                if(shouldBeEnabled != co.isEnabled()) {
+                    config.enableConfig(depConfElementId, shouldBeEnabled);
+                    if(shouldBeEnabled) {
+                        if(co.isSelectOnEnable()) {
+                            config.setConfig(co.getId(), co.getPossibleValues().getDefaultValue());
+                        } 
+                        //if the dependant is a direct child .. and the parent was selected
+                        //now check for selection conditions
+                        else if((!calledOnEnable &&
+                                ((parent == null) || (parent == objWhoseDepsAreBeingEvaled)) ) ) {
+
+                            if(co.isPrevValueSet()) {
+                                config.setConfig(co.getId(), co.getPrevValue());
+                            } else if(co.isSelectByDefault()) {
+                                config.setConfig(co.getId(), co.getPossibleValues().getDefaultValue());
+                            }
+                        }
+                    } else {
+                        if(co.getType().equals(Config.TYPE_ATTRIBUTE_VALUE_BOOLEAN)) {
+                            config.setConfig(co.getId(), new BooleanValue(false));
+                        } else {
+                            config.setConfig(co.getId(), null);
+                        }
+                    }
+                } else {
+                    //config.enableConfig(depConfElementId, false);
+                    //config.setConfig(depConfElementId, null);
+                }
+                
+            } else if(obj instanceof DisplayElement) {
+                DisplayElement de = (DisplayElement)obj;
+                String depConfElementId = de.getId();
+                ConfigOption parent = de.getParent();
+                logger.debug("Checking config element " + depConfElementId);
+                
+                boolean parentEnabled = false;
+                boolean parentSelected = false;
+                if(parent == null) { // for main configNodes
+                    parentEnabled = true;
+                    parentSelected = true;
+                }
+                else {
+                    parentEnabled = parent.isEnabled() ;
+                    if(parent.getType().equals(Config.TYPE_ATTRIBUTE_VALUE_BOOLEAN))
+                        parentSelected = (parent.getValue() != null) &&
+                                (parent.getValue().equals(new BooleanValue(true)));
+                    else
+                        parentSelected = (parent.getValue() != null);
+                }
+                
+                //note that display elements are not main level config elements ..
+                //so no need to check if tehy are null.
+                boolean shouldBeEnabled = parentEnabled && parentSelected &&
+                        (de.getEnableConditions().getCondition().isTrue());                    
+
+
+                if(shouldBeEnabled != de.isEnabled()) {
+                    config.enableConfig(depConfElementId, shouldBeEnabled);
+
+                    if(shouldBeEnabled) {
+                        if(de.isShowOnEnable()) {
+                            config.setConfig(de.getId(), new BooleanValue(true));
+                        }
+                        else if(!calledOnEnable &&
+                                (de.getParent() == objWhoseDepsAreBeingEvaled)) {
+                            if(de.isPrevVisibleSet()) {
+                                config.setConfig(de.getId(), de.isPrevVisible());
+                            } else if(de.isShowByDefault()) {
+                                config.setConfig(de.getId(), new BooleanValue(true));
+                            }
+                        }
+                    } else { // when being disabled set value to null 
+                        config.setConfig(de.getId(), null);
+                    }
+                } else {
+                    //config.enableConfig(depConfElementId, false);
+                    //config.setConfig(depConfElementId, new BooleanValue(false));
+                }
+
+            } else {
+                assert false : "checking dependent elements ..." +
+                        " found unwanted element of class " + obj.getClass();
+            }
+        }
+
+        
     }
 
     @Override
     public void updateConfig(String confElementId, Value value) {
-        if(value == null && config.getConfig(confElementId) == null) {
-            //do nothing
-        }
-        if(value == null || !value.equals(config.getConfig(confElementId))) {
-            Object obj = config.configElementMap.get(confElementId);
-            if(obj instanceof DisplayElement) {
-                if(value == null && !((DisplayElement)obj).isVisible()) {
-                    //NOTE: do nothing .. we treat null = false for display elements
-                }
-            }
-            
-            checkDependants(confElementId);
-        }
+//        if(value == null && config.getConfig(confElementId) == null) {
+//            //do nothing
+//        }
+//        if(value == null || !value.equals(config.getConfig(confElementId))) {
+//            Object obj = config.configElementMap.get(confElementId);
+//            if(obj instanceof DisplayElement) {
+//                if(value == null && !((DisplayElement)obj).isVisible()) {
+//                    //NOTE: do nothing .. we treat null = false for display elements
+//                }
+//            }
+//
+//            logger.debug("CheckDependents being called in listener");
+//            checkDependants(confElementId, false);
+//        }
+        checkDependants(confElementId, false);
     }
 
     @Override
@@ -111,8 +229,9 @@ public class ConfigHelper implements Config.ConfigListener{
 
     @Override
     public void enableConfig(String confElementId, boolean enable) {
-        if(config.isEnabled(confElementId) == enable) {
-            checkDependants(confElementId);
-        }
+//        if(config.isEnabled(confElementId) == enable) {
+//            checkDependants(confElementId, true);
+//        }
+        checkDependants(confElementId, true);
     }
 }

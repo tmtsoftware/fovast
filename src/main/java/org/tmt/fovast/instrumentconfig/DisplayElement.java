@@ -14,18 +14,31 @@ public class DisplayElement {
 
     private String id;
 
-    private String label;
-
     private boolean showByDefault;
 
-    private ConfigElement parent;
+    private ConfigOption parent;
 
-    private boolean visible;
+    /**
+     * can be true, false, null
+     * this could have been boolean object .. I dont want autoboxing 
+     * to hide any mismatches .. so using BooleanValue
+     */
+    private BooleanValue visible;
 
     private boolean enabled;
 
+    private BooleanValue prevVisible;
+
+    private boolean prevVisibleSet = false;
+
+    private EnableConditions enableConditions = new EnableConditions();
+
+    private boolean showOnEnable;
+
     public DisplayElement(String id) {
         this.id = id;
+        enableConditions = new EnableConditions();
+        enableConditions.setCondition(new AlwaysTrueCondition());
     }
 
     public String getId() {
@@ -36,14 +49,6 @@ public class DisplayElement {
         this.id = id;
     }
 
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
     public boolean isShowByDefault() {
         return showByDefault;
     }
@@ -52,19 +57,21 @@ public class DisplayElement {
         this.showByDefault = showByDefault;
     }
 
-    public ConfigElement getParent() {
+    public ConfigOption getParent() {
         return parent;
     }
 
-    public void setParent(ConfigElement parent) {
+    public void setParent(ConfigOption parent) {
         this.parent = parent;
     }
 
-    public boolean isVisible() {
+    public BooleanValue isVisible() {
         return visible;
     }
 
-    public void setVisible(boolean visible) {
+    public void setVisible(BooleanValue visible) {
+        this.prevVisible = this.visible;
+        this.prevVisibleSet = true;
         this.visible = visible;
     }
 
@@ -75,5 +82,34 @@ public class DisplayElement {
     public boolean isEnabled() {
         return enabled;
     }
+
+    public BooleanValue isPrevVisible() {
+        return prevVisible;
+    }
+
+    public void setPrevVisible(BooleanValue prevVisible) {
+        this.prevVisible = prevVisible;
+    }
+
+    boolean isPrevVisibleSet() {
+        return prevVisibleSet;
+    }
+
+    public EnableConditions getEnableConditions() {
+        return enableConditions;
+    }
+
+    public void setEnableConditions(EnableConditions enableConditions) {
+        this.enableConditions = enableConditions;
+    }
+
+    public boolean isShowOnEnable() {
+        return showOnEnable;
+    }
+
+    public void setShowOnEnable(boolean showOnEnable) {
+        this.showOnEnable = showOnEnable;
+    }
+
 }
 

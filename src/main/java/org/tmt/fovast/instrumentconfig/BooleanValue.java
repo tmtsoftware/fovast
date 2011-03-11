@@ -39,4 +39,9 @@ public class BooleanValue extends Value {
             return 2;
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
+
 }

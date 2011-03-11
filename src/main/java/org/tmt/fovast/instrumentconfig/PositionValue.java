@@ -50,4 +50,10 @@ public class PositionValue extends Value {
         return hash;
     }
 
+    @Override
+    public String toString() {
+        return "positon value : " + x + ", " + y;
+    }
+
+
 }

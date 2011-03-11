@@ -42,5 +42,14 @@ public class StringValue extends Value {
         return value;
     }
 
+    @Override
+    public String toString() {
+        if(value == null)
+            return super.toString();
+        else
+            return value.toString();
+    }
+
+
 }
 
