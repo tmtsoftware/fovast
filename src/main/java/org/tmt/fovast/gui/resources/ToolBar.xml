@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : ToolBar.xml
+    Created on : March 9, 2011, 12:24 PM
+    Author     : Disha_Gujrathi
+    Description:
+        Purpose of the document follows.
+-->
+
+<AppToolBar>
+    <ToolBar name="Toolbar">
+        <ToolBarItem name = "Menu.File.NewVisualization"></ToolBarItem>
+        <ToolBarItem name = "Menu.File.LoadFitsImage"></ToolBarItem>
+        <ToolBarItem name = "Menu.File.LoadFitsImageIntoActiveVisualization"></ToolBarItem>
+        <Separator/>
+        <ToolBarItem name = "Menu.View.ShowGrid"></ToolBarItem>
+        <ToolBarItem name = "Menu.View.ImageColors"></ToolBarItem>
+        <ToolBarItem name = "Menu.View.ImageCutLevels"></ToolBarItem>
+        <ToolBarItem name = "Menu.View.ImageExtensions"></ToolBarItem>
+        <Separator/>
+        <ToolBarDropDownItem name = "Menu.File.LoadCatalogFrom.GSC2">
+            <!--ToDo: as of now we dont support popup menu to be written in the xml itself-->
+        </ToolBarDropDownItem>
+        <ToolBarDropDownItem name = "Menu.File.LoadCatalogFrom.2MassPsc"></ToolBarDropDownItem>
+        <ToolBarDropDownItem name = "Menu.File.LoadCatalogFrom.USNO"></ToolBarDropDownItem>
+        
+     </ToolBar>
+</AppToolBar>
