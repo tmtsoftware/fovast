@@ -47,18 +47,18 @@
 -->
 
 <Tree>
-    <CheckboxNode configOptionId="iris" label="IRIS">
-        <CheckboxNode configOptionId="iris.mode" configOptionValue="Imaging" label="Imaging">
+    <RadioNode configOptionId="instrument" configOptionValue="iris" label="IRIS">
+        <RadioNode configOptionId="iris.mode" configOptionValue="Imaging" label="Imaging">
             <CheckboxNode configOptionId="iris.sciencedetector" label="Show Imaging Detector" />
-        </CheckboxNode>
-        <CheckboxNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
-            <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
+        </RadioNode>
+        <RadioNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
+            <RadioNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
                 <CheckboxNode configOptionId="iris.ifuimager.lenslet" label="Show Lenslet"/>
-            </CheckboxNode>
-            <CheckboxNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
+            </RadioNode>
+            <RadioNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
                 <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show Slicer" />
-            </CheckboxNode>
-        </CheckboxNode>
+            </RadioNode>
+        </RadioNode>
         <CheckboxGroupNode label="OIWFS Probes">
             <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Arm"/>
@@ -76,7 +76,7 @@
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.vignettingLimits" label="Show Vignetting Limits"/>
             </CheckboxNode>
         </CheckboxGroupNode>
-    </CheckboxNode>
+    </RadioNode>
     <Node configOptionId="nfiraos" label="NFIRAOS">
     <!--CheckboxNode configOptionId="nfiraos" label="NFIRAOS"-->
         <CheckboxNode configOptionId="nfiraos.limits" label="Show Limits"/>
@@ -89,7 +89,7 @@
         <CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/>
     <!--/CheckboxNode-->
     </Node>
-    <CheckboxNode configOptionId="mobie" label="Mobie">
+    <RadioNode configOptionId="instrument" configOptionValue="mobie" label="Mobie">
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
-    </CheckboxNode>
+    </RadioNode>
 </Tree>

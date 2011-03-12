@@ -9,6 +9,7 @@ import java.awt.Component;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.JRadioButton;
 import javax.swing.JTree;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -33,6 +34,7 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
     private final JTree tree;
     
     private JCheckBox checkbox = new JCheckBox();
+    private JRadioButton radio = new JRadioButton();
     private JPanel panel = new JPanel();
     private JLabel label =  new JLabel();
 
@@ -43,6 +45,7 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         panel.setOpaque(false);
         label.setOpaque(false);
         checkbox.setOpaque(false);
+        radio.setOpaque(false);
     }
 
 
@@ -50,8 +53,10 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 
         panel.remove(checkbox);
+        panel.remove(radio);
         panel.remove(label);
         checkbox.setSelected(false);
+        radio.setSelected(false);
 
         
 
@@ -68,17 +73,25 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
         panel.setEnabled(enable);
         label.setEnabled(enable);
         checkbox.setEnabled(enable);
+        radio.setEnabled(enable);
 
 
 
         if(userObj != null) {
             //go from more specific to less specific in ifelses
             if(userObj instanceof Editable) {
-                checkbox.setText(userObj.getLabel());
+                if(userObj instanceof RadioUserObject) {
+                    radio.setText(userObj.getLabel());
+                    radio.setSelected(((Editable)userObj).isSelected());
+                    panel.add(radio);
+                } else {
+                    checkbox.setText(userObj.getLabel());
                     checkbox.setSelected(((Editable)userObj).isSelected());
+                    panel.add(checkbox);
+                }
                 logger.trace("userObj: " + userObj.getLabel() + " being shown, selected: "
                         + ((Editable)userObj).isSelected());
-                panel.add(checkbox);
+                
             } else {
                 label.setText(userObj.getLabel());
                 panel.add(label);
@@ -94,6 +107,10 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
 
     JCheckBox getCheckbox() {
         return checkbox;
+    }
+
+    JRadioButton getRadioButton() {
+        return radio;
     }
 
 }

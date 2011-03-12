@@ -43,6 +43,8 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
 
     private final static String CHECKBOXNODE_NAME = "CheckboxNode";
 
+    private final static String RADIONODE_NAME = "RadioNode";
+
     private final static String CHECKBOXGROUPNODE_NAME = "CheckboxGroupNode";
 
     private final static String LABEL_ATTRIBUTE = "label";
@@ -190,7 +192,7 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 uo = new UserObject(label);
                 String configOptId = child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE);
                 addToConfigIdUserObjectMap(configOptId, uo);
-            } else if (name.equals(CHECKBOXNODE_NAME)) {
+            } else if (name.equals(CHECKBOXNODE_NAME) || name.equals(RADIONODE_NAME)) {
                 String configOptionValue =
                         child.getAttributeValue(CONFIGOPTIONVALUE_LABEL_ATTRIBUTE);
                 Value value = null;
@@ -211,7 +213,13 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 }
 
                 String configOptId = child.getAttributeValue(CONFIGOPTIONID_ATTRIBUTE);
-                uo = new CheckboxUserObject(label, configOptId, value);
+                if(name.equals(CHECKBOXNODE_NAME)) {
+                    uo = new CheckboxUserObject(label, configOptId, value);
+                } else if(name.equals(RADIONODE_NAME)) {
+                    uo = new RadioUserObject(label, configOptId, value);
+                } else {
+                    assert false : "Unknow type of node " + name;
+                }
                 addToConfigIdUserObjectMap(configOptId, uo);
 
             } else if (name.equals(CHECKBOXGROUPNODE_NAME)) {
@@ -253,10 +261,12 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                     if(value != null)
                         isSel = ((BooleanValue)value).getValue();
                     if(isSel != cuo.isSelected()) {
-                        logger.debug("in selectNode (changing selection)... " + confElementId);
-                        cuo.setSelected(isSel);
-                        treeModel.nodeChanged(uo.getTreeNode());
-                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        if(!cuo.isDisabled()) {
+                            logger.debug("in selectNode (changing selection)... " + confElementId);
+                            cuo.setSelected(isSel);
+                            treeModel.nodeChanged(uo.getTreeNode());
+                            setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        }
                     }
                     return;
                 }
@@ -276,18 +286,22 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                 if(cuo.getConfigOptionValue().equals(value)) {
                     //if not already selected select it and adjust the representation
                     if(!cuo.isSelected()) {
-                        logger.debug("in selectNode (changing selection)... " + confElementId);
-                        cuo.setSelected(true);
-                        treeModel.nodeChanged(uo.getTreeNode());
-                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        if(!cuo.isDisabled()) {
+                            logger.debug("in selectNode (changing selection)... " + confElementId);
+                            cuo.setSelected(true);
+                            treeModel.nodeChanged(uo.getTreeNode());
+                            setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        }
                     }
                     //return;
                 } else { //we only support single valued config .. so disabling other options
                     if(cuo.isSelected()) {
-                        logger.debug("in selectNode (changing selection)... " + confElementId);
-                        cuo.setSelected(false);
-                        treeModel.nodeChanged(uo.getTreeNode());
-                        setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        if(!cuo.isDisabled()) {
+                            logger.debug("in selectNode (changing selection)... " + confElementId);
+                            cuo.setSelected(false);
+                            treeModel.nodeChanged(uo.getTreeNode());
+                            setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
+                        }
                     }
                 }
             } else if(uo instanceof UserObject) {
@@ -720,4 +734,11 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
         }
     }
 
+    public class RadioUserObject extends CheckboxUserObject {
+
+        public RadioUserObject(String label, String configOptionId, Object configOptionValue) {
+            super(label, configOptionId, configOptionValue);
+        }
+        
+    }
 }

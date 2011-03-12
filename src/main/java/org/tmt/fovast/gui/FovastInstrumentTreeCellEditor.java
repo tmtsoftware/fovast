@@ -15,6 +15,9 @@ import java.util.EventObject;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.CellEditorListener;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JRadioButton;
+import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.tree.*;
 import org.slf4j.Logger;
@@ -49,20 +52,10 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
         this.renderer = renderer;
         this.delegate = new FovastInstrumentTreeCellRenderer(tree);
         final JCheckBox checkbox = this.delegate.getCheckbox();
-        checkbox.addActionListener(new ActionListener() {
+        checkbox.addActionListener(new RadioCheckActionListener(checkbox, this));
+        final JRadioButton radio = this.delegate.getRadioButton();
+        radio.addActionListener(new RadioCheckActionListener(radio, this));
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    UserObject.Editable editable = (UserObject.Editable) currentNodeValue;
-                    editable.setEditState(checkbox.isSelected());
-                } catch (Exception ex) {
-                    logger.error(null, ex);
-                }
-                FovastInstrumentTreeCellEditor.this.stopCellEditing();
-            }
-            
-        });
     }
 
     public Component getTreeCellEditorComponent(JTree tree, Object value,
@@ -151,5 +144,26 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
         }
     }
 
+    static class RadioCheckActionListener implements ActionListener {
+
+        private JToggleButton toggleButton;
+        private final FovastInstrumentTreeCellEditor editor;
+
+        public RadioCheckActionListener(JToggleButton comp, FovastInstrumentTreeCellEditor editor) {
+            this.toggleButton = comp;
+            this.editor = editor;
+        }
+
+       @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                UserObject.Editable editable = (UserObject.Editable) editor.currentNodeValue;
+                editable.setEditState(toggleButton.isSelected());
+            } catch (Exception ex) {
+                logger.error(null, ex);
+            }
+            editor.stopCellEditing();
+        }
+    }
 
 }

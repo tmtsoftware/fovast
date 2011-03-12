@@ -42,11 +42,19 @@
 -->
 
 <FovastInstrumentConfig>
+
+    <ConfigOption id="instrument" type="string">
+        <PossibleValues>
+            <Value>iris</Value>
+            <Value>mobie</Value>
+        </PossibleValues>
+    </ConfigOption>
     
-    <Instrument id="iris" selectByDefault="true" selectOnEnable="true">
+    <ConfigOption id="iris" selectOnEnable="true"> <!-- selectByDefault="true"  -->
 
         <EnableConditions>
-                <Condition element="mobie" value="false" />
+            <!--Condition element="mobie" value="false" /-->
+            <Condition element="instrument" value="iris"/>
         </EnableConditions>
 
         <ConfigOption id="iris.mode" selectByDefault="true" type="string">
@@ -174,9 +182,9 @@
         </ConfigOption>
 
         
-    </Instrument>
+    </ConfigOption>
     
-    <Instrument id="nfiraos" selectOnEnable="true">
+    <ConfigOption id="nfiraos" selectOnEnable="true">
         <EnableConditions>
             <!-- NFIRAOS elements should be selected and shown only when an
             instrument which is to be mount on it is selected. IRIS is one such
@@ -225,18 +233,19 @@
 
         </DisplayElement>
 
-    </Instrument>
+    </ConfigOption>
 
-    <Instrument id="mobie" selectOnEnable="true">
+    <ConfigOption id="mobie" selectOnEnable="true">
 
         <EnableConditions>
-                <Condition element="iris" value="false" />
+            <!--Condition element="iris" value="false" /-->
+            <Condition element="instrument" value="mobie"/>
         </EnableConditions>
 
-        <DisplayElement id="mobie.detector">
+        <DisplayElement selectByDefault="true" id="mobie.detector">
 
         </DisplayElement>
         
-    </Instrument>
+    </ConfigOption>
     
 </FovastInstrumentConfig>
