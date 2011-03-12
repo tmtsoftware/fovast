@@ -5,8 +5,6 @@
 
 package org.tmt.fovast.gui;
 
-import diva.canvas.Figure;
-import gnu.jel.DVMap;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -25,7 +23,6 @@ import jsky.util.java2d.ShapeUtilities;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 
 public class FovastTablePlotter{

@@ -44,6 +44,25 @@
 
         ConfigManager depends on InstrumentConfig.xml for validationRules and
         config element type info.
+
+        If we put this info in InstrumentConfig.xml then we would need to
+        
+            1. add an extra displayComponentType property to each element in
+                InstrumentConfig.xml file.
+            2. we would also need a showUnder property for iris.ifuimager.lenslet/slicer
+                display elements as they are siblings to iris.ifuimager ConfigOption
+                in InstrumentConfig.xml .. We could instead also make those display
+                elements children of Value elements ..
+            3. we would have to rearrange code in makeTreeNodes into different function/s
+                which can be called while building the Config object in Config.loadDefaultConfig()
+                (this is not that difficult)
+
+        Note that even to show iris and mobie as radio nodes a new ConfigOption 
+        called instrument was introduced in the current InstrumentConfig.xml  ..
+        .. Earlier we had checkbox nodes, selecting iris node then disabled mobie's
+        checkbox node. We also had selectOnEnable set to true for the corresponding
+        ConfigOption-s in config xml so the moment iris node is deselected, mobie
+        checkbox node was selected and iris checkbox node got disabled.
 -->
 
 <Tree>

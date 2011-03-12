@@ -55,7 +55,6 @@ import uk.ac.starlink.votable.VOStarTable;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 public class ConeSearchDialog extends DVMap{
 

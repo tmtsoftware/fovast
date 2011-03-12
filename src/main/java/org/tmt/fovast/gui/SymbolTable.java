@@ -12,7 +12,6 @@ import java.awt.Shape;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 public class SymbolTable {
     private String symbol;

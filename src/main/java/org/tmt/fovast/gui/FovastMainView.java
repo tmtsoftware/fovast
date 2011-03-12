@@ -903,6 +903,8 @@ public class FovastMainView extends FrameView
                 fovastActions.setShowImageCutLevelsMenuEnabled(false);
                 fovastActions.setShowImageExtensionsMenuEnabled(false);
                 fovastActions.setShowImageKeywordsMenuEnabled(false);
+                fovastActions.setMenuEnableWhenNoVisualization(false);
+                fovastActions.setMenuSelectWhenNoVisualization(false);
             }
 
             //Stop running tasks of that tab
@@ -917,7 +919,8 @@ public class FovastMainView extends FrameView
             return;
         
         //TODO: All this has to be done on viz-open from menu
-        VisualizationPanel visPanel = new VisualizationPanel(appContext, visualization);
+        VisualizationPanel visPanel = new VisualizationPanel(appContext, visualization, 
+                ((FovastApplication)getApplication()).getDssImageCache());
 		visPanel.addCatalogListener(this);
 
         String visPanelLabel = fileName;
@@ -953,6 +956,8 @@ public class FovastMainView extends FrameView
         fovastActions.setShowImageCutLevelsMenuEnabled(true);
         fovastActions.setShowImageExtensionsMenuEnabled(true);
         fovastActions.setShowImageKeywordsMenuEnabled(true);
+        fovastActions.setMenuEnableWhenNoVisualization(true);
+        fovastActions.setMenuSelectWhenNoVisualization(true);
     }
 
 //    //TODO: to be removed after fixing bsaf api

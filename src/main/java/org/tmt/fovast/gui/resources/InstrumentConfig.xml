@@ -39,6 +39,26 @@
         int is internally a java long
         float is internally a java double precision float
 
+        *** Tackling display elements ***       
+        (Not fully implemented)
+            0. DependencyElements can only rotate and move (in a constrained way)
+                - this can be handled by having rotatable & moveable attributes
+                to display elements .. 
+            1. We already have EnableConditions which takes care of when to enable
+                a display element.
+            2. Some ConfigOption value can depend on a particular display element's
+                position .. (like iris.oiwfs.probe1.position)
+            3. When one display element is moved/rotated .. then others also 
+                would move/rotate. When iris science detector is rotated - then
+                probes also rotate .. (actually whats rotated is the nfiraos platform
+                and everything mounted on it has to rotate .. )
+                    - this can be solved by having a master attribute for display
+                    elements which tells us ..
+
+TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer that can rotate ?
+TODO: TOCHECK: can we simply 
+
+                
 -->
 
 <FovastInstrumentConfig>
@@ -101,6 +121,10 @@
                     <Condition element="iris.mode" value="Imaging" />
                 </EnableConditions>
 
+                <!-- rotatable,
+                <Properties>
+                    <Rotat
+                </Properties>
             </DisplayElement>
 
             <ConfigOption id="iris.ifuimager" type="string">

@@ -21,6 +21,7 @@ import org.jdesktop.application.ApplicationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
+import org.tmt.fovast.util.Cache;
 
 /**
  *
@@ -40,11 +41,11 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
     private ArrayList<CatalogListener> catalogListeners = new ArrayList<CatalogListener>();
 
     public VisualizationPanel(ApplicationContext appContext,
-            VisualizationState visualization) {
+            VisualizationState visualization, Cache imageCache) {
         this.appContext = appContext;
         this.visualization = visualization;
 
-        initComponents();
+        initComponents(imageCache);
 
         //TODO: If the visualization is an old one (saved one)
         //we have to setup workpanel and control panel appropriately
@@ -77,12 +78,12 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
         return workPanel.getCatalogList();
     }
 
-    private void initComponents() {
+    private void initComponents(Cache imageCache) {
         setLayout(new BorderLayout());
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         controlPanel = new VisualizationControlPanel(appContext, visualization);
-        workPanel = new VisualizationWorkPanel(appContext, visualization);
+        workPanel = new VisualizationWorkPanel(appContext, visualization, imageCache);
         workPanel.addVisualizationWorkPanelListener(controlPanel);
 
         splitPane.setLeftComponent(controlPanel);

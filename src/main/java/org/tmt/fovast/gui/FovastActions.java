@@ -74,6 +74,11 @@ public class FovastActions {
 
     private static final String SHOW_IMAGE_KEYWORDS_MENU_ENABLED = "showImageKeywordsMenuEnabled";
 
+    private static final String MENU_ENABLE_WHEN_NO_VIZ_PROPERTY = "menuEnableWhenNoVisualization";
+
+    private static final String MENU_SELECT_WHEN_NO_VIZ_PROPERTY = "menuSelectWhenNoVisualization";
+
+
     // properties which can be set to disable / enable menu components or buttons
     // tied to various action objects.
     // All these variables have getters and setters. To disable all 
@@ -102,6 +107,10 @@ public class FovastActions {
     private boolean showImageExtensionsMenuEnabled = false;
 
     private boolean showImageKeywordsMenuEnabled = false;
+
+    private boolean menuEnableWhenNoVisualization = false;
+
+    private boolean menuSelectWhenNoVisualization = false;
 
     private FovastMainView mainView;
 
@@ -202,7 +211,7 @@ public class FovastActions {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.File.LoadCatalog")
+    @Action(name = "Menu.File.LoadCatalog", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void loadCatalogAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
@@ -212,26 +221,25 @@ public class FovastActions {
 //        JOptionPane.showMessageDialog(mainComponent, "To be done");
 //    }
 
-    @Action(name = "Menu.File.LoadCatalogFrom",enabledProperty = SHOW_GRID_MENU_ENABLED,
-        selectedProperty = SHOW_GRID_MENU_SELECTED)
+    @Action(name = "Menu.File.LoadCatalogFrom", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void loadCatalogFromAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.File.LoadCatalogFrom.GSC2")
+    @Action(name = "Menu.File.LoadCatalogFrom.GSC2", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void loadCatalogFromGSC2Action() throws MalformedURLException, SAXException, IOException{
         //mainView.loadCatalog("http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23","GSC2");
         mainView.loadCatalog("http://archive.eso.org/skycat/servers/gsc2query?","GSC2");
     }
 
-    @Action(name = "Menu.File.LoadCatalogFrom.2MassPsc")
+    @Action(name = "Menu.File.LoadCatalogFrom.2MassPsc", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void loadCatalogFrom2MassPscAction() throws MalformedURLException, SAXException, IOException {     
        // mainView.loadCatalog("http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc","2MassPsc");
          mainView.loadCatalog("http://irsa.ipac.caltech.edu/cgi-bin/Oasis/CatSearch/nph-catsearch?CAT=fp_psc","2MassPsc");
        // mainView.loadCatalog("http://gsss.stsci.edu/webservices/vo/ConeSearch.aspx?CAT=GSC23","2MassPsc");
     }
 
-    @Action(name = "Menu.File.LoadCatalogFrom.USNO")
+    @Action(name = "Menu.File.LoadCatalogFrom.USNO", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void loadCatalogFromUSNOAction() throws MalformedURLException, SAXException, IOException {      
        // mainView.loadCatalog("http://www.nofs.navy.mil/cgi-bin/vo_cone.cgi?CAT=USNO-B1","USNO");
         mainView.loadCatalog("http://archive.eso.org/skycat/servers/usnoa-server?","USNO");
@@ -242,22 +250,18 @@ public class FovastActions {
         JOptionPane.showMessageDialog(mainComponent, "To be done");     
     }
 
-    @Action(name = "Menu.File.CloseCatalog")
+    @Action(name = "Menu.File.CloseCatalog", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void closeCatalogAction() {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.File.CloseCatalog.Select",enabledProperty = SHOW_GRID_MENU_ENABLED,
-        selectedProperty = SHOW_GRID_MENU_SELECTED)
+    @Action(name = "Menu.File.CloseCatalog.Select")
     public void closeCatalogAction(ActionEvent ae) {
-        //JOptionPane.showMessageDialog(mainComponent, "To be done");
         mainView.remove((JMenuItem)ae.getSource());
     }
 
-    @Action(name = "Menu.File.CloseAllCatalogs",enabledProperty = SHOW_GRID_MENU_ENABLED,
-        selectedProperty = SHOW_GRID_MENU_SELECTED)
+    @Action(name = "Menu.File.CloseAllCatalogs", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void closeAllCatalogsAction() {
-        //JOptionPane.showMessageDialog(mainComponent, "To be done");
         mainView.removeAll();
     }
 
@@ -273,7 +277,8 @@ public class FovastActions {
 
     @Action(name = "Menu.File.Preferences")
     public void showPreferencesDialogAction() {
-        mainView.showPreferencesDialog();
+        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        //mainView.showPreferencesDialog();
     }
 
     @Action(name = "Menu.File.Exit")
@@ -291,9 +296,9 @@ public class FovastActions {
         JOptionPane.showMessageDialog(mainComponent, "To be done");
     }
 
-    @Action(name = "Menu.View.Catalogs")
+    @Action(name = "Menu.View.Catalogs", enabledProperty = MENU_ENABLE_WHEN_NO_VIZ_PROPERTY)
     public void viewCatalogsAction() {
-        JOptionPane.showMessageDialog(mainComponent, "To be done");
+        //Dummy action method for JMenu instances
     }
 
     @Action(name = "Menu.View.Catalogs.Show/Hide")
@@ -561,6 +566,28 @@ public class FovastActions {
         firePropertyChangeEvent(SHOW_DSS_BACKGROUND_MENU_SELECTED, oldValue, newValue);
     }
 
+    public boolean isMenuEnableWhenNoVisualization() {
+        return menuEnableWhenNoVisualization;
+    }
+
+    public void setMenuEnableWhenNoVisualization(boolean newValue) {
+        boolean oldValue = this.menuEnableWhenNoVisualization;
+        this.menuEnableWhenNoVisualization = newValue;
+        firePropertyChangeEvent(MENU_ENABLE_WHEN_NO_VIZ_PROPERTY, oldValue, newValue);
+    }
+
+    public boolean isMenuSelectWhenNoVisualization() {
+        return menuSelectWhenNoVisualization;
+    }
+
+    public void setMenuSelectWhenNoVisualization(boolean newValue) {
+        boolean oldValue = this.menuSelectWhenNoVisualization;
+        this.menuSelectWhenNoVisualization = newValue;
+        firePropertyChangeEvent(MENU_SELECT_WHEN_NO_VIZ_PROPERTY, oldValue, newValue);
+    }
+
+    
+    
     private void firePropertyChangeEvent(String propertyName, Object oldValue,
             Object newValue) {
 

@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author vivekananda_moosani
  */
 public class ConfigHelper implements Config.ConfigListener{
 
@@ -204,7 +203,7 @@ public class ConfigHelper implements Config.ConfigListener{
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value) {
+    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
 //        if(value == null && config.getConfig(confElementId) == null) {
 //            //do nothing
 //        }
@@ -223,12 +222,7 @@ public class ConfigHelper implements Config.ConfigListener{
     }
 
     @Override
-    public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void enableConfig(String confElementId, boolean enable) {
+    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
 //        if(config.isEnabled(confElementId) == enable) {
 //            checkDependants(confElementId, true);
 //        }

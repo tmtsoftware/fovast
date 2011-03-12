@@ -7,7 +7,6 @@ package org.tmt.fovast.gui;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 
 

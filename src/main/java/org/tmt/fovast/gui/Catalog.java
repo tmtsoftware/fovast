@@ -10,7 +10,6 @@ import uk.ac.starlink.table.StarTable;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 public class Catalog {
 

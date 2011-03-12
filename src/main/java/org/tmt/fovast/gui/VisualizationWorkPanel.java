@@ -34,6 +34,7 @@ import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
+import org.tmt.fovast.instrumentconfig.BooleanValue;
 import org.tmt.fovast.instrumentconfig.Config;
 import org.tmt.fovast.instrumentconfig.Value;
 import org.tmt.fovast.state.VisualizationState;
@@ -82,16 +83,27 @@ public class VisualizationWorkPanel extends JPanel
 
     private ArrayList<CatalogListener> catalogListeners = new ArrayList<CatalogListener>();
 
+    private HashMap<String, CanvasFigure> displayElementFigureMap = 
+            new HashMap<String, CanvasFigure>();
+
+    private Cache imageCache;
+
+    private FovastShapeFactory fovastShapeFactory;
+    
     public VisualizationWorkPanel(ApplicationContext appContext,
-            VisualizationState visualization) {
+            VisualizationState visualization, Cache imageCache) {
         this.appContext = appContext;
         this.visualization = visualization;
-
+        this.imageCache = imageCache;
         //TODO: initialize from viz
         
         initComponents();
 
         visualization.addListener(this);
+
+        this.fovastShapeFactory = new FovastShapeFactory(
+                (FovastImageDisplay)displayComp.getImageDisplay());
+
     }
 
     private void initComponents() {
@@ -142,6 +154,7 @@ public class VisualizationWorkPanel extends JPanel
     public void vslConfigChanged(Config config) {
         clearConfigDisplayElements();
         config.addConfigListener(this);
+        fovastShapeFactory.setConfig(config);
     }
 
 
@@ -180,11 +193,6 @@ public class VisualizationWorkPanel extends JPanel
             private URL urlToDownload = null;
             //private URLConnection conn = null;
 
-            //TODO: We should pass the Cache class to the constructor
-            //or have a setter
-            Cache cache = ((FovastApplication) appContext.getApplication()).getDssImageCache();
-
-
             @Override
             protected Object doInBackground() throws Exception {
                 if (!isCancelled()) {
@@ -198,9 +206,9 @@ public class VisualizationWorkPanel extends JPanel
                     if (!isCancelled()) {
                         if (urls.length > 0) {
                             urlToDownload = new URL(urls[0]);
-                            if (cache.getFile(urlToDownload) == null) {
+                            if (imageCache.getFile(urlToDownload) == null) {
                                 logger.info("Downloading image from " + urlToDownload.toString());
-                                cache.save(urlToDownload, new Cache.SaveListener() {
+                                imageCache.save(urlToDownload, new Cache.SaveListener() {
 
                                     @Override
                                     public void bytesRead(long bytes) {
@@ -214,9 +222,9 @@ public class VisualizationWorkPanel extends JPanel
                                 });
                             } else {
                                 logger.info("Using image from local cache instead of from " + urlToDownload.toString());
-                                logger.info("Cached image path " + cache.getFile(urlToDownload).toString());
+                                logger.info("Cached image path " + imageCache.getFile(urlToDownload).toString());
                             }
-                            return cache.getFile(urlToDownload);
+                            return imageCache.getFile(urlToDownload);
                         }
                     }
                     else {
@@ -262,7 +270,7 @@ public class VisualizationWorkPanel extends JPanel
                             fireBackgroundImageLoadCompletedEvent();
                         } catch (Exception ex) {
                             //Remove the corrupt image from cache
-                            cache.remove(urlToDownload);
+                            imageCache.remove(urlToDownload);
                             
                             logger.info("Image load failed", ex);
                             JOptionPane.showMessageDialog(VisualizationWorkPanel.this,
@@ -581,24 +589,44 @@ public class VisualizationWorkPanel extends JPanel
         catalogListeners.remove(cl);
     }
 
-    private void clearConfigDisplayElements() {
-        
-        //TODO: throw new UnsupportedOperationException("Not yet implemented");
+    private void clearConfigDisplayElements() {        
+        Iterator<CanvasFigure> ite = displayElementFigureMap.values().iterator();
+        while(ite.hasNext()) {
+            displayComp.getImageDisplay().getCanvasGraphics().remove(ite.next());
+        }
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value) {
-        //TODO: throw new UnsupportedOperationException("Not supported yet.");
+    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
+        if(isDisplayElement) {
+            BooleanValue bValue = (BooleanValue)value;
+            if(bValue != null || bValue.getValue() == false) {
+                if(displayElementFigureMap.containsKey(confElementId)) {
+                    displayElementFigureMap.get(confElementId).setVisible(false);
+                }
+            } else {
+                if(displayElementFigureMap.containsKey(confElementId)) {
+                    displayElementFigureMap.get(confElementId).setVisible(true);
+                } else {
+                    CanvasFigure fig = fovastShapeFactory.makeFigure(confElementId);
+                    displayElementFigureMap.put(confElementId, fig);
+                }            
+            }
+        }
     }
 
     @Override
-    public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void enableConfig(String confElementId, boolean enable) {
-        //TODO: throw new UnsupportedOperationException("Not supported yet.");
+    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
+        //check if its a display element and if so show/hide the shape
+        //depending on the value set to it .. 
+        if(isDisplayElement) {
+            CanvasFigure fig = displayElementFigureMap.get(confElementId);
+            if(fig != null && enable == false)
+                fig.setVisible(false);
+            //TODO: As of now we know when a conf element is enabled its value is set
+            //again .. to that of prev value .. so doing nothing in enable=true case.
+            //Should we change this behaviour ?
+        }
     }
 
 }

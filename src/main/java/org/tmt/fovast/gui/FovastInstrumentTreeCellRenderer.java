@@ -25,7 +25,6 @@ import org.tmt.fovast.gui.FovastInstrumentTree.UserObject.Editable;
  * used is that of the JTree component attached to the cell renderer.</p>
  *
  * 
- * @author vivekananda_moosani
  */
 public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
 

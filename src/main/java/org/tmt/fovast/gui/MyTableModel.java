@@ -2,7 +2,6 @@ package org.tmt.fovast.gui;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 import java.util.ArrayList;
 import javax.swing.table.AbstractTableModel;

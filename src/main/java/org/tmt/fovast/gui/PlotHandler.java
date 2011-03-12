@@ -9,7 +9,6 @@ import jsky.catalog.gui.CatalogQueryList;
 
 /**
  *
- * @author Disha_Gujrathi
  */
 
 public interface PlotHandler {

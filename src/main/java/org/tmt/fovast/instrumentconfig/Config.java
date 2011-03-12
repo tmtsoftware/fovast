@@ -175,7 +175,7 @@ public class Config {
                 logger.debug("enabling config " + confElementId + " to "
                     + String.valueOf(enable));
                 co.setEnabled(enable);
-                fireClEnableConfigEvent(confElementId, enable);
+                fireClEnableConfigEvent(confElementId, enable, false);
                 return true;
             }
         } else if(obj instanceof DisplayElement) {
@@ -184,7 +184,7 @@ public class Config {
                 logger.debug("enabling config " + confElementId + " to "
                     + String.valueOf(enable));
                 de.setEnabled(enable);
-                fireClEnableConfigEvent(confElementId, enable);
+                fireClEnableConfigEvent(confElementId, enable, true);
                 return true;
             }
         }
@@ -506,7 +506,7 @@ public class Config {
         ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
         for(int i=0; i<listeners.size(); i++) {
             listeners.get(i).updateConfig(configOption.getId(),
-                    configOption.getValue());
+                    configOption.getValue(), false);
         }
     }
 
@@ -514,14 +514,15 @@ public class Config {
             Value value) {
         ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
         for(int i=0; i<listeners.size(); i++) {
-            listeners.get(i).updateConfig(displayElement.getId(), value);
+            listeners.get(i).updateConfig(displayElement.getId(), value, true);
         }
     }
 
-    private void fireClEnableConfigEvent(String id, boolean enabled) {
+    private void fireClEnableConfigEvent(String id, boolean enabled,
+            boolean isDisplayElement) {
         ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
         for(int i=0; i<listeners.size(); i++) {
-            listeners.get(i).enableConfig(id, enabled);
+            listeners.get(i).enableConfig(id, enabled, isDisplayElement);
         }
     }
 
@@ -535,12 +536,10 @@ public class Config {
          *                        (DisplayElement / Instrument / ConfigOption)
          * @param value
          */
-        public void updateConfig(String confElementId, Value value);
+        public void updateConfig(String confElementId, Value value,
+                boolean isDisplayElement);
 
-        /** As of now not being used .. */
-        public void batchUpdateConfig(ArrayList<String> confElementIds,
-                ArrayList<Value> values);
-
-        public void enableConfig(String confElementId, boolean enable);
+        public void enableConfig(String confElementId, boolean enable,
+                boolean isDisplayElement);
     }
 }

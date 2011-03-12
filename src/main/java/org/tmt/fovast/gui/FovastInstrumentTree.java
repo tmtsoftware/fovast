@@ -90,19 +90,12 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value) {
+    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
         selectNode(confElementId, value);
     }
 
     @Override
-    public void batchUpdateConfig(ArrayList<String> confElementIds, ArrayList<Value> values) {
-        for(int i = 0; i < confElementIds.size(); i++) {
-            updateConfig(confElementIds.get(i), values.get(i));
-        }
-    }
-
-    @Override
-    public void enableConfig(String confElementId, boolean enable) {
+    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
         enableNode(confElementId, enable);
     }
 
