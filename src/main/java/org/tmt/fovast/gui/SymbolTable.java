@@ -20,16 +20,18 @@ public class SymbolTable {
 //
     private Color symbolColor;
 
-    private static Color[] colours = {Color.YELLOW,
-                               Color.BLUE,
+    private static Color[] colours = {
                                Color.ORANGE,
-                               Color.GREEN,
                                Color.PINK,                                                              
-                               Color.WHITE,
                                Color.RED,
                                Color.MAGENTA,
                                Color.BLACK,
-                               Color.CYAN};
+                               Color.CYAN //,
+//                               Color.WHITE,
+//                               Color.YELLOW,
+//                               Color.BLUE,                               
+//                               Color.GREEN,
+    };
 
     private static String[] symbols = {"square",
                                 "circle",

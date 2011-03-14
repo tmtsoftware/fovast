@@ -39,19 +39,24 @@ public class VisualizationState
     public void setTarget(double ra, double dec, String raEntered, String decEntered) {
         this.targetRa = ra;
         this.targetDec = dec;
+        try {
+            this.config = Config.loadDefaultConfig();
+            //fireVslConfigChanged(config);
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+            //logger.error("!!!!! Could not read instrument config .. ", ex);
+        }
         
         fireVslTargetChanged(ra, dec, raEntered, decEntered);
 
-        try {
-            this.config = Config.loadDefaultConfig();
-            fireVslConfigChanged(config);
-        } catch(Exception ex) {
-            logger.error("!!!!! Could not read instrument config .. ", ex);
-        }
     }
 
     public Double[] getTarget() {
         return new Double[]{targetRa, targetDec};
+    }
+
+    public Config getConfig() {
+        return config;
     }
 
     public void showTarget(boolean show) {

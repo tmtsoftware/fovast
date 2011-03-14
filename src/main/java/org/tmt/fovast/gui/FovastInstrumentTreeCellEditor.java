@@ -157,8 +157,13 @@ public class FovastInstrumentTreeCellEditor implements TreeCellEditor {
        @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                UserObject.Editable editable = (UserObject.Editable) editor.currentNodeValue;
-                editable.setEditState(toggleButton.isSelected());
+                if(toggleButton instanceof JRadioButton && !toggleButton.isSelected()) {
+                    editor.cancelCellEditing();
+                    return;
+                } else {
+                    UserObject.Editable editable = (UserObject.Editable) editor.currentNodeValue;
+                    editable.setEditState(toggleButton.isSelected());
+                }
             } catch (Exception ex) {
                 logger.error(null, ex);
             }

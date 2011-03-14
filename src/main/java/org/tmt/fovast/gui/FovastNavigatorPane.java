@@ -80,9 +80,11 @@ public class FovastNavigatorPane extends GraphicsPane{
         _layers = new CanvasLayer[7];
         int cursor = 0;
         _layers[cursor++] = _foregroundEventLayer;
-        _layers[cursor++] = _symbolLayer;
         _layers[cursor++] = _overlayLayer;
         _layers[cursor++] = _foregroundLayer;
+        _layers[cursor++] = _symbolLayer;
+        //_layers[cursor++] = _overlayLayer;
+        //_layers[cursor++] = _foregroundLayer;
         _layers[cursor++] = _gridLayer;
         _layers[cursor++] = _backgroundLayer;
         _layers[cursor] = _backgroundEventLayer;

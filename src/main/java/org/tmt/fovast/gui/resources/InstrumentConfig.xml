@@ -48,15 +48,32 @@
                 a display element.
             2. Some ConfigOption value can depend on a particular display element's
                 position .. (like iris.oiwfs.probe1.position)
+                    - VisualizationWorkPanel has to listen to figure rotation/movement ..
+                    and accordingly call Config.setConfig ..
+                    - This needs work panel to be aware of ConfigOption dependencies
+                    on display elements ..
+                    - How can this happen ? VWP has to be aware of captured elements
+                        .. config  should so have a method getCapturedConfig()
+                        which returns a HashMap of <DisplayElement, ConfigOption>..
+                        whenever a figure rotates its display element is looked up
+                        and then corresponding configOption is looked up and setConfig
+                        is called on it ..
+                        .. or DisplayElement has reference of the config
+                        it drives and figure has reference of displayelement it
+                        is associated to 
             3. When one display element is moved/rotated .. then others also 
                 would move/rotate. When iris science detector is rotated - then
                 probes also rotate .. (actually whats rotated is the nfiraos platform
                 and everything mounted on it has to rotate .. )
-                    - this can be solved by having a master attribute for display
-                    elements which tells us ..
+                    - we can have display element groups .. every display element
+                    has a group property. if not it inherits from its parent ..
+                    - there can be several display elements which can act
+                    as group master ..
+                    - groupmaster = "group1, group2, .."  group="group1, ..."
+                    (we can instead have multiple group child elements)
+
 
 TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer that can rotate ?
-TODO: TOCHECK: can we simply 
 
                 
 -->
@@ -121,10 +138,6 @@ TODO: TOCHECK: can we simply
                     <Condition element="iris.mode" value="Imaging" />
                 </EnableConditions>
 
-                <!-- rotatable,
-                <Properties>
-                    <Rotat
-                </Properties>
             </DisplayElement>
 
             <ConfigOption id="iris.ifuimager" type="string">
@@ -138,7 +151,7 @@ TODO: TOCHECK: can we simply
                     <Value>Slicer</Value>
                 </PossibleValues>
 
-                <DisplayElement id="iris.ifuimager.lenslet">
+                <DisplayElement id="iris.ifuimager.lenslet" showByDefault="true">
 
                     <EnableConditions>
                         <Condition element="iris.ifuimager" value="Lenslet" />
@@ -146,7 +159,7 @@ TODO: TOCHECK: can we simply
 
                 </DisplayElement>
 
-                <DisplayElement id="iris.ifuimager.slicer">
+                <DisplayElement id="iris.ifuimager.slicer" showByDefault="true">
 
                     <EnableConditions>
                         <Condition element="iris.ifuimager" value="Slicer" />
@@ -159,47 +172,47 @@ TODO: TOCHECK: can we simply
             <!-- For each probe we have to store the probe tip RA, DEC
                 Can select stars beneath it.
             -->
-            <ConfigOption id="iris.oiwfs.probe1">
+            <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true">
 
-               <ConfigOption id="iris.oiwfs.probe1.position" 
+               <ConfigOption id="iris.oiwfs.probe1.position"
                     type="position" captured="true" captureElement="iris.oiwfs.probe1.arm"/>
 
-               <DisplayElement id="iris.oiwfs.probe1.arm">
+               <DisplayElement id="iris.oiwfs.probe1.arm"  showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe1.limits">
+               <DisplayElement id="iris.oiwfs.probe1.limits"  showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe1.vignettingLimits">
+               <DisplayElement id="iris.oiwfs.probe1.vignettingLimits"  showByDefault="true">
                </DisplayElement>
 
             </ConfigOption>
 
-            <ConfigOption id="iris.oiwfs.probe2">
+            <ConfigOption id="iris.oiwfs.probe2"  selectByDefault="true">
                <ConfigOption id="iris.oiwfs.probe2.position"
                     type="position" captured="true" captureElement="iris.oiwfs.probe2.arm"/>
 
-               <DisplayElement id="iris.oiwfs.probe2.arm">
+               <DisplayElement id="iris.oiwfs.probe2.arm" showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe2.limits">
+               <DisplayElement id="iris.oiwfs.probe2.limits" showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe2.vignettingLimits">
+               <DisplayElement id="iris.oiwfs.probe2.vignettingLimits" showByDefault="true">
                </DisplayElement>
             </ConfigOption>
 
-            <ConfigOption id="iris.oiwfs.probe3">
+            <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
                <ConfigOption id="iris.oiwfs.probe3.position"
                     type="position" captured="true" captureElement="iris.oiwfs.probe3.arm"/>
 
-               <DisplayElement id="iris.oiwfs.probe3.arm">
+               <DisplayElement id="iris.oiwfs.probe3.arm" showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe3.limits">
+               <DisplayElement id="iris.oiwfs.probe3.limits" showByDefault="true">
                </DisplayElement>
 
-               <DisplayElement id="iris.oiwfs.probe3.vignettingLimits">
+               <DisplayElement id="iris.oiwfs.probe3.vignettingLimits" showByDefault="true">
                </DisplayElement>
             </ConfigOption>
 
@@ -238,7 +251,7 @@ TODO: TOCHECK: can we simply
         -->
         <ConfigOption id="nfiraos.twfs">
 
-            <DisplayElement id="nfiraos.twfs.detector">
+            <DisplayElement id="nfiraos.twfs.detector" showByDefault="true">
             </DisplayElement>
 
         </ConfigOption>
@@ -266,10 +279,15 @@ TODO: TOCHECK: can we simply
             <Condition element="instrument" value="mobie"/>
         </EnableConditions>
 
-        <DisplayElement selectByDefault="true" id="mobie.detector">
+        <DisplayElement showByDefault="true" id="mobie.detector">
+        </DisplayElement>
 
+        <DisplayElement showByDefault="true" id="mobie.vignettingstart">
         </DisplayElement>
         
+        <DisplayElement showByDefault="true" id="mobie.edgeoffield">
+        </DisplayElement>
+
     </ConfigOption>
     
 </FovastInstrumentConfig>

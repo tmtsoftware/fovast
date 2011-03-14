@@ -612,15 +612,19 @@ public class VisualizationControlPanel extends JPanel
     @Override
     public void vslTargetChanged(double ra, double dec, String raEntered, String decEntered) {
         updateUIForSetTarget(ra, dec, raEntered, decEntered);
+        rebuildTreeOnConfigChange(visualization.getConfig());
     }
 
     @Override
     public void vslShowTarget(boolean show) {
-        updateUIForShowTarget(show);
+        updateUIForShowTarget(show);        
     }
 
     @Override
     public void vslConfigChanged(Config config) {
+    }
+
+    public void rebuildTreeOnConfigChange(Config config) {
         try {
             makeInstrumentTree(true, config);
             configHelper.fireInitialEvents();
@@ -628,7 +632,6 @@ public class VisualizationControlPanel extends JPanel
             logger.error("!!!! Error making instrument tree", ex);
         }
     }
-
 
     //
     //VisualizationStateListener overrides end ...

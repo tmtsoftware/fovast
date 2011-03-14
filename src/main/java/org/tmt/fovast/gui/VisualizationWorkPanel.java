@@ -141,8 +141,10 @@ public class VisualizationWorkPanel extends JPanel
 
     @Override
     public void vslTargetChanged(double ra, double dec, String raEntered, String decEntered) {
-        if(!inSetTargetEvent)
+        if(!inSetTargetEvent) {
+            inSetTargetEvent = true;
             loadImage(ra, dec);
+        }
     }
 
     @Override
@@ -152,9 +154,14 @@ public class VisualizationWorkPanel extends JPanel
 
     @Override
     public void vslConfigChanged(Config config) {
+    }
+
+    public void clearAndInitializeConfigStructures(Config config) {
         clearConfigDisplayElements();
         config.addConfigListener(this);
+        fovastShapeFactory.clearFigures();
         fovastShapeFactory.setConfig(config);
+        displayElementFigureMap = fovastShapeFactory.makeFigures();
     }
 
 
@@ -268,6 +275,13 @@ public class VisualizationWorkPanel extends JPanel
                                     new FITSImage(
                                     imageFile.getAbsolutePath()));
                             fireBackgroundImageLoadCompletedEvent();
+
+                            SwingUtilities.invokeLater(new Runnable() {
+                                public void run() {
+                                    clearAndInitializeConfigStructures(visualization.getConfig());
+                                }
+                            });
+
                         } catch (Exception ex) {
                             //Remove the corrupt image from cache
                             imageCache.remove(urlToDownload);
@@ -297,6 +311,7 @@ public class VisualizationWorkPanel extends JPanel
             @Override
             protected void finished() {
                 super.finished();
+                inSetTargetEvent = false;
                 if (isCancelled()) {
                     logger.info("[TASK CANCELLED] in finished method");
                 }
@@ -346,6 +361,9 @@ public class VisualizationWorkPanel extends JPanel
                 //Shape shape = makeTargetShape(centerPixel, halfWidth);
 
                 targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
+                //this remove basichighlighter set as interactor over the
+                //marker .. 
+                targetMarker.setInteractor(null);
                 canvasGraphics.add(targetMarker);
                 canvasGraphics.repaint();
             } 
@@ -449,11 +467,14 @@ public class VisualizationWorkPanel extends JPanel
                                             targetDec = centerPixel.y;
                                             
                                             visualization.setTarget(targetRa, targetDec);
+                                            
                                             if(newPanel)
                                                 //note corresponding update event shows the target in this case.
                                                 visualization.showTarget(true);
                                             else if(targetMarker != null)
                                                 showTarget(true);
+
+                                            clearAndInitializeConfigStructures(visualization.getConfig());
                                         }
                                         finally {
                                             inSetTargetEvent = false;
@@ -594,22 +615,32 @@ public class VisualizationWorkPanel extends JPanel
         while(ite.hasNext()) {
             displayComp.getImageDisplay().getCanvasGraphics().remove(ite.next());
         }
+        //making it empty for now .. 
+        displayElementFigureMap = new HashMap<String, CanvasFigure>();
     }
 
     @Override
     public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
         if(isDisplayElement) {
+            
             BooleanValue bValue = (BooleanValue)value;
-            if(bValue != null || bValue.getValue() == false) {
+            if(bValue == null || bValue.getValue() == false) {
                 if(displayElementFigureMap.containsKey(confElementId)) {
                     displayElementFigureMap.get(confElementId).setVisible(false);
+                    displayComp.repaint();
                 }
             } else {
                 if(displayElementFigureMap.containsKey(confElementId)) {
                     displayElementFigureMap.get(confElementId).setVisible(true);
+                    displayComp.repaint();
                 } else {
-                    CanvasFigure fig = fovastShapeFactory.makeFigure(confElementId);
-                    displayElementFigureMap.put(confElementId, fig);
+                    //assert false : "Should not have come here .. ";
+                    //this would create problem with the order in which figures are
+                    //painted on the canvas layer ..
+                    //what we will do is to paint all figures on the canvas
+                    //and make them all invisible .. 
+                    //CanvasFigure fig = fovastShapeFactory.makeFigure(confElementId);
+                    //displayElementFigureMap.put(confElementId, fig);
                 }            
             }
         }
@@ -621,8 +652,10 @@ public class VisualizationWorkPanel extends JPanel
         //depending on the value set to it .. 
         if(isDisplayElement) {
             CanvasFigure fig = displayElementFigureMap.get(confElementId);
-            if(fig != null && enable == false)
+            if(fig != null && enable == false) {
                 fig.setVisible(false);
+                displayComp.repaint();
+            }
             //TODO: As of now we know when a conf element is enabled its value is set
             //again .. to that of prev value .. so doing nothing in enable=true case.
             //Should we change this behaviour ?

@@ -103,12 +103,14 @@
         <CheckboxNode configOptionId="nfiraos.twfs" label="TWFS">
             <CheckboxNode configOptionId="nfiraos.twfs.detector" label="Show TWFS detector"/>
         </CheckboxNode>
-        <CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/>
+        <!--CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/-->
         <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera Limits"/>
-        <CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/>
+        <!--CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/-->
     <!--/CheckboxNode-->
     </Node>
     <RadioNode configOptionId="instrument" configOptionValue="mobie" label="Mobie">
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
+        <CheckboxNode configOptionId="mobie.vignettingstart" label="Show Vignetting Start"/>
+        <CheckboxNode configOptionId="mobie.edgeoffield" label="Show Edge of Field"/>
     </RadioNode>
 </Tree>
