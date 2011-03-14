@@ -83,8 +83,8 @@ public class VisualizationWorkPanel extends JPanel
 
     private ArrayList<CatalogListener> catalogListeners = new ArrayList<CatalogListener>();
 
-    private HashMap<String, CanvasFigure> displayElementFigureMap = 
-            new HashMap<String, CanvasFigure>();
+    private HashMap<String, CanvasFigure[]> displayElementFigureMap =
+            new HashMap<String, CanvasFigure[]>();
 
     private Cache imageCache;
 
@@ -611,12 +611,15 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     private void clearConfigDisplayElements() {        
-        Iterator<CanvasFigure> ite = displayElementFigureMap.values().iterator();
+        Iterator<CanvasFigure[]> ite = displayElementFigureMap.values().iterator();
         while(ite.hasNext()) {
-            displayComp.getImageDisplay().getCanvasGraphics().remove(ite.next());
+            CanvasFigure[] figs = ite.next();
+            for(int i=0; i<figs.length; i++) {
+                displayComp.getImageDisplay().getCanvasGraphics().remove(figs[i]);
+            }
         }
         //making it empty for now .. 
-        displayElementFigureMap = new HashMap<String, CanvasFigure>();
+        displayElementFigureMap = new HashMap<String, CanvasFigure[]>();
     }
 
     @Override
@@ -626,12 +629,22 @@ public class VisualizationWorkPanel extends JPanel
             BooleanValue bValue = (BooleanValue)value;
             if(bValue == null || bValue.getValue() == false) {
                 if(displayElementFigureMap.containsKey(confElementId)) {
-                    displayElementFigureMap.get(confElementId).setVisible(false);
+                    CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
+                    for(int i=0; i<figs.length; i++) {
+                        figs[i].setVisible(false);
+                        if(figs[i].getInteractor() != null)
+                            figs[i].getInteractor().setEnabled(false);
+                    }
                     displayComp.repaint();
                 }
             } else {
                 if(displayElementFigureMap.containsKey(confElementId)) {
-                    displayElementFigureMap.get(confElementId).setVisible(true);
+                    CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
+                    for(int i=0; i<figs.length; i++) {
+                        figs[i].setVisible(true);
+                        if(figs[i].getInteractor() != null)
+                            figs[i].getInteractor().setEnabled(true);
+                    }
                     displayComp.repaint();
                 } else {
                     //assert false : "Should not have come here .. ";
@@ -651,9 +664,13 @@ public class VisualizationWorkPanel extends JPanel
         //check if its a display element and if so show/hide the shape
         //depending on the value set to it .. 
         if(isDisplayElement) {
-            CanvasFigure fig = displayElementFigureMap.get(confElementId);
-            if(fig != null && enable == false) {
-                fig.setVisible(false);
+            CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
+            if(figs != null && enable == false) {
+                for(int i=0; i<figs.length; i++) {
+                        figs[i].setVisible(false);
+                        if(figs[i].getInteractor() != null)
+                            figs[i].getInteractor().setEnabled(false);
+                }
                 displayComp.repaint();
             }
             //TODO: As of now we know when a conf element is enabled its value is set
