@@ -6,6 +6,10 @@
  */
 package org.tmt.fovast.gui;
 
+import diva.canvas.interactor.CompositeInteractor;
+import diva.canvas.interactor.DragInteractor;
+import diva.canvas.interactor.Interactor;
+import diva.canvas.interactor.SelectionInteractor;
 import java.awt.BorderLayout;
 import java.awt.Shape;
 import java.awt.geom.Point2D;
@@ -29,6 +33,7 @@ import jsky.image.graphics.DivaImageGraphics;
 import jsky.image.graphics.ShapeUtil;
 import jsky.image.gui.ImageDisplayControl;
 import nom.tam.fits.FitsException;
+import nom.tam.fits.ImageHDU;
 import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
@@ -271,9 +276,9 @@ public class VisualizationWorkPanel extends JPanel
                     File imageFile = (File) result;
                     if (imageFile != null) {
                         try {
-                            displayComp.getImageDisplay().setImage(
-                                    new FITSImage(
-                                    imageFile.getAbsolutePath()));
+                            FITSImage fitsImage =
+                                    getFitsImage(imageFile.getAbsolutePath());
+                            displayComp.getImageDisplay().setImage(fitsImage);
                             fireBackgroundImageLoadCompletedEvent();
 
                             SwingUtilities.invokeLater(new Runnable() {
@@ -421,7 +426,7 @@ public class VisualizationWorkPanel extends JPanel
         }
     }
 
-    void setImage(final String fitsImage) throws IOException, FitsException {
+    void setImage(final String fitsImageStr) throws IOException, FitsException {
         
         Set<Catalog> tempCatalogs = getCatalogList();
         Iterator iter = tempCatalogs.iterator();
@@ -457,7 +462,10 @@ public class VisualizationWorkPanel extends JPanel
                                             //when zooming if this is done outside invoke later
                                             //ok .. the above comment sounds as a wierd fix but it works
                                             //TODO: Need to find out exact problem.
-                                            displayComp.getImageDisplay().setImage(new FITSImage(new File(fitsImage).getAbsolutePath()));
+                                            FITSImage fitsImage =
+                                                    getFitsImage(new File(fitsImageStr).getAbsolutePath());
+                                            displayComp.getImageDisplay().setImage(fitsImage);
+
                                             targetSet = true;
                                             //double invoke later as center marker placement is not happening
                                             //properly if not.
@@ -629,23 +637,11 @@ public class VisualizationWorkPanel extends JPanel
             BooleanValue bValue = (BooleanValue)value;
             if(bValue == null || bValue.getValue() == false) {
                 if(displayElementFigureMap.containsKey(confElementId)) {
-                    CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
-                    for(int i=0; i<figs.length; i++) {
-                        figs[i].setVisible(false);
-                        if(figs[i].getInteractor() != null)
-                            figs[i].getInteractor().setEnabled(false);
-                    }
-                    displayComp.repaint();
+                    makeFigsVisible(confElementId, false);
                 }
             } else {
                 if(displayElementFigureMap.containsKey(confElementId)) {
-                    CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
-                    for(int i=0; i<figs.length; i++) {
-                        figs[i].setVisible(true);
-                        if(figs[i].getInteractor() != null)
-                            figs[i].getInteractor().setEnabled(true);
-                    }
-                    displayComp.repaint();
+                    makeFigsVisible(confElementId, true);
                 } else {
                     //assert false : "Should not have come here .. ";
                     //this would create problem with the order in which figures are
@@ -664,19 +660,63 @@ public class VisualizationWorkPanel extends JPanel
         //check if its a display element and if so show/hide the shape
         //depending on the value set to it .. 
         if(isDisplayElement) {
-            CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
-            if(figs != null && enable == false) {
-                for(int i=0; i<figs.length; i++) {
-                        figs[i].setVisible(false);
-                        if(figs[i].getInteractor() != null)
-                            figs[i].getInteractor().setEnabled(false);
-                }
-                displayComp.repaint();
-            }
+            makeFigsVisible(confElementId, false);
             //TODO: As of now we know when a conf element is enabled its value is set
             //again .. to that of prev value .. so doing nothing in enable=true case.
             //Should we change this behaviour ?
         }
+    }
+
+    private FITSImage getFitsImage(String path) throws IOException, FitsException {
+        FITSImage fitsImage = new FITSImage(path);
+        int numHDUs = fitsImage.getNumHDUs();
+        if (numHDUs >= 2 && fitsImage.isEmpty() &&
+                (fitsImage.getHDU(1) instanceof ImageHDU)) {
+            fitsImage.setHDU(1);
+        }
+
+        return fitsImage;
+
+    }
+
+    private void enableInteractors(CanvasFigure fig, boolean enable) {
+        if(fig.getInteractor() != null) {
+            fig.getInteractor().setEnabled(enable);
+            
+            if(fig.getInteractor() instanceof SelectionInteractor) {
+                ((SelectionInteractor)fig.getInteractor()).setConsuming(enable);
+            } else if(fig.getInteractor() instanceof DragInteractor) {
+                ((DragInteractor)fig.getInteractor()).setConsuming(enable);
+            }
+
+            if(fig.getInteractor() instanceof CompositeInteractor) {
+                Iterator ite =
+                        ((CompositeInteractor)fig.getInteractor()).interactors();
+                while(ite.hasNext()) {
+                    Interactor interactor = (Interactor) ite.next();
+                    interactor.setEnabled(enable);
+
+                    if(interactor instanceof SelectionInteractor) {
+                        ((SelectionInteractor)interactor).setConsuming(enable);
+                    } else if(interactor instanceof DragInteractor) {
+                        ((DragInteractor)interactor).setConsuming(enable);
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void makeFigsVisible(String confElementId, boolean visible) {
+        CanvasFigure[] figs = displayElementFigureMap.get(confElementId);
+        if(figs == null)
+            return;
+        for(int i=0; i<figs.length; i++) {
+            figs[i].setVisible(visible);
+            enableInteractors(figs[i], visible);
+
+        }
+        displayComp.repaint();
     }
 
 }

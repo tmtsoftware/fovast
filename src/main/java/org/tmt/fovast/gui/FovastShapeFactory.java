@@ -14,16 +14,21 @@ import diva.canvas.interactor.BasicGrabHandleFactory;
 import diva.canvas.interactor.BoundsManipulator;
 import diva.canvas.interactor.CircleGeometry;
 import diva.canvas.interactor.CompositeInteractor;
+import diva.canvas.interactor.DragInteractor;
 import diva.canvas.interactor.Interactor;
+import diva.canvas.interactor.PointConstraint;
 import diva.canvas.interactor.SelectionInteractor;
+import diva.canvas.toolbox.LabelWrapper;
 import diva.util.java2d.Polygon2D;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.PaintContext;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.RenderingHints;
 import java.awt.Polygon;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -32,6 +37,7 @@ import java.util.HashMap;
 import javax.vecmath.Color3b;
 import jsky.coords.CoordinateConverter;
 import jsky.graphics.CanvasFigure;
+import jsky.graphics.CanvasFigureEvent;
 import jsky.graphics.CanvasFigureGroup;
 import jsky.graphics.CanvasGraphics;
 import jsky.image.graphics.DivaImageGraphics;
@@ -39,17 +45,37 @@ import jsky.image.graphics.RectangleManipulator;
 import jsky.image.graphics.RotatableCanvasFigure;
 import jsky.image.graphics.ShapeUtil;
 import org.tmt.fovast.instrumentconfig.Config;
+import javax.swing.SwingConstants;
+import java.awt.Font;
+import jsky.graphics.CanvasFigureListener;
+import jsky.image.graphics.RoiFigure;
 
 /**
  *
  */
 class FovastShapeFactory {
 
+    private final static String FIGURE_LABEL = "figureLabel";
+    
     private final static String FIGURE_TYPE = "figureType";
 
     private final static String FIGURE_TYPE_RECTANGLE = "rectangle";
 
     private final static String FIGURE_TYPE_CIRCLE = "circle";
+
+    private final static String FIGURE_TYPE_ARC = "arc";
+
+    private final static String ARC_END = "arcEnd";
+
+    private final static int ARC_END_OPEN = Arc2D.OPEN;
+
+    private final static int ARC_END_PIE = Arc2D.PIE;
+
+    private final static int ARC_END_CHORD = Arc2D.CHORD;
+
+    private final static String ARC_START_ANGLE = "startAngle";
+
+    private final static String ARC_ANGLE_EXTENT = "angleExtent";
 
     private final static String FIGURE_TYPE_NFIRAOS_ASTERISM = "nfiraos.lsgasterism";
 
@@ -113,6 +139,8 @@ class FovastShapeFactory {
        CanvasGraphics cg = fovastImageDisplay.getCanvasGraphics();
        DivaImageGraphics dig = (DivaImageGraphics)cg;
        CanvasFigure fig = null;
+
+       String label = (String) props.get(FIGURE_LABEL);
        
        float outlineWidth = (Float)props.get(OUTLINE_WIDTH);
        boolean drawOutline = (Boolean)props.get(DRAW_OUTLINE);
@@ -148,7 +176,7 @@ class FovastShapeFactory {
 //        // connect the different selection models
 //        roiSelectionInteractor.setSelectionModel(dig.getSelectionInteractor().getSelectionModel());
 //        interactor = roiSelectionInteractor;
-       // roiSelectionInteractor.addInteractor(_dragInteractor);
+       // roiSelectionInteractor.addInteractor(dragInteractor);
 
        if(rotatable && moveable) {
            interactor = makeRoiSelectionInteractor(dig);
@@ -158,16 +186,17 @@ class FovastShapeFactory {
            ((CompositeInteractor)interactor).removeInteractor(
                    dig.getDragInteractor());
        } else if(moveable) {
-           interactor = dig.getDragInteractor();
+           interactor = makeDragInteractor(dig);
        }
        
        if(figType.equals(FIGURE_TYPE_RECTANGLE)) {
            double width = (Double)props.get(WIDTH_X);
            double height = (Double)props.get(WIDTH_Y);
            double x = (Double)props.get(CENTER_OFFSET_X);
-           double y = (Double)props.get(CENTER_OFFSET_X);
+           double y = (Double)props.get(CENTER_OFFSET_Y);
            Point2D.Double wcsCenter = cc.getWCSCenter();
-           x = wcsCenter.x + x;           
+           //axis goes from east <- west
+           x = wcsCenter.x + x;
            y = wcsCenter.y + y;
            Point2D.Double pt = new Point2D.Double(x, y);
            cc.worldToScreenCoords(pt, false);
@@ -184,13 +213,34 @@ class FovastShapeFactory {
 
            fig = dig.makeFigure(rect, fillColor, outlineColor, outlineWidth,
                    interactor);
+           CanvasFigure labelFig = null;
+           if(label != null) {
+               Font labelFont = new Font("arial", Font.PLAIN, 2);
+               Point2D.Double pos = new Point2D.Double(
+                       rect.getX(), rect.getY() + rect.height);
+               labelFig = dig.makeLabel(pos, "TWFS", outlineColor, labelFont);
+               dig.add(labelFig);
+               labelFig.setVisible(false);
+               fig.addSlave(labelFig);
+           }
+
+//           } else {
+//               Font labelFont = new Font("arial", Font.PLAIN, 10);
+//               fig = dig.makeLabeledFigure(rect, fillColor, outlineColor, outlineWidth,
+//                       label, SwingConstants.NORTH,
+//                       outlineColor, labelFont, interactor);
+//           }
            //turns off resizing
            if(fig instanceof RotatableCanvasFigure) {
                 ((RotatableCanvasFigure)fig).setResizable(false);
            }
            dig.add(fig);
            fig.setVisible(false);
-           return new CanvasFigure[]{fig};
+           if(label == null) {
+                return new CanvasFigure[]{fig};
+           } else {
+                return new CanvasFigure[]{fig, labelFig};
+           }
 
 
        } else if(figType.equals(FIGURE_TYPE_CIRCLE)) {
@@ -207,9 +257,9 @@ class FovastShapeFactory {
            pt = new Point2D.Double(radius, radius);
            cc.worldToScreenCoords(pt, true);
            radius = pt.x;
-           x = x - radius/2;
-           y = y - radius/2;
-           Ellipse2D.Double ell = new Ellipse2D.Double(x, y, radius, radius);
+           x = x - radius;
+           y = y - radius;
+           Ellipse2D.Double ell = new Ellipse2D.Double(x, y, 2*radius, 2*radius);
 
            fig = dig.makeFigure(ell, fillColor, outlineColor, outlineWidth,
                    interactor);
@@ -221,7 +271,44 @@ class FovastShapeFactory {
            fig.setVisible(false);
            return new CanvasFigure[]{fig};
 
-       } else if(figType.equals(FIGURE_TYPE_NFIRAOS_ASTERISM)) {
+       } else if(figType.equals(FIGURE_TYPE_ARC)) {
+           double radius = (Double)props.get(RADIUS);
+           double x = (Double)props.get(CENTER_OFFSET_X);
+           double y = (Double)props.get(CENTER_OFFSET_X);
+           Point2D.Double wcsCenter = cc.getWCSCenter();
+           //axis goes from east <- west
+           x = wcsCenter.x + x;
+           y = wcsCenter.y + y;
+           Point2D.Double pt = new Point2D.Double(x, y);
+           cc.worldToScreenCoords(pt, false);
+           x = pt.x;
+           y = pt.y;
+           pt = new Point2D.Double(radius, radius);
+           cc.worldToScreenCoords(pt, true);
+           radius = pt.x;
+           x = x - radius;
+           y = y - radius;
+
+           int type = (Integer)props.get(ARC_END);
+           //axis goes from east -> west
+           double startAngle = -1.0 * (Double)props.get(ARC_START_ANGLE); //(Double)props.get(ARC_START_ANGLE);
+           double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
+           
+           Arc2D.Double arc = new Arc2D.Double(x, y, 2*radius, 2*radius, startAngle,
+                   angleExtent, type);
+
+           fig = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
+                   interactor);
+           //turns off resizing
+           if(fig instanceof RotatableCanvasFigure) {
+                ((RotatableCanvasFigure)fig).setResizable(false);
+           }
+           dig.add(fig);
+           fig.setVisible(false);
+           return new CanvasFigure[]{fig};
+
+       }
+       else if(figType.equals(FIGURE_TYPE_NFIRAOS_ASTERISM)) {
            //we have to draw 6 cricles with one at center and others on a pentagon
            //of radius 35 arc sec
            //double pentagonRadius = props.get(RADIUS);
@@ -229,6 +316,7 @@ class FovastShapeFactory {
            double x = (Double)props.get(CENTER_OFFSET_X);
            double y = (Double)props.get(CENTER_OFFSET_X);
            Point2D.Double wcsCenter = cc.getWCSCenter();
+           //axis goes from east <- west
            x = wcsCenter.x + x;
            y = wcsCenter.y + y;
            Point2D.Double pt = new Point2D.Double(x, y);
@@ -339,7 +427,7 @@ class FovastShapeFactory {
         //
         //US-82 and above will be left over
 
-        HashMap<String, CanvasFigure[]> map = new HashMap<String, CanvasFigure[]>();
+        final HashMap<String, CanvasFigure[]> map = new HashMap<String, CanvasFigure[]>();
 
         //make fig-grp1
         DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
@@ -388,26 +476,282 @@ class FovastShapeFactory {
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] nfiraosAcqusitionCameraLimits = makeFigure(props);
+        final CanvasFigure[] nfiraosAcqusitionCameraLimits = makeFigure(props);
         map.put("nfiraos.acqusitionCameraLimits", nfiraosAcqusitionCameraLimits);
+//        DragInteractor dragInteractor =
+//                (DragInteractor)nfiraosAcqusitionCameraLimits[0].getInteractor();
+//        dragInteractor.appendConstraint(new PointConstraint() {
+//
+//            Point2D prevPt = null;
+//
+//            @Override
+//            public void constrain(Point2D pt) {
+//                double x = pt.getX();
+//                double y = pt.getY();
+//
+//                CanvasFigure[] figs = map.get("nfiraos.limits");
+//                CanvasFigure nfiraosLimitsFig = figs[0];
+//
+//                Shape shape2 = nfiraosLimitsFig.getShape();
+//                Point2D.Double nFigCenter = new Point2D.Double(
+//                        nfiraosAcqusitionCameraLimits[0].getBounds().getCenterX(),
+//                        nfiraosAcqusitionCameraLimits[0].getBounds().getCenterY());
+//
+//                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+//                //acq cam fov is 20 arc sec
+//                Point2D.Double radius = new Point2D.Double(20/3600d, 20/3600d);
+//                cc.worldToScreenCoords(radius, true);
+//
+//                //nfiraos FOV is 2 arc min ..
+//                Point2D.Double nFov = new Point2D.Double(2/60d, 2/60d);
+//                cc.worldToScreenCoords(nFov, true);
+//
+//                Point2D.Double imageCenter = (Point2D.Double)cc.getWCSCenter().clone();
+//                cc.worldToScreenCoords(imageCenter, false);
+//
+//                //if(shape2.contains(pt)) {
+//                if(imageCenter.distance(nFigCenter) < (nFov.getX() - radius.getX())) {
+//                    prevPt = pt;
+//                    //leave pt as is
+//                } else {
+//                    pt.setLocation(prevPt.getX(), prevPt.getY());
+//                }
+//            }
+//
+//            /**
+//             * As of now never snaps
+//             *
+//             */
+//            @Override
+//            public boolean snapped() {
+//                return false;
+//            }
+//        });
+//
 
-        //note basic units are in arc-sec .. 
+        //iris.ifuimager.lenslet
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        //max fov is 1.01" x 1.15"
+        //18" of axis .. so 18" + 1.01/2
+        props.put(CENTER_OFFSET_X, -(18.0/3600d)); // + 1.01/2)/3600d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 1.01/3600d);
+        props.put(WIDTH_Y, 1.15/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] lensletFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("iris.ifuimager.lenslet", lensletFigs);
+
+        //iris.ifuimager.slicer
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        //max fov is 4.4" x 2.25"
+        //18" of axis .. so 18" + 4.4/2
+        props.put(CENTER_OFFSET_X, -(18.0/3600d));// + 4.4/2)/3600d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 4.4/3600d);
+        props.put(WIDTH_Y, 2.25/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] slicerFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("iris.ifuimager.slicer", slicerFigs);
+
+//        //note basic units are in arc-sec ..
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+//        props.put(ROTATABLE, false);
+//        props.put(MOVEABLE, true);
+//        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(WIDTH_X, 17/3600d);
+//        props.put(WIDTH_Y, 17/3600d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.GREEN);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] probeFigs = makeFigure(props);
+//        //cfgIris.add(fig);
+//        map.put("iris.oiwfs.probe1", irisDetectorFig);
+//        for(int i=0; i<probeFigs.length; i++) {
+//            irisDetectorFig[0].addSlave((CanvasFigure) probeFigs[i]);
+//        }
+//        probeFigs = makeFigure(props);
+//        map.put("iris.oiwfs.probe2", irisDetectorFig);
+//        for(int i=0; i<probeFigs.length; i++) {
+//            irisDetectorFig[0].addSlave((CanvasFigure) probeFigs[i]);
+//        }
+//        probeFigs = makeFigure(props);
+//        map.put("iris.oiwfs.probe3", irisDetectorFig);
+//        for(int i=0; i<probeFigs.length; i++) {
+//            irisDetectorFig[0].addSlave((CanvasFigure) probeFigs[i]);
+//        }
+
+
+
+        //Group2 starts - mobie related elements
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 7.5/60d); //7.5'
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.BLUE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieVignettingFigures = makeFigure(props);
+        map.put("mobie.vignettingstart", mobieVignettingFigures);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, -8.9/60d); //8.9'
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.BLUE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieEdgeOfFiledFigs = makeFigure(props);
+        map.put("mobie.edgeoffield", mobieEdgeOfFiledFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        //MOBIE DIMENSIONS ARE 4.2 x 9.6
+        props.put(CENTER_OFFSET_X, -(5.4)/60d); // 5.4' offet-x
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 4.2/60d);
+        props.put(WIDTH_Y, 9.6/60d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.BLUE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieDetectorFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("mobie.detector", mobieDetectorFigs);
+        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
+                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay));
+
+        //Keeping this after mobie as although mobie arcs are hidden 
+        //when sciencedetector is shown .. rotation handle goes berserk
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
         props.put(ROTATABLE, true);
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 17/3600d);
-        props.put(WIDTH_Y, 17/3600d);
+        props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
+        props.put(WIDTH_Y, 16.4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.GREEN);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] irisDetectorFig = makeFigure(props);
+        final CanvasFigure[] irisDetectorFigs = makeFigure(props);
         //cfgIris.add(fig);
-        map.put("iris.sciencedetector", irisDetectorFig);
-        irisDetectorFig[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
+        map.put("iris.sciencedetector", irisDetectorFigs);
+        //TODO:this listener .. does not work yet..
+        irisDetectorFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //kick out twfs if it intersects with
+                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+                //we can do this as twfs does not rotate .. 
+                if(irisDetectorFigs[0].getShape().intersects(
+                        twfsFig.getShape().getBounds2D())) {
+                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    Point2D.Double center = cc.getWCSCenter();
+                    Point2D.Double pt = new Point2D.Double(
+                            center.getX()+(1/60d), center.getY());
+                    cc.worldToScreenCoords(pt, false);
+                    twfsFig.translate(pt.x, pt.y);
+                    fovastImageDisplay.repaint();
+                }                
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                //do nothing
+                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+                //we can do this as twfs does not rotate ..
+                if(irisDetectorFigs[0].getShape().intersects(
+                        twfsFig.getShape().getBounds2D())) {
+                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    Point2D.Double center = cc.getWCSCenter();
+                    Point2D.Double pt = new Point2D.Double(
+                            center.getX()+(1/60d), center.getY());
+                    cc.worldToScreenCoords(pt, false);
+                    twfsFig.translate(pt.x, pt.y);
+                    fovastImageDisplay.repaint();
+                }    
+            }
+        });
+        irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
+        
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(FIGURE_LABEL, "TWFS");
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        // some arbitrary position outside of science field
+        // and inside nfiraos fov > 17" and < 2'
+        props.put(CENTER_OFFSET_X, 1/60d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 1/3600d); //1 arcsec
+        props.put(WIDTH_Y, 1/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] twsFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("nfiraos.twfs.detector", twsFigs);
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[1]);
+        //put constraints
+        //nfiraos.twfs.detector
+        CanvasFigure twsFig = twsFigs[0];
+        DragInteractor dragInteractor = (DragInteractor) twsFig.getInteractor();
+        //now constrain it
+        dragInteractor.appendConstraint(new TwfsPointConstraint(twsFig, map));
+
+
 
         return map;
     }
@@ -431,9 +775,122 @@ class FovastShapeFactory {
         // connect the different selection models
         roiSelectionInteractor.setSelectionModel(
                 dig.getSelectionInteractor().getSelectionModel());
-        roiSelectionInteractor.addInteractor(dig.getDragInteractor());
+        roiSelectionInteractor.addInteractor(makeDragInteractor(dig));
+        roiSelectionInteractor.setConsuming(false);
 
         return roiSelectionInteractor;
     }
 
+    private Interactor makeDragInteractor(DivaImageGraphics dig) {
+        DragInteractor dragInteractor = new DragInteractor();
+        dragInteractor.addLayerListener(new LayerAdapter() {
+
+            public void mouseReleased(LayerEvent e) {
+                Figure fig = e.getFigureSource();
+                if (fig instanceof CanvasFigure) {
+                    ((CanvasFigure) fig).fireCanvasFigureEvent(CanvasFigure.MOVED);
+                }
+            }
+        });
+        dragInteractor.setConsuming(false);
+        return dragInteractor;
+    }
+
+    private static class TwfsPointConstraint implements  PointConstraint {
+                 Point2D prevPt = null;
+
+        CanvasFigure parentFig = null;
+
+        private final HashMap<String, CanvasFigure[]> map;
+
+        public TwfsPointConstraint(CanvasFigure parentFig,
+                HashMap<String, CanvasFigure[]> map) {
+            this.parentFig = parentFig;
+            this.map = map;
+        }
+
+        @Override
+        public void constrain(Point2D pt) {
+
+
+            double x = pt.getX();
+            double y = pt.getY();
+
+            Figure twfsBoxFig = parentFig;
+            Shape twfsBoxShape = twfsBoxFig.getShape();
+
+            //should be with
+            CanvasFigure[] figs =  map.get("iris.sciencedetector");
+            CanvasFigure sdFig = figs[0];
+
+            figs = map.get("nfiraos.limits");
+            CanvasFigure nfiraosLimitsFig = figs[0];
+
+            Shape sdShape = sdFig.getShape();
+            Shape nfiraosLimitsShape = nfiraosLimitsFig.getShape();
+            
+            if(!sdShape.contains(pt) && nfiraosLimitsShape.contains(pt)) {
+            //if(!sdShape.intersects(twfsBoxShape.getBounds2D()) && nfiraosLimitsShape.contains(pt)
+            //    && nfiraosLimitsShape.contains(twfsBoxShape.getBounds2D()) ) {
+                prevPt = pt;
+                //leave pt as is
+            } else {
+                pt.setLocation(prevPt.getX(), prevPt.getY());
+            }
+        }
+
+        /**
+         * As of now never snaps
+         *
+         */
+        @Override
+        public boolean snapped() {
+            return false;
+        }
+
+    }
+
+
+    private static class MobieDetectorConstraint implements PointConstraint {
+
+        private CanvasFigure mobieFigure;
+        private FovastImageDisplay fovastImageDisplay;
+
+        private Point2D prevPoint;
+
+        public MobieDetectorConstraint(CanvasFigure mobieFigure, FovastImageDisplay imageDisplay) {
+            this.mobieFigure = mobieFigure;
+            this.fovastImageDisplay = imageDisplay;
+
+            prevPoint = new Point2D.Double(mobieFigure.getBounds().getCenterX(),
+                    mobieFigure.getBounds().getCenterY());
+        }
+
+
+        @Override
+        public boolean snapped() {
+            return false; // no snapping
+        }
+
+        @Override
+        public void constrain(Point2D pt) {
+            double x = mobieFigure.getShape().getBounds2D().getCenterX();
+            double y = mobieFigure.getShape().getBounds2D().getCenterY();
+
+            CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+            Point2D.Double center = (Point2D.Double) cc.getWCSCenter().clone();
+            cc.worldToScreenCoords(center, true);
+
+            //TODO: hard coding mobie value .. mobie is 5.4' off axis
+            Point2D.Double distance = new Point2D.Double(5.4/60d, 5.4/60d);
+            cc.worldToScreenCoords(distance, false);
+
+            if((center.distance(x, y) - distance.x)/distance.x < Math.pow(10, -15)) {
+                prevPoint = pt;
+            } else {
+                pt.setLocation(prevPoint.getX(), prevPoint.getY());
+            }
+        }
+
+    }
 }

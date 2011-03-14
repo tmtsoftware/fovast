@@ -73,22 +73,8 @@
                     (we can instead have multiple group child elements)
              4. Also order in which the display elements should be displayed
              should also be in the XML file. (probes should be over detector etc)
-             5. For lenslet and slicer field size depends on chosen patescale & spaxels
-                - Ultimately each display element has a <ShapeInfo> child
-                which has several <Property name="" value=""/> children. Properrties
-                can be center_x_offset, type (rectangle, circle .. etc). Property
-                values can be numbers in arc-sec (or) value of a property can
-                be dependent on some config value like ${iris.xx.xx}.value or
-                can have child elements which specifiy the value to be used in
-                different scenarios
-                <Property name="fieldWidth">
-                    <Value value="4.4">
-                     <Condition type="and">
-                        <Condition element="iris.ifu.slicer.spaxesls" value=""90x45/>
-                        <Condition element="iris.ifu.slicer.platescale" value="50mas"/>
-                     </Condition>
-                    </Value>
-                </Property>
+
+
 
 TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer that can rotate ?
 
@@ -111,81 +97,130 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
             <Condition element="instrument" value="iris"/>
         </EnableConditions>
 
-        <!-- We could have allowed for multiple selection in ifu.observingmode
-        but as we dont have support for multiple values for a config -->
-        
-        <ConfigOption id="iris.imager" selectByDefault="true">
-            <DisplayElement id="iris.sciencedetector" showByDefault="true">
-            </DisplayElement>
-        </ConfigOption>
+        <ConfigOption id="iris.mode" selectByDefault="true" type="string">
 
-        <ConfigOption id="iris.ifu">
+            <!-- Possible values for this config
+            and selectMode="mutuallyExclusive" indicates only one of the values
+            can be set and is the default selectMode -->
+            <PossibleValues selectMode="mutuallyExclusive">
+                <Value default="true">Imaging</Value>
+                <Value>IFU</Value>
+            </PossibleValues>
+            
+            <!--
+                Detector is 17x17 arc seconds in size
+                Spectrograph is 18 arc secs off center to right 
+                Probe detector sizes are 4x4 arc-sec
+                Slicer - size ???
+                Lenslet size ???
+                NFIRAOS FOV (corrected ?) - 2 arc min (radius / diameter ?) (US-22)
+                Move/rotate probes ...
+                Sweet spot - US29
+                Rotate instrument (IRIS / NFIRAOS)
+                Show NFIRAOS vis except asterism by default
+                TWFS - 1x1 arc-sec
+            -->
+
+            <!-- Sweet spot
+            US-29
+            Story:
+            Description:
+            As a user I want to select and visualize the "sweet spot" for AO field center.
+            It should be possible to select the “sweet spot”, or location of best AO
+            correction in the IRIS configuration as: - IFU, imaging, both (middle). There
+            should be something displayed in the visualization to show the “sweet spot”
+            selection. By default, the sweet spot should follow the selection of the
+            observing mode (i.e. imaging or IFU). The user can override this selection.
+            Inspection of the visualization of the IRIS FoV should show the selected
+            “sweet spot”.
+            Tests:
+            -->
+            <DisplayElement id="iris.sciencedetector" showByDefault="true">
+
+                <EnableConditions>
+                    <Condition element="iris.mode" value="Imaging" />
+                </EnableConditions>
+
+            </DisplayElement>
+
             <ConfigOption id="iris.ifuimager" type="string">
+
+                <EnableConditions>
+                    <Condition element="iris.mode" value="IFU"/>
+                </EnableConditions>
+
                 <PossibleValues>
                     <Value>Lenslet</Value>
                     <Value>Slicer</Value>
                 </PossibleValues>
 
                 <DisplayElement id="iris.ifuimager.lenslet" showByDefault="true">
+
                     <EnableConditions>
                         <Condition element="iris.ifuimager" value="Lenslet" />
                     </EnableConditions>
+
                 </DisplayElement>
 
                 <DisplayElement id="iris.ifuimager.slicer" showByDefault="true">
+
                     <EnableConditions>
                         <Condition element="iris.ifuimager" value="Slicer" />
                     </EnableConditions>
+
                 </DisplayElement>
+
             </ConfigOption>
+
+            <!-- For each probe we have to store the probe tip RA, DEC
+                Can select stars beneath it.
+            -->
+            <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true">
+
+               <ConfigOption id="iris.oiwfs.probe1.position"
+                    type="position" captured="true" captureElement="iris.oiwfs.probe1.arm"/>
+
+               <DisplayElement id="iris.oiwfs.probe1.arm"  showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe1.limits"  showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe1.vignettingLimits"  showByDefault="true">
+               </DisplayElement>
+
+            </ConfigOption>
+
+            <ConfigOption id="iris.oiwfs.probe2"  selectByDefault="true">
+               <ConfigOption id="iris.oiwfs.probe2.position"
+                    type="position" captured="true" captureElement="iris.oiwfs.probe2.arm"/>
+
+               <DisplayElement id="iris.oiwfs.probe2.arm" showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe2.limits" showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe2.vignettingLimits" showByDefault="true">
+               </DisplayElement>
+            </ConfigOption>
+
+            <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
+               <ConfigOption id="iris.oiwfs.probe3.position"
+                    type="position" captured="true" captureElement="iris.oiwfs.probe3.arm"/>
+
+               <DisplayElement id="iris.oiwfs.probe3.arm" showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe3.limits" showByDefault="true">
+               </DisplayElement>
+
+               <DisplayElement id="iris.oiwfs.probe3.vignettingLimits" showByDefault="true">
+               </DisplayElement>
+            </ConfigOption>
+
         </ConfigOption>
 
-        <!-- For each probe we have to store the probe tip RA, DEC
-            Can select stars beneath it.
-        -->
-        <ConfigOption id="iris.oiwfs.probe1" selectByDefault="true">
-
-           <ConfigOption id="iris.oiwfs.probe1.position"
-                type="position" captured="true" captureElement="iris.oiwfs.probe1.arm"/>
-
-           <DisplayElement id="iris.oiwfs.probe1.arm"  showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe1.limits"  showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe1.vignettingLimits"  showByDefault="true">
-           </DisplayElement>
-
-        </ConfigOption>
-
-        <ConfigOption id="iris.oiwfs.probe2"  selectByDefault="true">
-           <ConfigOption id="iris.oiwfs.probe2.position"
-                type="position" captured="true" captureElement="iris.oiwfs.probe2.arm"/>
-
-           <DisplayElement id="iris.oiwfs.probe2.arm" showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe2.limits" showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe2.vignettingLimits" showByDefault="true">
-           </DisplayElement>
-        </ConfigOption>
-
-        <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
-           <ConfigOption id="iris.oiwfs.probe3.position"
-                type="position" captured="true" captureElement="iris.oiwfs.probe3.arm"/>
-
-           <DisplayElement id="iris.oiwfs.probe3.arm" showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe3.limits" showByDefault="true">
-           </DisplayElement>
-
-           <DisplayElement id="iris.oiwfs.probe3.vignettingLimits" showByDefault="true">
-           </DisplayElement>
-        </ConfigOption>
         
     </ConfigOption>
     

@@ -66,17 +66,17 @@
 
 <Tree>
     <RadioNode configOptionId="instrument" configOptionValue="iris" label="IRIS">
-        <CheckboxNode configOptionId="iris.imager" label="Imaging Mode">
+        <RadioNode configOptionId="iris.mode" configOptionValue="Imaging" label="Imaging">
             <CheckboxNode configOptionId="iris.sciencedetector" label="Show Imaging Detector" />
-        </CheckboxNode>
-        <CheckboxNode configOptionId="iris.ifu" label="IFU Mode">
+        </RadioNode>
+        <RadioNode configOptionId="iris.mode" configOptionValue="IFU" label="IFU">
             <RadioNode configOptionId="iris.ifuimager" configOptionValue="Lenslet" label="Lenslet">
                 <CheckboxNode configOptionId="iris.ifuimager.lenslet" label="Show Lenslet"/>
             </RadioNode>
             <RadioNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
                 <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show Slicer" />
             </RadioNode>
-        </CheckboxNode>
+        </RadioNode>
         <CheckboxGroupNode label="OIWFS Probes">
             <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Arm"/>
@@ -103,7 +103,7 @@
             <CheckboxNode configOptionId="nfiraos.twfs.detector" label="Show TWFS detector"/>
         </CheckboxNode>
         <!--CheckboxNode configOptionId="nfiraos.acqusitionCamera" label="Show Acquisition Camera"/-->
-        <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera"/>
+        <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera Limits"/>
         <!--CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/-->
     <!--/CheckboxNode-->
     </Node>
