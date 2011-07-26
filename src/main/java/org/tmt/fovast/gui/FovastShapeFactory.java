@@ -8,6 +8,7 @@
 package org.tmt.fovast.gui;
 
 import diva.canvas.Figure;
+import diva.canvas.connector.CenterTarget;
 import diva.canvas.event.LayerAdapter;
 import diva.canvas.event.LayerEvent;
 import diva.canvas.interactor.BasicGrabHandleFactory;
@@ -440,7 +441,7 @@ class FovastShapeFactory {
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 2/60d);
+        props.put(RADIUS, 1/60d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -465,19 +466,20 @@ class FovastShapeFactory {
         CanvasFigure[] lsgFigures = makeFigure(props);
         map.put("nfiraos.lsgasterism", lsgFigures);
 
-        props  = new HashMap<String, Object>();
+       /* props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
-        props.put(MOVEABLE, false);
+        props.put(MOVEABLE, true);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 20/3600d);
+        props.put(RADIUS, 10/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] nfiraosAcqusitionCameraLimits = makeFigure(props);
         map.put("nfiraos.acqusitionCameraLimits", nfiraosAcqusitionCameraLimits);
+        */
 //        DragInteractor dragInteractor =
 //                (DragInteractor)nfiraosAcqusitionCameraLimits[0].getInteractor();
 //        dragInteractor.appendConstraint(new PointConstraint() {
@@ -499,18 +501,19 @@ class FovastShapeFactory {
 //
 //                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
 //                //acq cam fov is 20 arc sec
-//                Point2D.Double radius = new Point2D.Double(20/3600d, 20/3600d);
+//                Point2D.Double radius = new Point2D.Double(10/3600d, 10/3600d);
 //                cc.worldToScreenCoords(radius, true);
 //
 //                //nfiraos FOV is 2 arc min ..
-//                Point2D.Double nFov = new Point2D.Double(2/60d, 2/60d);
+//                Point2D.Double nFov = new Point2D.Double(1/60d, 1/60d);
 //                cc.worldToScreenCoords(nFov, true);
 //
 //                Point2D.Double imageCenter = (Point2D.Double)cc.getWCSCenter().clone();
 //                cc.worldToScreenCoords(imageCenter, false);
 //
 //                //if(shape2.contains(pt)) {
-//                if(imageCenter.distance(nFigCenter) < (nFov.getX() - radius.getX())) {
+//                //if(imageCenter.distance(nFigCenter) < (nFov.getX() - radius.getX())) {
+//                if(imageCenter.distance(nFigCenter) < (radius.getX())) {
 //                    prevPt = pt;
 //                    //leave pt as is
 //                } else {
@@ -719,7 +722,7 @@ class FovastShapeFactory {
             }
         });
         irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
-        irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
+        //irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
         irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
         irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
         
@@ -751,7 +754,70 @@ class FovastShapeFactory {
         //now constrain it
         dragInteractor.appendConstraint(new TwfsPointConstraint(twsFig, map));
 
+        props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 10/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        final CanvasFigure[] nfiraosAcqusitionCameraLimits = makeFigure(props);
+        map.put("nfiraos.acqusitionCameraLimits", nfiraosAcqusitionCameraLimits);
+        irisDetectorFigs[0].addSlave((CanvasFigure)nfiraosAcqusitionCameraLimits[0]);
+        CanvasFigure cirFig = nfiraosAcqusitionCameraLimits[0];
+        dragInteractor =  (DragInteractor) cirFig.getInteractor();
+        dragInteractor.appendConstraint(new PointConstraint() {
 
+            Point2D prevPt = null;
+
+            @Override
+            public void constrain(Point2D pt) {
+                double x = pt.getX();
+                double y = pt.getY();
+
+                CanvasFigure[] figs = map.get("nfiraos.limits");
+                CanvasFigure nfiraosLimitsFig = figs[0];
+
+                Shape shape2 = nfiraosLimitsFig.getShape();
+                Point2D.Double nFigCenter = new Point2D.Double(
+                        nfiraosAcqusitionCameraLimits[0].getBounds().getCenterX(),
+                        nfiraosAcqusitionCameraLimits[0].getBounds().getCenterY());                
+
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                //acq cam fov is 20 arc sec
+                Point2D.Double radius = new Point2D.Double(10/3600d,10/3600d);
+                cc.worldToScreenCoords(radius, true);
+
+                //nfiraos FOV is 2 arc min ..
+                Point2D.Double nFov = new Point2D.Double(1/60d, 1/60d);
+                cc.worldToScreenCoords(nFov, true);
+
+                Point2D.Double imageCenter = (Point2D.Double)cc.getWCSCenter().clone();
+                cc.worldToScreenCoords(imageCenter, false);
+
+                if(shape2.contains(pt)) {
+                //if(imageCenter.distance(nFigCenter) < (nFov.getX() - radius.getX())) {
+                //if( shape2.contains()) {
+                    prevPt = pt;
+                    //leave pt as is
+                } else {
+                    pt.setLocation(prevPt.getX(), prevPt.getY());
+                }
+            }
+
+            /**
+             * As of now never snaps
+             *
+             */
+            @Override
+            public boolean snapped() {
+                return false;
+            }
+        });
 
         return map;
     }
