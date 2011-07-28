@@ -198,8 +198,6 @@ public class ConfigHelper implements Config.ConfigListener{
                         " found unwanted element of class " + obj.getClass();
             }
         }
-
-        
     }
 
     @Override
