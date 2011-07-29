@@ -714,9 +714,37 @@ public class VisualizationWorkPanel extends JPanel
         for(int i=0; i<figs.length; i++) {
             figs[i].setVisible(visible);
             enableInteractors(figs[i], visible);
+        }
+        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
+                confElementId.equals("iris.oiwfs.probe2.arm") ||
+                confElementId.equals("iris.oiwfs.probe3.arm")){
+            figs = displayElementFigureMap.get("iris.probes.limits");
+            if(visible == true){
+                figs[0].setVisible(visible);
+            }
+            else if(visible == false){
+                CanvasFigure[] figs1 = displayElementFigureMap.get("iris.oiwfs.probe1.arm");
+                CanvasFigure[] figs2 = displayElementFigureMap.get("iris.oiwfs.probe2.arm");
+                CanvasFigure[] figs3 = displayElementFigureMap.get("iris.oiwfs.probe3.arm");
 
+                int flag1 = 0,flag2 = 0,flag3 = 0;
+                for(int i=0; i<figs1.length; i++) {
+                    if(figs1[i].isVisible() == true){
+                        flag1 = 1;
+                    }else if(figs2[i].isVisible() == true){
+                        flag2 = 1;
+                    }else if(figs3[i].isVisible() == true){
+                        flag3 = 1;
+                    }
+                    if(flag1 == 1 || flag2 == 1 || flag3 == 1){
+                        break;
+                    }
+                }
+                if(flag1 == 0 && flag2 == 0 && flag3 == 0){
+                    figs[0].setVisible(visible);
+                }
+            }
         }
         displayComp.repaint();
     }
-
 }
