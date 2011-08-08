@@ -14,3 +14,4 @@ import jsky.catalog.gui.CatalogQueryList;
 public interface PlotHandler {
     public void addCatalog(Catalog c);
 }
+
