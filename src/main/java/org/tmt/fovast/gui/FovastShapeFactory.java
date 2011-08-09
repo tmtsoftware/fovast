@@ -237,7 +237,7 @@ class FovastShapeFactory {
            cc.worldToScreenCoords(pt, false);
            ra = pt.x;     //in pixels now
            dec = pt.y;
-           pt = new Point2D.Double(x_off, y_off); //works only for positive offsets
+           pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
            cc.worldToScreenCoords(pt, true);
            x_off = pt.x;     //in pixels now
            y_off = pt.y;
@@ -305,7 +305,7 @@ class FovastShapeFactory {
            cc.worldToScreenCoords(pt, false);
            ra = pt.x;     //in pixels now
            dec = pt.y;
-           pt = new Point2D.Double(x_off, y_off); //works only for positive offsets
+           pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
            cc.worldToScreenCoords(pt, true);
            x_off = pt.x;     //in pixels now
            y_off = pt.y;
@@ -365,7 +365,7 @@ class FovastShapeFactory {
            cc.worldToScreenCoords(pt, false);
            ra = pt.x;     //in pixels now
            dec = pt.y;
-           pt = new Point2D.Double(x_off, y_off); //works only for positive offsets
+           pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
            cc.worldToScreenCoords(pt, true);
            x_off = pt.x;     //in pixels now
            y_off = pt.y;
@@ -416,8 +416,35 @@ class FovastShapeFactory {
            //of radius 35 arc sec
            //double pentagonRadius = props.get(RADIUS);
            double radius = (Double)props.get(RADIUS);
-           double x = (Double)props.get(CENTER_OFFSET_X);
-           double y = (Double)props.get(CENTER_OFFSET_X);
+           double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+           double y_off = (Double)props.get(CENTER_OFFSET_Y);
+           double flag_x=1;
+           double flag_y=1;
+
+           if(x_off < 0.0) {
+               flag_x=-1;
+           }
+           if(y_off < 0.0) {
+               flag_y=-1;
+           }
+           Point2D.Double wcsCenter = cc.getWCSCenter();
+           double ra = wcsCenter.x ;    //RA in degrees
+           double dec = wcsCenter.y ;    //DEC
+           double factor = Math.cos(Math.toRadians(dec)); //less than 1
+           Point2D.Double pt = new Point2D.Double(ra, dec);
+           cc.worldToScreenCoords(pt, false);
+           ra = pt.x;     //in pixels now
+           dec = pt.y;
+           pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+           cc.worldToScreenCoords(pt, true);
+           x_off = pt.x;     //in pixels now
+           y_off = pt.y;
+         //axis goes from east <-- west
+           ra = ra + x_off*flag_x;    //RA
+           dec = dec + y_off*flag_y;    //DEC
+           pt = new Point2D.Double(radius*factor, radius);
+           /*double x = (Double)props.get(CENTER_OFFSET_X);
+           double y = (Double)props.get(CENTER_OFFSET_Y);
            Point2D.Double wcsCenter = cc.getWCSCenter();
            //axis goes from east <- west
            x = wcsCenter.x + x;
@@ -427,17 +454,17 @@ class FovastShapeFactory {
            x = pt.x;
            y = pt.y;
 
-           pt = new Point2D.Double(radius, radius);
+           pt = new Point2D.Double(radius, radius);*/
            cc.worldToScreenCoords(pt, true);
            radius = pt.x;
            
            double triangleRadius1 = 10/3600d; //10 arc sec
-           pt = new Point2D.Double(triangleRadius1, triangleRadius1);
+           pt = new Point2D.Double(triangleRadius1*factor, triangleRadius1);
            cc.worldToScreenCoords(pt, true);
            triangleRadius1 = pt.x;
            
            double triangleRadius2 = 4/3600d; //10 arc sec
-           pt = new Point2D.Double(triangleRadius2, triangleRadius2);
+           pt = new Point2D.Double(triangleRadius2*factor, triangleRadius2);
            cc.worldToScreenCoords(pt, true);
            triangleRadius2 = pt.x;
 
@@ -450,13 +477,17 @@ class FovastShapeFactory {
                double tmpX = 0;
                double tmpY = 0;
                if(i==0) { //center star
-                  tmpX = x;
-                  tmpY = y;
+//                  tmpX = x;
+//                  tmpY = y;
+                    tmpX = ra;
+                    tmpY = dec;
                } else { //other stars on pentagon
                   double angle = Math.toRadians(18 + 72*(i-1));
-                  tmpX = x + radius * Math.cos(angle);
+                  //tmpX = x + radius * Math.cos(angle);
+                  tmpX = ra + radius * Math.cos(angle);
                   //- as swing origin is at left north
-                  tmpY = y - radius * Math.sin(angle);
+                  //tmpY = y - radius * Math.sin(angle);
+                  tmpY = dec - radius * Math.sin(angle);
                }
 
                //now draw a star at tmpX. tmpY
@@ -523,7 +554,7 @@ class FovastShapeFactory {
                cc.worldToScreenCoords(pt, false);
                ra = pt.x;     //in pixels now
                dec = pt.y;
-               pt = new Point2D.Double(x_off, y_off); //works only for positive offsets
+               pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
                cc.worldToScreenCoords(pt, true);
                x_off = pt.x;     //in pixels now
                y_off = pt.y;
@@ -641,6 +672,19 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] nfiraosLimitsFigs = makeFigure(props);
         map.put("nfiraos.limits", nfiraosLimitsFigs);
+
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 0.99/60d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_NO);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 0f);
+        CanvasFigure[] nfiraosLimitsFigs1 = makeFigure(props);
+        map.put("nfiraos.limits1", nfiraosLimitsFigs1);
 
         //nfiraos.lsgasterism (always fixed)
         props = new HashMap<String, Object>();
@@ -1042,6 +1086,10 @@ class FovastShapeFactory {
                 CanvasFigure probLimitsFig = figs[0];
                 Shape shape = probLimitsFig.getShape();
 
+                CanvasFigure[] figs2 = map.get("nfiraos.limits1");
+                CanvasFigure nfiraosLimitsFig = figs2[0];
+                Shape shape2 = nfiraosLimitsFig.getShape();
+
                 CanvasFigure[] figs1 = map.get("iris.oiwfs.probe1.arm");
                 CanvasFigure probArmFig = figs1[0];
                 Shape shape1 = probArmFig.getShape();
@@ -1057,7 +1105,7 @@ class FovastShapeFactory {
                     );
                     System.out.println("MousePoint " + pt);
                     System.out.println("NewCenter " + newCenterPt);
-                    if(shape.contains(newCenterPt)){
+                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
                     } else {
@@ -1094,6 +1142,60 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm2 = makeFigure(props);
         map.put("iris.oiwfs.probe2.arm", irisProbeArm2);
+        CanvasFigure probFig2 = irisProbeArm2[1];
+        dragInteractor =  (DragInteractor) probFig2.getInteractor();
+        dragInteractor.appendConstraint(new PointConstraint() {
+
+            Point2D prevPt = null;
+
+            @Override
+            public void constrain(Point2D pt) {
+                double x = pt.getX();
+                double y = pt.getY();
+
+                CanvasFigure[] figs = map.get("iris.oiwfs.probe2.limits");
+                CanvasFigure probLimitsFig = figs[0];
+                Shape shape = probLimitsFig.getShape();
+
+                CanvasFigure[] figs2 = map.get("nfiraos.limits1");
+                CanvasFigure nfiraosLimitsFig = figs2[0];
+                Shape shape2 = nfiraosLimitsFig.getShape();
+
+                CanvasFigure[] figs1 = map.get("iris.oiwfs.probe2.arm");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+
+                if(prevPt != null) {
+                    Point2D.Double newCenterPt = new Point2D.Double(
+                                centerX + (pt.getX() - prevPt.getX()),
+                                centerY + (pt.getY() - prevPt.getY())
+                    );
+                    System.out.println("MousePoint " + pt);
+                    System.out.println("NewCenter " + newCenterPt);
+                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+                        prevPt = pt;
+                        //leave pt as is
+                    } else {
+                        pt.setLocation(prevPt.getX(), prevPt.getY());
+                    }
+                } else {
+                    prevPt = pt;
+                }
+            }
+
+            /**
+             * As of now never snaps
+             *
+             */
+            @Override
+            public boolean snapped() {
+                return false;
+            }
+        });
 
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_PROBETIP);
@@ -1110,6 +1212,60 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm3 = makeFigure(props);
         map.put("iris.oiwfs.probe3.arm", irisProbeArm3);
+        CanvasFigure probFig3 = irisProbeArm3[1];
+        dragInteractor =  (DragInteractor) probFig3.getInteractor();
+        dragInteractor.appendConstraint(new PointConstraint() {
+
+            Point2D prevPt = null;
+
+            @Override
+            public void constrain(Point2D pt) {
+                double x = pt.getX();
+                double y = pt.getY();
+
+                CanvasFigure[] figs = map.get("iris.oiwfs.probe3.limits");
+                CanvasFigure probLimitsFig = figs[0];
+                Shape shape = probLimitsFig.getShape();
+
+                CanvasFigure[] figs2 = map.get("nfiraos.limits1");
+                CanvasFigure nfiraosLimitsFig = figs2[0];
+                Shape shape2 = nfiraosLimitsFig.getShape();
+
+                CanvasFigure[] figs1 = map.get("iris.oiwfs.probe3.arm");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+
+                if(prevPt != null) {
+                    Point2D.Double newCenterPt = new Point2D.Double(
+                                centerX + (pt.getX() - prevPt.getX()),
+                                centerY + (pt.getY() - prevPt.getY())
+                    );
+                    System.out.println("MousePoint " + pt);
+                    System.out.println("NewCenter " + newCenterPt);
+                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+                        prevPt = pt;
+                        //leave pt as is
+                    } else {
+                        pt.setLocation(prevPt.getX(), prevPt.getY());
+                    }
+                } else {
+                    prevPt = pt;
+                }
+            }
+
+            /**
+             * As of now never snaps
+             *
+             */
+            @Override
+            public boolean snapped() {
+                return false;
+            }
+        });
        
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
