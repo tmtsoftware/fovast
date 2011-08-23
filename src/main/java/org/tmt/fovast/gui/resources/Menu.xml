@@ -24,7 +24,7 @@
         <MenuItem name="Menu.File.NewVisualization"/>
         <MenuItem name="Menu.File.NewVisualizationFromTemplates" implState="todo"/>
         <MenuItem name="Menu.File.OpenVisualization" implState="todo"/>
-        <MenuItem name="Menu.File.SaveVisualization" implState="todo"/>
+        <MenuItem name="Menu.File.SaveVisualization"/>
         <MenuItem name="Menu.File.CloseVisualization" implState="todo"/>
         <MenuItem name="Menu.File.CloseAllVisualizations" implState="todo"/>
         <!--MenuItem name="Menu.File.NewVisualizationGroup"/-->

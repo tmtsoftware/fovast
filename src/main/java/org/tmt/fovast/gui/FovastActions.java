@@ -146,8 +146,7 @@ public class FovastActions {
 
     @Action(name = "Menu.File.SaveVisualization", enabledProperty = SAVE_VISUALIZATION_MENU_ENABLED)
     public void saveVisualizationAction() {
-        JOptionPane.showMessageDialog(mainComponent, "To be done");
-        //mainComponent.saveVisualization();
+        mainView.saveVisualization();
     }
 
     @Action(name = "Menu.File.CloseVisualization", enabledProperty = CLOSE_VISUALIZATION_MENU_ENABLED)

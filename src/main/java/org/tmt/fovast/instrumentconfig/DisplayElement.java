@@ -7,6 +7,8 @@
 
 package org.tmt.fovast.instrumentconfig;
 
+import java.util.HashMap;
+
 /**
  *
  */
@@ -35,6 +37,8 @@ public class DisplayElement {
 
     private boolean showOnEnable;
 
+    private HashMap<String, String> properties = new HashMap<String, String>();
+    
     public DisplayElement(String id) {
         this.id = id;
         enableConditions = new EnableConditions();
@@ -111,5 +115,12 @@ public class DisplayElement {
         this.showOnEnable = showOnEnable;
     }
 
+    public void setPropertyValue(String propKey, String propValue) {
+        properties.put(propKey, propValue);
+    }
+
+    public String getPropertyValue(String propKey) {
+        return properties.get(propKey);
+    }
 }
 

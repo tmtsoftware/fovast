@@ -108,7 +108,9 @@ public class ConeSearchDialog extends DVMap{
 
     private ArrayList<Double> decList = new ArrayList<Double>();
 
-    private ArrayList<Float> magList = new ArrayList<Float>();
+    private ArrayList<Double> magList = new ArrayList<Double>();
+
+    private ArrayList<String> idList = new ArrayList<String>();
 
     public static final String RA_UCD = "POS_EQ_RA_MAIN";
 
@@ -116,9 +118,9 @@ public class ConeSearchDialog extends DVMap{
 
     public static final String MAG_UCD = "PHOT_MAG_V";
 
-    private String[] _colNames = new String[3];
+    private String[] _colNames = new String[4];
 
-    private int[] _colIndexes = new int[3];
+    private int[] _colIndexes = new int[4];
 
     private String _cond;
 
@@ -261,7 +263,7 @@ public class ConeSearchDialog extends DVMap{
         urlTextField = new JTextField(url,50);
         raTextField = new JTextField(""+ra,15);
         decTextField = new JTextField(""+dec,15);
-        radiusTextField = new JTextField("0.6");
+        radiusTextField = new JTextField("0.1");
         minMagTextField = new JTextField();
         maxMagTextField = new JTextField();
         closeButton = new JButton(" Close ");
@@ -559,6 +561,7 @@ public class ConeSearchDialog extends DVMap{
         raList.clear();
         decList.clear();
         magList.clear();
+        idList.clear();
         plotButton.setEnabled(false);
         if(tableModel != null)
             tableModel.clear();
@@ -572,6 +575,7 @@ public class ConeSearchDialog extends DVMap{
                         int raColIndex = -1;
                         int decColIndex = -1;
                         int magColIndex = -1;
+                        int idColIndex = -1;
                         String urlString = "";
                         if(source.equals("GSC2")){
                             String ra1 = DegreeCoverter.degToHMS(ra);
@@ -604,27 +608,35 @@ public class ConeSearchDialog extends DVMap{
                         }else if(source.equals("USNO")){
                             String ra1 =DegreeCoverter.degToHMS(ra);
                             String dec1=DegreeCoverter.degToDMS(dec);
+                            if(dec1.startsWith("-")){
+                                //do nothing
+                            }
+                            else if(!dec1.startsWith("-") || !dec1.startsWith("+"))
+                            {
+                                dec1 = "+" + dec1;
+                            }
                             if(minMagTextField.getText().trim().equals("") &&
                                  !(maxMagTextField.getText().trim().equals(""))){
-                                    urlString = url + ra1 +"+"+ dec1 +
+                                    urlString = url + ra1 + dec1 +
                                      "&radius=0.0," + tempSr +"&mag=,"
                                      +maxMagTextField.getText().trim()
                                      +"&&format=8&sort=mr";
                             }else if(maxMagTextField.getText().trim().equals("") &&
                                  !(minMagTextField.getText().trim().equals(""))){
-                                    urlString = url + ra1 +"+"+ dec1 +
+                                    urlString = url + ra1 + dec1 +
                                      "&radius=0.0," + tempSr +"&mag="
                                      +minMagTextField.getText().trim()+",&&format=8&sort=mr";
                             }else if(minMagTextField.getText().trim().equals("") &&
                                  maxMagTextField.getText().trim().equals("")){
-                                    urlString = url + ra1 +"+"+ dec1 +
+                                    urlString = url + ra1 + dec1 +
                                      "&radius=0.0," + tempSr +"&&format=8&sort=mr";
                             }else{
-                                urlString = url + ra1 +"+"+ dec1 +
+                                urlString = url + ra1 + dec1 +
                                "&radius=0.0," + tempSr +"&mag="
                                +minMagTextField.getText().trim()+","+maxMagTextField.getText().trim()
                                +"&&format=8&sort=mr";
                             }
+                            System.out.println("urlString::"+urlString);
                             logger.info(urlString);
                         }                       
                         urlToDownload = new URL(urlString);
@@ -665,6 +677,9 @@ public class ConeSearchDialog extends DVMap{
                                 } else if (colInfo.getName().equals("k_m")) {
                                     magColIndex = colInd;
                                     _colNames[2] = colInfo.getName();
+                                } else if (colInfo.getName().equalsIgnoreCase("designation")){
+                                    idColIndex = colInd;
+                                    _colNames[3] = colInfo.getName();
                                 }
                             }
                         }
@@ -675,12 +690,15 @@ public class ConeSearchDialog extends DVMap{
                             raColIndex = 1;
                             decColIndex = 2;
                             magColIndex = 4;
+                            idColIndex = 0;
                             ColumnInfo colInfo = table.getColumnInfo(raColIndex);
                             _colNames[0] = colInfo.getName();
                             colInfo = table.getColumnInfo(decColIndex);
                             _colNames[1] = colInfo.getName();
                             colInfo = table.getColumnInfo(magColIndex);
                             _colNames[2] = colInfo.getName();
+                            colInfo = table.getColumnInfo(idColIndex);
+                            _colNames[3] = colInfo.getName();
                         }
                         else if(source.equals("USNO") ){
                             table = (StarTable) new TstTableBuilder()
@@ -689,12 +707,15 @@ public class ConeSearchDialog extends DVMap{
                             raColIndex = 1;
                             decColIndex = 2;
                             magColIndex = 3;
+                            idColIndex = 0;
                             ColumnInfo colInfo = table.getColumnInfo(raColIndex);
                             _colNames[0] = colInfo.getName();
                             colInfo = table.getColumnInfo(decColIndex);
                             _colNames[1] = colInfo.getName();
                             colInfo = table.getColumnInfo(magColIndex);
-                            _colNames[2] = colInfo.getName(); 
+                            _colNames[2] = colInfo.getName();
+                            colInfo = table.getColumnInfo(idColIndex);
+                            _colNames[3] = colInfo.getName();
                         }
 
 
@@ -716,6 +737,7 @@ public class ConeSearchDialog extends DVMap{
                                         +maxMagTextField.getText().trim();
                             }
                             _colIndexes[2] = magColIndex;
+                            _colIndexes[3] = idColIndex;
                             if(_cond!=null && !(_cond.equals("")))
                                 _compileExpressions();
                             prop.put("codition", _cond);
@@ -735,6 +757,7 @@ public class ConeSearchDialog extends DVMap{
                                         +maxMagTextField.getText().trim();
                             }
                             _colIndexes[2] = magColIndex;
+                            _colIndexes[3] = idColIndex;
                             if(_cond!=null && !(_cond.equals("")))
                                 _compileExpressions();
                             prop.put("codition", _cond);
@@ -754,6 +777,7 @@ public class ConeSearchDialog extends DVMap{
                                         +maxMagTextField.getText().trim();
                             }
                             _colIndexes[2] = magColIndex;
+                            _colIndexes[3] = idColIndex;
                             if(_cond!=null && !(_cond.equals("")))
                                 _compileExpressions();
                             prop.put("codition", _cond);
@@ -785,6 +809,11 @@ public class ConeSearchDialog extends DVMap{
                                     str = cells[decColIndex].toString();
                                     d1 = Double.parseDouble(str);
                                     decList.add(d1);
+                                    str = cells[magColIndex].toString();
+                                    d1 = Double.parseDouble(str);
+                                    magList.add(d1);
+                                    str = cells[idColIndex].toString();
+                                    idList.add(str);
                                     for(int j = 0;j<table.getColumnCount();j++){
                                          if(cells[j] != null){
                                             tableModel.setValueAt(cells[j], tableModelIndex, j);
@@ -799,12 +828,18 @@ public class ConeSearchDialog extends DVMap{
                                 }
                                 else
                                     condition = true;
-                                String str = cells[raColIndex].toString();
+                                String str = cells[raColIndex].toString();                                
                                 Double d1 = Double.parseDouble(str);
+                                System.out.println("*******ra:"+d1);
                                 raList.add(d1);
                                 str = cells[decColIndex].toString();
                                 d1 = Double.parseDouble(str);
                                 decList.add(d1);
+                                str = cells[magColIndex].toString();
+                                d1 = Double.parseDouble(str);
+                                magList.add(d1);
+                                str = cells[idColIndex].toString();
+                                idList.add(str);
                                 for(int j = 0;j<table.getColumnCount();j++){
                                      if(cells[j] != null){
                                          tableModel.setValueAt(cells[j], tableModelIndex, j);
@@ -814,10 +849,12 @@ public class ConeSearchDialog extends DVMap{
                             }
                             rowInd++;
                         }
-                        Object[][] tempData = new Object[raList.size()][3];
+                        Object[][] tempData = new Object[raList.size()][4];
                         for (rowInd = 0; rowInd < raList.size(); rowInd++) {
                                 tempData[rowInd][0] = raList.get(rowInd);
                                 tempData[rowInd][1] = decList.get(rowInd);
+                                tempData[rowInd][2] = magList.get(rowInd);
+                                tempData[rowInd][3] = idList.get(rowInd);
                         }
                         c.setData(tempData);
                         c.setColNames(_colNames);
@@ -935,9 +972,10 @@ public class ConeSearchDialog extends DVMap{
         }
         else{ 
             tablePanel.removeAll();           
-            JTable displayTable = new JTable(tableModel);
+            JTable displayTable = new JTable(tableModel);            
+            //displayTable.getColumnModel().getColumn(1).setCellRenderer(new DecimalFormatRenderer() );
             displayTable.setShowGrid(true);
-            String temp = "";            
+            String temp = "";
             displayTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             TableRowSorter sorter = new TableRowSorter(tableModel);
             displayTable.setRowSorter(sorter);

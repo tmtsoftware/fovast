@@ -89,14 +89,38 @@ public class FovastTablePlotter{
         for (int i = 0; i < data.length; i++) {
             Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
             CoordinateConverter coordinateConverter = _display.getCoordinateConverter();
+
+            Point2D.Double wcsCenter = coordinateConverter.getWCSCenter();//image center RA/DEC
+          double ra = wcsCenter.x ;    //RA in degrees
+          double dec = wcsCenter.y ;    //DEC
+          double factor = Math.cos(Math.toRadians(dec)); //less than 1
+
+          Point2D.Double pt = new Point2D.Double(ra, dec);
+          coordinateConverter.worldToScreenCoords(pt, false);
+          ra = pt.x;     //in pixels now
+          dec = pt.y;
+          //double factor = Math.cos(Math.toRadians(pos.y)); //less than 1
+
+
+
+
+
             coordinateConverter.convertCoords(pos, CoordinateConverter.WORLD, CoordinateConverter.USER, false);
             // clip to image bounds
             double w = coordinateConverter.getWidth();
             double h = coordinateConverter.getHeight();
-            if (pos.x < 0. || pos.y < 0. || pos.x >= w || pos.y >= h) {
-                continue;
-            }
+//            if (pos.x < 0. || pos.y < 0. || pos.x >= w || pos.y >= h) {
+//                continue;
+//            }
             coordinateConverter.convertCoords(pos, CoordinateConverter.USER, CoordinateConverter.SCREEN, false);
+
+            double x_offset=(ra - pos.x)*factor;
+            pos.x = ra-x_offset;           //corrected x position (in pixels)
+
+
+
+
+
             Point2D.Double size = new Point2D.Double(st.getSize(), st.getSize());
             int sizeType = getCoordType(st.getUnits());
             coordinateConverter.convertCoords(size, sizeType, CoordinateConverter.SCREEN, true);

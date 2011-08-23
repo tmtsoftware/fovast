@@ -595,6 +595,7 @@ public class FovastMainView extends FrameView
         usnoMenu.removeAll();
         massMenu.removeAll();
     }
+
     void createNewVisualizationFromImageFile(boolean newPanel) {
         //TODO: Use filters  (*.fits, *.fit, All files)              
         AppConfiguration config =
@@ -666,8 +667,8 @@ public class FovastMainView extends FrameView
      */
     public void saveVisualization() {
         //How to do this .. 
-//        VisualizationPanel visPanel = getActiveVisPanel();
-//        visPanel.save();
+        VisualizationPanel visPanel = getActiveVisPanel();
+        visPanel.save();
     }
 
     /**

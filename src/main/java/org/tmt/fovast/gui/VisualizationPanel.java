@@ -20,6 +20,7 @@ import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmt.fovast.astro.util.XMLFileGenerator;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.util.Cache;
 
@@ -55,6 +56,7 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
     public void addCatalog(Catalog c) {
         try {
             workPanel.plotCatalog(c);
+            visualization.addCatalog(c);
 //            for(int i=0; i<catalogListeners.size(); i++) {
 //                try {
 //                    CatalogListener cl = catalogListeners.get(i);
@@ -101,7 +103,9 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
 
     void save() {
         //TODO: Code to save the vis panel
-        JOptionPane.showMessageDialog(this, "To be done");
+        //JOptionPane.showMessageDialog(this, "To be done");
+        XMLFileGenerator xf = new XMLFileGenerator();
+        xf.saveXML(appContext);
     }
 
     boolean isModified() {
@@ -166,6 +170,7 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
 
     void remove(Catalog c){
         workPanel.remove(c);
+        visualization.removeCatalog(c);
 //        for(int i=0; i<catalogListeners.size(); i++) {
 //                try {
 //                    CatalogListener cl = catalogListeners.get(i);
@@ -178,6 +183,7 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
 
     public boolean isCatalogShown(Catalog c) {
         return workPanel.isCatalogShown(c);
+        //TODO:this should be ideally stored in visualisation state
     }
 
 //    public void plot() throws MalformedURLException, SAXException, IOException{

@@ -208,16 +208,19 @@ public class VisualizationWorkPanel extends JPanel
             @Override
             protected Object doInBackground() throws Exception {
                 if (!isCancelled()) {
-                    SiaClient siaClient = new SiaClient(DSS_SIA_ENDPOINT);
-                    HashMap<String, Object> otherConstraints = new HashMap<String, Object>();
-                    otherConstraints.put(DSS_SIA_SURVEY_UCD, DEFAULT_DSS_SURVEY);
-                    fireBackgroundImageLoadStartedEvent();
-                    String[] urls =
-                            siaClient.fetchFitsImages(ra, dec, DEFAULT_SIZE, DEFAULT_SIZE,
-                            otherConstraints);
-                    if (!isCancelled()) {
-                        if (urls.length > 0) {
-                            urlToDownload = new URL(urls[0]);
+//                    SiaClient siaClient = new SiaClient(DSS_SIA_ENDPOINT);
+//                    HashMap<String, Object> otherConstraints = new HashMap<String, Object>();
+//                    otherConstraints.put(DSS_SIA_SURVEY_UCD, DEFAULT_DSS_SURVEY);
+//                    fireBackgroundImageLoadStartedEvent();
+//                    String[] urls =
+//                            siaClient.fetchFitsImages(ra, dec, DEFAULT_SIZE, DEFAULT_SIZE,
+//                            otherConstraints);
+//                    if (!isCancelled()) {
+//                        if (urls.length > 0) {
+//                            urlToDownload = new URL(urls[0]);
+                            String tempURL = "http://skyview.gsfc.nasa.gov/cgi-bin/images?Survey=digitized+sky+survey&"
+                                    + "position="+ra+","+dec+"&Return=FITS&size=0.6&Coordinates=J2000&Pixels=1080";
+                            urlToDownload = new URL(tempURL);
                             if (imageCache.getFile(urlToDownload) == null) {
                                 logger.info("Downloading image from " + urlToDownload.toString());
                                 imageCache.save(urlToDownload, new Cache.SaveListener() {
@@ -237,14 +240,14 @@ public class VisualizationWorkPanel extends JPanel
                                 logger.info("Cached image path " + imageCache.getFile(urlToDownload).toString());
                             }
                             return imageCache.getFile(urlToDownload);
-                        }
-                    }
-                    else {
-                        if(urlToDownload != null)
-                            logger.info("Task cancelled: " + urlToDownload.toString());
-                        else
-                            logger.info("Task cancelled");
-                    }
+//                        }
+//                    }
+//                    else {
+//                        if(urlToDownload != null)
+//                            logger.info("Task cancelled: " + urlToDownload.toString());
+//                        else
+//                            logger.info("Task cancelled");
+//                    }
                 }
                 else {
                     if(urlToDownload != null)
@@ -631,7 +634,7 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
+    public void updateConfigElementValue(String confElementId, Value value, boolean isDisplayElement) {
         if(isDisplayElement) {
             
             BooleanValue bValue = (BooleanValue)value;
@@ -642,6 +645,21 @@ public class VisualizationWorkPanel extends JPanel
             } else {
                 if(displayElementFigureMap.containsKey(confElementId)) {
                     makeFigsVisible(confElementId, true);
+
+                    CanvasFigure[] figs1 = displayElementFigureMap.get(confElementId);
+                    CanvasFigure probArmFig = figs1[0];
+                    Shape shape1 = probArmFig.getShape();
+                    double centerX = shape1.getBounds2D().getCenterX();
+                    double centerY = shape1.getBounds2D().getCenterY();
+                    Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                    CoordinateConverter cc = displayComp.getImageDisplay().getCoordinateConverter();
+                    cc.screenToWorldCoords(centerPt, false);
+                    String centerString = centerPt.getX()+","+centerPt.getY();
+                    //System.out.println("center:"+centerString);
+                    visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    //set the initial value for probe position
+                    //check if element being shown is one of the probes and set its position property accordingly
+                    
                 } else {
                     //assert false : "Should not have come here .. ";
                     //this would create problem with the order in which figures are
@@ -747,4 +765,11 @@ public class VisualizationWorkPanel extends JPanel
         }
         displayComp.repaint();
     }
+
+    @Override
+    public void updateConfigElementProperty(String confElementId, String propKey, String propValue) {
+        //nothing todo as of now 
+    }
+
+    
 }

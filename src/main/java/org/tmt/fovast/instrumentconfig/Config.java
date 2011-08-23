@@ -107,7 +107,68 @@ public class Config {
         return children;
     }
 
-    public boolean setConfig(String confElementId, Value value) {
+    public void setConfigElementProperty(String confElementId, String propKey, String propValue) {
+        
+        Object obj = configElementMap.get(confElementId);
+        if(obj instanceof ConfigOption) {          
+            ConfigOption co = (ConfigOption)obj;
+            co.setPropertyValue(propKey, propValue);
+            fireClUpdateConfigPropertyEvent(confElementId, propKey, propValue);
+            
+        } else if(obj instanceof DisplayElement) {
+             DisplayElement de = ((DisplayElement)obj);
+             de.setPropertyValue(propKey, propValue);
+             fireClUpdateConfigPropertyEvent(confElementId, propKey, propValue);
+        }
+        else {
+            logger.error("property value changed for element" +
+                    "which is neither DisplayElement or ConfigOption ... " + confElementId);
+        }
+    }
+
+    public String getConfigElementProperty(String confElementId, String propKey) {
+         Object obj = configElementMap.get(confElementId);
+        if(obj instanceof ConfigOption) {
+            ConfigOption co = (ConfigOption)obj;
+            return co.getPropertyValue(propKey);
+
+        } else if(obj instanceof DisplayElement) {
+             DisplayElement de = ((DisplayElement)obj);
+             return de.getPropertyValue(propKey);
+        }
+        else {
+            logger.error("property value changed for element" +
+                    "which is neither DisplayElement or ConfigOption ... " + confElementId);
+            return null;
+        }
+    }
+
+    private void fireClUpdateConfigPropertyEvent(String eleId, String propKey, String propValue) {
+        ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
+        for(int i=0; i<listeners.size(); i++) {
+            listeners.get(i).updateConfigElementProperty(eleId, propKey,
+                    propValue);
+        }
+    }
+
+    /*private void fireClUpdateConfigEventForConfigOption(ConfigOption configOption) {
+        ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
+        for(int i=0; i<listeners.size(); i++) {
+            listeners.get(i).updateConfigElementValue(configOption.getId(),
+                    configOption.getValue(), false);
+        }
+    }
+
+    private void fireClUpdateConfigEventForDisplayElement(DisplayElement displayElement,
+            Value value) {
+        ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
+        for(int i=0; i<listeners.size(); i++) {
+            listeners.get(i).updateConfigElementValue(displayElement.getId(), value, true);
+        }
+    }*/
+
+
+    public boolean setConfigElementValue(String confElementId, Value value) {
 
         logger.debug("setConfig called for .. " + confElementId + " to "
                 + ((value == null) ? "null" : value.toString()));
@@ -505,7 +566,7 @@ public class Config {
     private void fireClUpdateConfigEventForConfigOption(ConfigOption configOption) {
         ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
         for(int i=0; i<listeners.size(); i++) {
-            listeners.get(i).updateConfig(configOption.getId(),
+            listeners.get(i).updateConfigElementValue(configOption.getId(),
                     configOption.getValue(), false);
         }
     }
@@ -514,7 +575,7 @@ public class Config {
             Value value) {
         ArrayList<ConfigListener> listeners = listenerSupport.getListeners();
         for(int i=0; i<listeners.size(); i++) {
-            listeners.get(i).updateConfig(displayElement.getId(), value, true);
+            listeners.get(i).updateConfigElementValue(displayElement.getId(), value, true);
         }
     }
 
@@ -536,8 +597,11 @@ public class Config {
          *                        (DisplayElement / Instrument / ConfigOption)
          * @param value
          */
-        public void updateConfig(String confElementId, Value value,
+        public void updateConfigElementValue(String confElementId, Value value,
                 boolean isDisplayElement);
+
+        public void updateConfigElementProperty(String confElementId, String propKey ,
+                String propValue );
 
         public void enableConfig(String confElementId, boolean enable,
                 boolean isDisplayElement);

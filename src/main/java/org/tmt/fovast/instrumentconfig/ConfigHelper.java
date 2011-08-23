@@ -47,7 +47,7 @@ public class ConfigHelper implements Config.ConfigListener{
 
             if(configOption.isSelectByDefault()) {
                 config.enableConfig(configOption.getId(), true);
-                config.setConfig(configOption.getId(),
+                config.setConfigElementValue(configOption.getId(),
                         configOption.getPossibleValues().getDefaultValue());
                 checkDependants(configOption.getId(), false);
             }
@@ -73,7 +73,7 @@ public class ConfigHelper implements Config.ConfigListener{
 //                }
 //            }
             logger.debug("Setting .. config element " + confElementId);
-            config.setConfig(confElementId, value);
+            config.setConfigElementValue(confElementId, value);
             //checkDependants(confElementId, false);
         }
     }
@@ -118,7 +118,7 @@ public class ConfigHelper implements Config.ConfigListener{
                     config.enableConfig(depConfElementId, shouldBeEnabled);
                     if(shouldBeEnabled) {
                         if(co.isSelectOnEnable()) {
-                            config.setConfig(co.getId(), co.getPossibleValues().getDefaultValue());
+                            config.setConfigElementValue(co.getId(), co.getPossibleValues().getDefaultValue());
                         } 
                         //if the dependant is a direct child .. and the parent was selected
                         //now check for selection conditions
@@ -126,21 +126,21 @@ public class ConfigHelper implements Config.ConfigListener{
                                 ((parent == null) || (parent == objWhoseDepsAreBeingEvaled)) ) ) {
 
                             if(co.isPrevValueSet()) {
-                                config.setConfig(co.getId(), co.getPrevValue());
+                                config.setConfigElementValue(co.getId(), co.getPrevValue());
                             } else if(co.isSelectByDefault()) {
-                                config.setConfig(co.getId(), co.getPossibleValues().getDefaultValue());
+                                config.setConfigElementValue(co.getId(), co.getPossibleValues().getDefaultValue());
                             }
                         }
                     } else {
                         if(co.getType().equals(Config.TYPE_ATTRIBUTE_VALUE_BOOLEAN)) {
-                            config.setConfig(co.getId(), new BooleanValue(false));
+                            config.setConfigElementValue(co.getId(), new BooleanValue(false));
                         } else {
-                            config.setConfig(co.getId(), null);
+                            config.setConfigElementValue(co.getId(), null);
                         }
                     }
                 } else {
                     //config.enableConfig(depConfElementId, false);
-                    //config.setConfig(depConfElementId, null);
+                    //config.setConfigElementValue(depConfElementId, null);
                 }
                 
             } else if(obj instanceof DisplayElement) {
@@ -175,22 +175,22 @@ public class ConfigHelper implements Config.ConfigListener{
 
                     if(shouldBeEnabled) {
                         if(de.isShowOnEnable()) {
-                            config.setConfig(de.getId(), new BooleanValue(true));
+                            config.setConfigElementValue(de.getId(), new BooleanValue(true));
                         }
                         else if(!calledOnEnable &&
                                 (de.getParent() == objWhoseDepsAreBeingEvaled)) {
                             if(de.isPrevVisibleSet()) {
-                                config.setConfig(de.getId(), de.isPrevVisible());
+                                config.setConfigElementValue(de.getId(), de.isPrevVisible());
                             } else if(de.isShowByDefault()) {
-                                config.setConfig(de.getId(), new BooleanValue(true));
+                                config.setConfigElementValue(de.getId(), new BooleanValue(true));
                             }
                         }
                     } else { // when being disabled set value to null 
-                        config.setConfig(de.getId(), null);
+                        config.setConfigElementValue(de.getId(), null);
                     }
                 } else {
                     //config.enableConfig(depConfElementId, false);
-                    //config.setConfig(depConfElementId, new BooleanValue(false));
+                    //config.setConfigElementValue(depConfElementId, new BooleanValue(false));
                 }
 
             } else {
@@ -201,7 +201,7 @@ public class ConfigHelper implements Config.ConfigListener{
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
+    public void updateConfigElementValue(String confElementId, Value value, boolean isDisplayElement) {
 //        if(value == null && config.getConfig(confElementId) == null) {
 //            //do nothing
 //        }
@@ -225,5 +225,10 @@ public class ConfigHelper implements Config.ConfigListener{
 //            checkDependants(confElementId, true);
 //        }
         checkDependants(confElementId, true);
+    }
+
+    @Override
+    public void updateConfigElementProperty(String confElementId, String propKey, String propValue) {
+        //nothing to do
     }
 }

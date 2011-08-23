@@ -11,32 +11,19 @@ import diva.canvas.Figure;
 import diva.canvas.connector.CenterTarget;
 import diva.canvas.event.LayerAdapter;
 import diva.canvas.event.LayerEvent;
-import diva.canvas.interactor.BasicGrabHandleFactory;
-import diva.canvas.interactor.BoundsManipulator;
-import diva.canvas.interactor.CircleGeometry;
 import diva.canvas.interactor.CompositeInteractor;
 import diva.canvas.interactor.DragInteractor;
 import diva.canvas.interactor.Interactor;
 import diva.canvas.interactor.PointConstraint;
 import diva.canvas.interactor.SelectionInteractor;
-import diva.canvas.toolbox.BasicFigure;
-import diva.canvas.toolbox.LabelWrapper;
 import diva.util.java2d.Polygon2D;
 import java.awt.Color;
-import java.awt.Paint;
-import java.awt.PaintContext;
-import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.RenderingHints;
-import java.awt.Polygon;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.ColorModel;
 import java.util.HashMap;
-import javax.vecmath.Color3b;
 import jsky.coords.CoordinateConverter;
 import jsky.graphics.CanvasFigure;
 import jsky.graphics.CanvasFigureEvent;
@@ -45,18 +32,14 @@ import jsky.graphics.CanvasGraphics;
 import jsky.image.graphics.DivaImageGraphics;
 import jsky.image.graphics.RectangleManipulator;
 import jsky.image.graphics.RotatableCanvasFigure;
-import jsky.image.graphics.ShapeUtil;
 import org.tmt.fovast.instrumentconfig.Config;
-import javax.swing.SwingConstants;
 import java.awt.Font;
 import jsky.graphics.CanvasFigureListener;
-import jsky.image.graphics.RectangleGeometry;
-import jsky.image.graphics.RoiFigure;
 
 /**
  *
  */
-class FovastShapeFactory {
+class FovastShapeFactory{
 
     private final static String FIGURE_LABEL = "figureLabel";
     
@@ -130,13 +113,33 @@ class FovastShapeFactory {
 
     private Config config;
 
+    //final static HashMap<String, CanvasFigure[]> map = new HashMap<String, CanvasFigure[]>();
+
+    static CoordinateConverter cc1 = null;
+
     FovastShapeFactory(FovastImageDisplay fovastImageDisplay) {
         this.fovastImageDisplay = fovastImageDisplay;
+        CoordinateConverter cc1 = fovastImageDisplay.getCoordinateConverter();
     }
 
     public void setConfig(Config config) {
         this.config = config;
     }
+
+//    public static void fetchPointInfo(){
+//        System.out.println("FETCH");
+//        CanvasFigure[] figs1 = map.get("iris.oiwfs.probe1.arm");
+//        CanvasFigure probArmFig = figs1[0];
+//        Shape shape1 = probArmFig.getShape();
+//
+//        double centerX = shape1.getBounds2D().getCenterX();
+//        double centerY = shape1.getBounds2D().getCenterY();
+//        Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+//        cc1.screenToWorldCoords(centerPt, false);
+//        double ra = centerPt.getX();
+//        double dec = centerPt.getY();
+//        
+//    }
 
     public CanvasFigure[] makeFigure(HashMap<String, Object> props) {
        String figType = (String) props.get(FIGURE_TYPE);
@@ -776,10 +779,10 @@ class FovastShapeFactory {
         props.put(MOVEABLE, false);
         //max fov is 1.01" x 1.15"
         //18" of axis .. so 18" + 1.01/2
-        props.put(CENTER_OFFSET_X, -(18.0/3600d)); // + 1.01/2)/3600d);
+        props.put(CENTER_OFFSET_X, (18.0/3600d)); // + 1.01/2)/3600d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 1.01/3600d);
-        props.put(WIDTH_Y, 1.15/3600d);
+        props.put(WIDTH_Y, 1.01/3600d);
+        props.put(WIDTH_X, 1.15/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.GREEN);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -795,10 +798,10 @@ class FovastShapeFactory {
         props.put(MOVEABLE, false);
         //max fov is 4.4" x 2.25"
         //18" of axis .. so 18" + 4.4/2
-        props.put(CENTER_OFFSET_X, -(18.0/3600d));// + 4.4/2)/3600d);
+        props.put(CENTER_OFFSET_X, (18.0/3600d));// + 4.4/2)/3600d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 4.4/3600d);
-        props.put(WIDTH_Y, 2.25/3600d);
+        props.put(WIDTH_Y, 4.4/3600d);
+        props.put(WIDTH_X, 2.25/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.GREEN);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -840,6 +843,39 @@ class FovastShapeFactory {
 
 
         //Group2 starts - mobie related elements
+        /*props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 5.4/60d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieFigures1 = makeFigure(props);
+        map.put("mobie.detector.center1", mobieFigures1);
+        
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 5.5/60d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieFigures2 = makeFigure(props);
+        map.put("mobie.detector.center2", mobieFigures2);
 
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -873,14 +909,48 @@ class FovastShapeFactory {
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieEdgeOfFiledFigs = makeFigure(props);
-        map.put("mobie.edgeoffield", mobieEdgeOfFiledFigs);
+        map.put("mobie.edgeoffield", mobieEdgeOfFiledFigs);*/
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 5.4/60d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieFigures1 = makeFigure(props);
+        map.put("mobie.vignettingstart", mobieFigures1);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 5.6/60d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieFigures2 = makeFigure(props);
+        map.put("mobie.edgeoffield", mobieFigures2);
 
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
         //MOBIE DIMENSIONS ARE 4.2 x 9.6
-        props.put(CENTER_OFFSET_X, -(5.4)/60d); // 5.4' offet-x
+        props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
         props.put(CENTER_OFFSET_Y, 0d);
         props.put(WIDTH_X, 4.2/60d);
         props.put(WIDTH_Y, 9.6/60d);
@@ -892,7 +962,7 @@ class FovastShapeFactory {
         //cfgIris.add(fig);
         map.put("mobie.detector", mobieDetectorFigs);
         ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
-                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay));
+                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay,map));
 
         //Keeping this after mobie as although mobie arcs are hidden 
         //when sciencedetector is shown .. rotation handle goes berserk
@@ -1071,10 +1141,42 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm1 = makeFigure(props);
         map.put("iris.oiwfs.probe1.arm", irisProbeArm1);
+        irisProbeArm1[1].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                CanvasFigure[] figs1 = map.get("iris.oiwfs.probe1.arm");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                cc.screenToWorldCoords(centerPt, false);
+                String centerString = centerPt.getX()+","+centerPt.getY();
+                //System.out.println("center:"+centerString);
+                config.setConfigElementProperty("iris.oiwfs.probe1.arm", "position", centerString);
+            }
+        });
         CanvasFigure probFig1 = irisProbeArm1[1];
         dragInteractor =  (DragInteractor) probFig1.getInteractor();
+        
         dragInteractor.appendConstraint(new PointConstraint() {
-
             Point2D prevPt = null;
 
             @Override
@@ -1142,6 +1244,38 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm2 = makeFigure(props);
         map.put("iris.oiwfs.probe2.arm", irisProbeArm2);
+        irisProbeArm2[1].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                CanvasFigure[] figs1 = map.get("iris.oiwfs.probe2.arm");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                cc.screenToWorldCoords(centerPt, false);
+                String centerString = centerPt.getX()+","+centerPt.getY();
+                //System.out.println("center:"+centerString);
+                config.setConfigElementProperty("iris.oiwfs.probe2.arm", "position", centerString);
+            }
+        });
         CanvasFigure probFig2 = irisProbeArm2[1];
         dragInteractor =  (DragInteractor) probFig2.getInteractor();
         dragInteractor.appendConstraint(new PointConstraint() {
@@ -1212,6 +1346,38 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm3 = makeFigure(props);
         map.put("iris.oiwfs.probe3.arm", irisProbeArm3);
+        irisProbeArm3[1].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                CanvasFigure[] figs1 = map.get("iris.oiwfs.probe3.arm");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                cc.screenToWorldCoords(centerPt, false);
+                String centerString = centerPt.getX()+","+centerPt.getY();
+                //System.out.println("center:"+centerString);
+                config.setConfigElementProperty("iris.oiwfs.probe3.arm", "position", centerString);
+            }
+        });
         CanvasFigure probFig3 = irisProbeArm3[1];
         dragInteractor =  (DragInteractor) probFig3.getInteractor();
         dragInteractor.appendConstraint(new PointConstraint() {
@@ -1435,13 +1601,15 @@ class FovastShapeFactory {
 
         private CanvasFigure mobieFigure;
         private FovastImageDisplay fovastImageDisplay;
-
+        private final HashMap<String, CanvasFigure[]> map;
         private Point2D prevPoint;
-
-        public MobieDetectorConstraint(CanvasFigure mobieFigure, FovastImageDisplay imageDisplay) {
+        Point2D prevPt = null;
+        
+        public MobieDetectorConstraint(CanvasFigure mobieFigure, FovastImageDisplay imageDisplay,
+                HashMap<String, CanvasFigure[]> map) {
             this.mobieFigure = mobieFigure;
             this.fovastImageDisplay = imageDisplay;
-
+            this.map = map;
             prevPoint = new Point2D.Double(mobieFigure.getBounds().getCenterX(),
                     mobieFigure.getBounds().getCenterY());
         }
@@ -1453,7 +1621,7 @@ class FovastShapeFactory {
         }
 
         @Override
-        public void constrain(Point2D pt) {
+        public void constrain(Point2D pt) {/*
             double x = mobieFigure.getShape().getBounds2D().getCenterX();
             double y = mobieFigure.getShape().getBounds2D().getCenterY();
 
@@ -1470,6 +1638,39 @@ class FovastShapeFactory {
             } else {
                 pt.setLocation(prevPoint.getX(), prevPoint.getY());
             }
+            */
+
+            CanvasFigure[] figs = map.get("mobie.vignettingstart");
+            CanvasFigure probLimitsFig = figs[0];
+            Shape shape = probLimitsFig.getShape();
+
+            CanvasFigure[] figs2 = map.get("mobie.edgeoffield");
+            CanvasFigure nfiraosLimitsFig = figs2[0];
+            Shape shape2 = nfiraosLimitsFig.getShape();
+
+            CanvasFigure[] figs1 = map.get("mobie.detector");
+            CanvasFigure probArmFig = figs1[0];
+            Shape shape1 = probArmFig.getShape();
+
+            double centerX = shape1.getBounds2D().getCenterX();
+            double centerY = shape1.getBounds2D().getCenterY();
+            Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+            if(prevPt != null) {
+                    Point2D.Double newCenterPt = new Point2D.Double(
+                                centerX + (pt.getX() - prevPt.getX()),
+                                centerY + (pt.getY() - prevPt.getY())
+                    );
+                    System.out.println("MousePoint " + pt);
+                    System.out.println("NewCenter " + newCenterPt);
+                    if(!shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+                        prevPt = pt;
+                        //leave pt as is
+                    } else {
+                        pt.setLocation(prevPt.getX(), prevPt.getY());
+                    }
+                } else {
+                    prevPt = pt;
+                }
         }
 
     }

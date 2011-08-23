@@ -90,7 +90,7 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     }
 
     @Override
-    public void updateConfig(String confElementId, Value value, boolean isDisplayElement) {
+    public void updateConfigElementValue(String confElementId, Value value, boolean isDisplayElement) {
         selectNode(confElementId, value);
     }
 
@@ -454,6 +454,11 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
             confIdUserObjectMap.put(configOptId, uoList);
         }
         uoList.add(uo);
+    }
+
+    @Override
+    public void updateConfigElementProperty(String confElementId, String propKey, String propValue) {
+        //throw new UnsupportedOperationException("Not supported yet.");
     }
 
     // TREE LISTENER METHODS END =====================

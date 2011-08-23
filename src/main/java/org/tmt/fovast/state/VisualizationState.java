@@ -6,6 +6,8 @@
  */
 package org.tmt.fovast.state;
 
+import java.util.ArrayList;
+import org.tmt.fovast.gui.Catalog;
 import org.tmt.fovast.mvc.ListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,8 @@ public class VisualizationState
     private boolean showTarget;
 
     private Config config;
+
+    private ArrayList<Catalog> catalogList = new ArrayList<Catalog>();
 
     public VisualizationState() {
     }
@@ -95,6 +99,20 @@ public class VisualizationState
                 logger.error("Could not call listener method", ex);
             }
         }
+    }
+
+    public void addCatalog(Catalog c) {
+        catalogList.add(c);
+        //TODO:add catalog added event for 2 visualisation state
+    }
+
+    public void removeCatalog(Catalog c) {
+        catalogList.remove(c);
+        //TODO:add catalog removed event for 2 visualisation state
+    }
+
+    public ArrayList<Catalog> getCatalogs() {
+        return catalogList;
     }
     //TODO: Code equals and .. other methods ..
 

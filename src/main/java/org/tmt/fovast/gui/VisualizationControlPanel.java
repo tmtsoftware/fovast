@@ -19,8 +19,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.geom.Point2D;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -43,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
+import org.tmt.fovast.astro.util.XMLFileGenerator;
 import org.tmt.fovast.instrumentconfig.ConfigHelper;
 
 /**
@@ -105,6 +109,12 @@ public class VisualizationControlPanel extends JPanel
     private JPanel configPanel;
 
     private ConfigHelper configHelper;
+
+    private JButton fetchButton;
+
+//    private JButton saveButton;
+
+    public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
     
     public VisualizationControlPanel(ApplicationContext appContext,
             VisualizationState visualizationState) {
@@ -260,6 +270,25 @@ public class VisualizationControlPanel extends JPanel
         //imageLoadStatusLabel
         imageLoadMsgLabel = new JLabel(" ");
 
+        fetchButton = new JButton("Capture Points");
+        fetchButton.addActionListener(new ActionListener() {
+           public void actionPerformed(ActionEvent event) {
+
+               ArrayList<Catalog> catalogs = visualization.getCatalogs();
+               //loop through catalogs
+                XMLFileGenerator xf = new XMLFileGenerator();              
+                xf.generateXML(populateList(catalogs));
+          }
+       });
+
+//       saveButton = new JButton("Save");
+//        saveButton.addActionListener(new ActionListener() {
+//           public void actionPerformed(ActionEvent event) {
+//               XMLFileGenerator xf = new XMLFileGenerator();
+//               xf.saveXML(appContext);
+//            }
+//       });
+
         //raDecPanel layout        
         //GridLayout raDecPanelLayout = new GridLayout(2, 2);
         GridBagLayout raDecPanelLayout = new GridBagLayout();
@@ -332,7 +361,21 @@ public class VisualizationControlPanel extends JPanel
         gbc.gridwidth = 3;
         gbc.insets = new Insets(5, 0, 0, 0);
         raDecPanel.add(panButton, gbc);
-       
+
+        gbc.gridy = 9;
+        gbc.gridx = 0;
+        gbc.weightx = 2;
+        gbc.gridwidth = 3;
+        gbc.insets = new Insets(5, 0, 0, 0);
+        raDecPanel.add(fetchButton, gbc);
+
+//        gbc.gridy = 9;
+//        gbc.gridx = 1;
+//        gbc.weightx = 2;
+//        gbc.gridwidth = 3;
+//        gbc.insets = new Insets(5, 0, 0, 0);
+//        raDecPanel.add(saveButton, gbc);
+
         gbc.gridx = 2;
         gbc.gridy=0;
         raDecPanel.add(resolvePanel,gbc);
@@ -728,6 +771,66 @@ public class VisualizationControlPanel extends JPanel
       sourceErrorMsgLabel.setText("");
       raTextField.setText("");
       decTextField.setText("");
+    }
+
+     public ArrayList<PointInfoForXML> populateList(ArrayList<Catalog> catalogs){
+                ArrayList<PointInfoForXML> infoList = new ArrayList<PointInfoForXML>();
+                double raMin=Double.MAX_VALUE , decMin=Double.MAX_VALUE , magMin=Double.MAX_VALUE;
+                String idMin = "";
+                Catalog c = null;
+               
+              
+                Config conf = visualization.getConfig();
+                //string form of ra, dec (lets say 23, 34 ..
+                ArrayList<String> tips = new ArrayList<String>();
+                tips.add("iris.oiwfs.probe1.arm");
+                tips.add("iris.oiwfs.probe2.arm");
+                tips.add("iris.oiwfs.probe3.arm");
+                for(int j = 0; j<tips.size();j++){
+                    Iterator iter = catalogs.iterator();
+                    double distMin=Double.MAX_VALUE;
+                    String value = conf.getConfigElementProperty(tips.get(j), "position");
+                    String[] raDecCenter = value.split(",");
+                    //System.out.println("ra:"+ raDecCenter[0] +" dec:"+raDecCenter[1]);
+                    double ra= Double.parseDouble(raDecCenter[0])*Math.PI/180;
+                    double dec= Double.parseDouble(raDecCenter[1])*Math.PI/180;
+                    double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
+                    while(iter.hasNext())
+                    {
+                        //double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
+                        c = (Catalog)iter.next();
+                        Object[][] data=c.getData();
+                        for (int i = 0; i < data.length; i++) {
+                            Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+                            ra1 = pos.getX()*Math.PI/180;
+                            dec1 = pos.getY()*Math.PI/180;
+                            temp1 = Math.cos(Math.PI/2-dec)*Math.cos(Math.PI/2-dec1);
+                            temp2 = Math.sin(Math.PI/2-dec)*Math.sin(Math.PI/2-dec1)*Math.cos(ra-ra1);
+                            tempDist = Math.acos(temp1+temp2);
+                            //e = Math.abs(distMin-tempDist);
+                            if(distMin > tempDist){
+                                distMin = tempDist;
+                                raMin = ra1;
+                                decMin = dec1;
+                                magMin = (Double)data[i][2];
+                                idMin = data[i][3].toString();
+                            }
+                        }
+                    }
+                    raMin=((raMin*180)/Math.PI);
+                    decMin=((decMin*180)/Math.PI);
+                    System.out.println("ramn:"+ raMin +" decmn:"+decMin);
+                    PointInfoForXML ptInfo = new PointInfoForXML();
+                    ptInfo.setRa(raMin);
+                    ptInfo.setDec(decMin);
+                    ptInfo.setElementId(tips.get(j));
+                    ptInfo.setCatalogLabel(c.getLabel());
+                    ptInfo.setJmag(magMin);
+                    ptInfo.setPointId(idMin);
+                    ptInfo.setFocus(0); // TO BE DONE
+                   infoList.add(ptInfo);
+               }
+               return infoList;
     }
 
     public void resolveName(String type) {
