@@ -668,8 +668,9 @@ public class FovastMainView extends FrameView
     public void saveVisualization() {
         //How to do this .. 
         VisualizationPanel visPanel = getActiveVisPanel();
-        visPanel.save();
-    }
+        //System.out.println("hi"+selectedMenuItem.getText());
+        visPanel.save(selectedMenuItem.getText());
+    }   
 
     /**
      * Closes the active visualization after a save
@@ -712,7 +713,6 @@ public class FovastMainView extends FrameView
 //            }
 //        }
     }
-
 
     void selectVisualizationPanel(JMenuItem menuItem) {
         JMenuItem oldSelectedMenuItem = selectedMenuItem;

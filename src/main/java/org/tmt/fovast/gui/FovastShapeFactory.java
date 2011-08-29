@@ -1033,34 +1033,6 @@ class FovastShapeFactory{
         irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
         irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
         
-
-        props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
-        props.put(FIGURE_LABEL, "TWFS");
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, true);
-        // some arbitrary position outside of science field
-        // and inside nfiraos fov > 17" and < 2'
-        props.put(CENTER_OFFSET_X, 1/60d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 1/3600d); //1 arcsec
-        props.put(WIDTH_Y, 1/3600d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.WHITE);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] twsFigs = makeFigure(props);
-        //cfgIris.add(fig);
-        map.put("nfiraos.twfs.detector", twsFigs);
-        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);
-        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[1]);
-        //put constraints
-        //nfiraos.twfs.detector
-        CanvasFigure twsFig = twsFigs[0];
-        DragInteractor dragInteractor = (DragInteractor) twsFig.getInteractor();
-        //now constrain it
-        dragInteractor.appendConstraint(new TwfsPointConstraint(twsFig, map));
-
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
@@ -1169,12 +1141,11 @@ class FovastShapeFactory{
                 CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
-                //System.out.println("center:"+centerString);
                 config.setConfigElementProperty("iris.oiwfs.probe1.arm", "position", centerString);
             }
         });
         CanvasFigure probFig1 = irisProbeArm1[1];
-        dragInteractor =  (DragInteractor) probFig1.getInteractor();
+        DragInteractor dragInteractor =  (DragInteractor) probFig1.getInteractor();
         
         dragInteractor.appendConstraint(new PointConstraint() {
             Point2D prevPt = null;
@@ -1205,8 +1176,6 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    System.out.println("MousePoint " + pt);
-                    System.out.println("NewCenter " + newCenterPt);
                     if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
@@ -1272,7 +1241,6 @@ class FovastShapeFactory{
                 CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
-                //System.out.println("center:"+centerString);
                 config.setConfigElementProperty("iris.oiwfs.probe2.arm", "position", centerString);
             }
         });
@@ -1308,8 +1276,6 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    System.out.println("MousePoint " + pt);
-                    System.out.println("NewCenter " + newCenterPt);
                     if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
@@ -1410,8 +1376,6 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    System.out.println("MousePoint " + pt);
-                    System.out.println("NewCenter " + newCenterPt);
                     if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
@@ -1432,6 +1396,65 @@ class FovastShapeFactory{
                 return false;
             }
         });
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(FIGURE_LABEL, "TWFS");
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        // some arbitrary position outside of science field
+        // and inside nfiraos fov > 17" and < 2'
+        props.put(CENTER_OFFSET_X, -0.99/60d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 1/3600d); //1 arcsec
+        props.put(WIDTH_Y, 1/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] twsFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("nfiraos.twfs.detector", twsFigs);
+        twsFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                CanvasFigure[] figs1 = map.get("nfiraos.twfs.detector");
+                CanvasFigure probArmFig = figs1[0];
+                Shape shape1 = probArmFig.getShape();
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                cc.screenToWorldCoords(centerPt, false);
+                String centerString = centerPt.getX()+","+centerPt.getY();
+                //System.out.println("center:"+centerString);
+                config.setConfigElementProperty("nfiraos.twfs.detector", "position", centerString);
+            }
+        });
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[1]);
+        //put constraints
+        //nfiraos.twfs.detector
+        CanvasFigure twsFig = twsFigs[0];
+        dragInteractor = (DragInteractor) twsFig.getInteractor();
+        //now constrain it
+        dragInteractor.appendConstraint(new TwfsPointConstraint(twsFig, map));
        
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -1476,8 +1499,6 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    System.out.println("MousePoint " + pt);
-                    System.out.println("NewCenter " + newCenterPt);
                     if(shape.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
@@ -1574,7 +1595,6 @@ class FovastShapeFactory{
 
             Shape sdShape = sdFig.getShape();
             Shape nfiraosLimitsShape = nfiraosLimitsFig.getShape();
-            
             if(!sdShape.contains(pt) && nfiraosLimitsShape.contains(pt)) {
             //if(!sdShape.intersects(twfsBoxShape.getBounds2D()) && nfiraosLimitsShape.contains(pt)
             //    && nfiraosLimitsShape.contains(twfsBoxShape.getBounds2D()) ) {
@@ -1660,8 +1680,6 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    System.out.println("MousePoint " + pt);
-                    System.out.println("NewCenter " + newCenterPt);
                     if(!shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is

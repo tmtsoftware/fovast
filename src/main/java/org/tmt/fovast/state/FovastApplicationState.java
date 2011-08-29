@@ -41,6 +41,7 @@ public class FovastApplicationState
     public void addVisualization(VisualizationState visualization, int vizId, String fileName) {
         if (!visualizations.contains(visualization)) {
             visualizations.add(visualization);
+            visualization.setFileName(fileName);
             visualizationIdMap.put(visualization, new Integer(vizId));
             idVisualizationMap.put(new Integer(vizId), visualization);
             visualizationFileMap.put(visualization, fileName);

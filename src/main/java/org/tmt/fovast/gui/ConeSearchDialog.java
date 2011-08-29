@@ -830,7 +830,6 @@ public class ConeSearchDialog extends DVMap{
                                     condition = true;
                                 String str = cells[raColIndex].toString();                                
                                 Double d1 = Double.parseDouble(str);
-                                System.out.println("*******ra:"+d1);
                                 raList.add(d1);
                                 str = cells[decColIndex].toString();
                                 d1 = Double.parseDouble(str);

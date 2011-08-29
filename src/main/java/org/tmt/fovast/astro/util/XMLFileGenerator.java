@@ -38,13 +38,13 @@ public class XMLFileGenerator {
 
     public static final String DOWNLOAD_CACHE_INDEX_FILE = "downloadCache.ind";
 
-    public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
+    public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo";
 
     public static final String[] XML_EXTENSIONS = {".xml"};
 
     public static final String XML_EXTENSIONS_DESC = "*.xml";
 
-	public void generateXML(ArrayList<PointInfoForXML> infoList) {
+	public void generateXML(ArrayList<PointInfoForXML> infoList,double ra ,double dec,int visId) {
 
 	  try {
 
@@ -56,6 +56,18 @@ public class XMLFileGenerator {
 		Document doc = docBuilder.newDocument();
 		Element rootElement = doc.createElement("config");
 		doc.appendChild(rootElement);
+
+        Element source = doc.createElement("Source");
+		rootElement.appendChild(source);
+
+        Element sourceRa = doc.createElement("SourceRa");
+		sourceRa.appendChild(doc.createTextNode(""+ra));
+		source.appendChild(sourceRa);
+
+        Element sourceDec = doc.createElement("SourceDec");
+		sourceDec.appendChild(doc.createTextNode(""+dec));
+		source.appendChild(sourceDec);
+
         for(int i = 0; i<infoList.size() ; i++){
 
         str = infoList.get(i).getPointId();
@@ -80,13 +92,13 @@ public class XMLFileGenerator {
 		pointId.appendChild(doc.createTextNode(""+infoList.get(i).getPointId()));
 		element.appendChild(pointId);
 	
-		Element ra = doc.createElement("ra");
-		ra.appendChild(doc.createTextNode(""+infoList.get(i).getRa()));
-		element.appendChild(ra);
+		Element ra1 = doc.createElement("ra");
+		ra1.appendChild(doc.createTextNode(""+infoList.get(i).getRa()));
+		element.appendChild(ra1);
 		
-		Element dec = doc.createElement("dec");
-		dec.appendChild(doc.createTextNode(""+infoList.get(i).getDec()));
-		element.appendChild(dec);
+		Element dec1 = doc.createElement("dec");
+		dec1.appendChild(doc.createTextNode(""+infoList.get(i).getDec()));
+		element.appendChild(dec1);
 
         Element mag ;
         if(str.startsWith("N")){
@@ -107,16 +119,24 @@ public class XMLFileGenerator {
 		// write the content into xml file
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
-		DOMSource source = new DOMSource(doc);
+		DOMSource source1 = new DOMSource(doc);
         ApplicationContext appContext = FovastApplication.getApplication().getContext();
-        File downloadCacheDir =
+        File downloadCacheDir;
+        if(visId==0){
+            downloadCacheDir =
                     new File(appContext.getLocalStorage().getDirectory(),
-                    DOWNLOAD_CACHE_DIR);
+                    DOWNLOAD_CACHE_DIR+XML_EXTENSIONS[0]);
+        }else{
+            downloadCacheDir =
+                    new File(appContext.getLocalStorage().getDirectory(),
+                    DOWNLOAD_CACHE_DIR+visId+XML_EXTENSIONS[0]);
+        }
+       
         StreamResult result = new StreamResult(downloadCacheDir);
 		// Output to console for testing
 		// StreamResult result = new StreamResult(System.out);
 
-		transformer.transform(source, result);
+		transformer.transform(source1, result);
 
 		System.out.println("File saved in cache!");
 
@@ -127,7 +147,7 @@ public class XMLFileGenerator {
 	  }
 	}
 
-    public void saveXML(ApplicationContext appContext){
+    public void saveXML(ApplicationContext appContext,String fName){
         AppConfiguration config =
                     FovastApplication.getApplication().getConfiguration();
                 String dirToOpen = config.getFileDialogDirProperty();
@@ -135,23 +155,28 @@ public class XMLFileGenerator {
 
                 fc.setDialogTitle("Save");
                 fc.setFileFilter(new CustomFilter());
-                final String defaultFileName = "guideStarInfo.xml";
-                fc.setSelectedFile(
-                new File(fc.getCurrentDirectory().getAbsolutePath() +
-                "\\" + defaultFileName));
+                String tempName;
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                   tempName = "guideStarInfo"+id+XML_EXTENSIONS[0];
+                }else{
+                    tempName = "guideStarInfo"+XML_EXTENSIONS[0];
+                }
+                final String defaultFileName = tempName;
+                File savefile = new File(fc.getCurrentDirectory().getAbsolutePath(), defaultFileName);
+//                fc.setSelectedFile(
+//                new File(fc.getCurrentDirectory().getAbsolutePath() +
+//                "\\" + defaultFileName));
+                fc.setSelectedFile(savefile);
+
                 // add listener to filter changes
                 fc.addPropertyChangeListener(JFileChooser.DIRECTORY_CHANGED_PROPERTY,
                 new PropertyChangeListener() {
-                public void propertyChange(PropertyChangeEvent evt) {
-
-                fc.setSelectedFile(
-                new File(fc.getCurrentDirectory().getAbsolutePath() +
-                "\\" + defaultFileName));
-
-
-                fc.updateUI();
-
-                }
+                    public void propertyChange(PropertyChangeEvent evt) {
+                        File savefile = new File(fc.getCurrentDirectory().getAbsolutePath(), defaultFileName);
+                        fc.setSelectedFile(savefile);
+                        fc.updateUI();
+                    }
                 });
                  int retVal = fc.showSaveDialog(null);
 

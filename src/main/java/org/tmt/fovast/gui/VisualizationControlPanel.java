@@ -20,11 +20,14 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -33,11 +36,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
+import javax.xml.parsers.ParserConfigurationException;
+import org.openide.util.Exceptions;
 import org.tmt.fovast.gui.FovastInstrumentTree.SomeException;
 import org.tmt.fovast.instrumentconfig.Config;
+import org.tmt.fovast.instrumentconfig.Value;
 import voi.astro.util.NameResolver;
 
 import org.jdesktop.application.ApplicationActionMap;
@@ -47,14 +56,22 @@ import org.slf4j.LoggerFactory;
 import org.tmt.fovast.state.VisualizationState;
 import org.tmt.fovast.astro.util.DegreeCoverter;
 import org.tmt.fovast.astro.util.XMLFileGenerator;
+import org.tmt.fovast.instrumentconfig.BooleanValue;
 import org.tmt.fovast.instrumentconfig.ConfigHelper;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
 
 /**
  *
  */
 public class VisualizationControlPanel extends JPanel
         implements VisualizationState.VisualizationStateListener,
-        VisualizationWorkPanelListener {
+        VisualizationWorkPanelListener,Config.ConfigListener {
 
     private static Logger logger = LoggerFactory.getLogger(VisualizationControlPanel.class);
 
@@ -112,7 +129,7 @@ public class VisualizationControlPanel extends JPanel
 
     private JButton fetchButton;
 
-//    private JButton saveButton;
+    private JTable pointInfoTable;
 
     public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
     
@@ -125,7 +142,6 @@ public class VisualizationControlPanel extends JPanel
         initComponents();
 
         visualization.addListener(this);
-
         //other initialization
         imageLoadBytesFormat = NumberFormat.getInstance();
         imageLoadBytesFormat.setMaximumFractionDigits(2);
@@ -141,6 +157,7 @@ public class VisualizationControlPanel extends JPanel
         //Scan through the below code for relevant changes
 
         //setPreferredSize(new Dimension(150, 200));
+        System.out.println(appContext.getLocalStorage().getDirectory());
         setLayout(new BorderLayout(0, 0));
         setBorder(BorderFactory.createEmptyBorder());
 
@@ -271,13 +288,36 @@ public class VisualizationControlPanel extends JPanel
         imageLoadMsgLabel = new JLabel(" ");
 
         fetchButton = new JButton("Capture Points");
+        //fetchButton.setEnabled(false);
         fetchButton.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent event) {
 
                ArrayList<Catalog> catalogs = visualization.getCatalogs();
+               Double[] center = visualization.getTarget();
+               double ra = center[0];
+               double dec = center[1];
                //loop through catalogs
-                XMLFileGenerator xf = new XMLFileGenerator();              
-                xf.generateXML(populateList(catalogs));
+                XMLFileGenerator xf = new XMLFileGenerator();
+                String fName = visualization.getFileName();
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                   xf.generateXML(populateList(catalogs),ra,dec,Integer.parseInt(id));
+                }else{
+                    xf.generateXML(populateList(catalogs),ra,dec,0);
+                }
+                String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
+                String[][] rowData =new String[4][4];
+                rowData = populateDataForTable();
+                pointInfoTable = new JTable(rowData, columnNames);
+                pointInfoTable.setEnabled(false);
+                JScrollPane pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                pane.setPreferredSize(new Dimension(300, 100));
+//                pane.setMaximumSize(new Dimension(100, 50));
+//                pane.setMinimumSize(new Dimension(100, 50));
+                configPanel.add(pane,BorderLayout.CENTER);
+                configPanel.repaint();
+                configPanel.validate();
           }
        });
 
@@ -467,8 +507,6 @@ public class VisualizationControlPanel extends JPanel
         } catch(Exception ex) {
             logger.error("Error while making instrument config tree", ex);
         }
-
-
         JPanel mainPanel = new JPanel() {
             @Override
             public Dimension getPreferredSize() {
@@ -499,6 +537,7 @@ public class VisualizationControlPanel extends JPanel
         if(config != null) {
             configHelper = new ConfigHelper(config);
             instrumentTree = new FovastInstrumentTree(configHelper);
+            config.addConfigListener(this);
         }
         else {
             instrumentTree = new FovastInstrumentTree(null);
@@ -507,8 +546,9 @@ public class VisualizationControlPanel extends JPanel
         tree.setOpaque(true);
         tree.setBackground(configPanel.getBackground());
         tree.setEnabled(enabled);
-        configPanel.add(tree, BorderLayout.CENTER);
+        configPanel.add(tree, BorderLayout.SOUTH);
         configPanel.revalidate();
+
     }
 
     private void validateRaFieldAndShowErrorMsgField() {
@@ -655,7 +695,7 @@ public class VisualizationControlPanel extends JPanel
     @Override
     public void vslTargetChanged(double ra, double dec, String raEntered, String decEntered) {
         updateUIForSetTarget(ra, dec, raEntered, decEntered);
-        rebuildTreeOnConfigChange(visualization.getConfig());
+        rebuildTreeOnConfigChange(visualization.getConfig());          
     }
 
     @Override
@@ -740,7 +780,7 @@ public class VisualizationControlPanel extends JPanel
     public void backgroundImageLoadCompleted() {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run() {
+            public void run() {               
                 imageLoadMsgLabel.setText(" ");
                 enableDisableShowTargetCheckBox(true);
                 if(stCbChanged) {
@@ -770,7 +810,7 @@ public class VisualizationControlPanel extends JPanel
       decErrorMsgLabel.setText("");
       sourceErrorMsgLabel.setText("");
       raTextField.setText("");
-      decTextField.setText("");
+      decTextField.setText("");     
     }
 
      public ArrayList<PointInfoForXML> populateList(ArrayList<Catalog> catalogs){
@@ -778,7 +818,7 @@ public class VisualizationControlPanel extends JPanel
                 double raMin=Double.MAX_VALUE , decMin=Double.MAX_VALUE , magMin=Double.MAX_VALUE;
                 String idMin = "";
                 Catalog c = null;
-               
+                
               
                 Config conf = visualization.getConfig();
                 //string form of ra, dec (lets say 23, 34 ..
@@ -786,12 +826,15 @@ public class VisualizationControlPanel extends JPanel
                 tips.add("iris.oiwfs.probe1.arm");
                 tips.add("iris.oiwfs.probe2.arm");
                 tips.add("iris.oiwfs.probe3.arm");
+                tips.add("nfiraos.twfs.detector");
+                if(catalogs.isEmpty()== true){
+                    JOptionPane.showMessageDialog(showTargetPanel,"Load a catalog first");
+                }
                 for(int j = 0; j<tips.size();j++){
                     Iterator iter = catalogs.iterator();
                     double distMin=Double.MAX_VALUE;
                     String value = conf.getConfigElementProperty(tips.get(j), "position");
                     String[] raDecCenter = value.split(",");
-                    //System.out.println("ra:"+ raDecCenter[0] +" dec:"+raDecCenter[1]);
                     double ra= Double.parseDouble(raDecCenter[0])*Math.PI/180;
                     double dec= Double.parseDouble(raDecCenter[1])*Math.PI/180;
                     double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
@@ -807,7 +850,7 @@ public class VisualizationControlPanel extends JPanel
                             temp1 = Math.cos(Math.PI/2-dec)*Math.cos(Math.PI/2-dec1);
                             temp2 = Math.sin(Math.PI/2-dec)*Math.sin(Math.PI/2-dec1)*Math.cos(ra-ra1);
                             tempDist = Math.acos(temp1+temp2);
-                            //e = Math.abs(distMin-tempDist);
+                            tempDist = tempDist*180/Math.PI;
                             if(distMin > tempDist){
                                 distMin = tempDist;
                                 raMin = ra1;
@@ -819,19 +862,120 @@ public class VisualizationControlPanel extends JPanel
                     }
                     raMin=((raMin*180)/Math.PI);
                     decMin=((decMin*180)/Math.PI);
-                    System.out.println("ramn:"+ raMin +" decmn:"+decMin);
                     PointInfoForXML ptInfo = new PointInfoForXML();
-                    ptInfo.setRa(raMin);
-                    ptInfo.setDec(decMin);
-                    ptInfo.setElementId(tips.get(j));
-                    ptInfo.setCatalogLabel(c.getLabel());
-                    ptInfo.setJmag(magMin);
-                    ptInfo.setPointId(idMin);
-                    ptInfo.setFocus(0); // TO BE DONE
+                    if(distMin<=((Math.sqrt(2.0))*2)/3600d){
+                        System.out.println("valid point:"+distMin);
+                        ptInfo.setRa(raMin);
+                        ptInfo.setDec(decMin);
+                        ptInfo.setElementId(tips.get(j));
+                        ptInfo.setCatalogLabel(c.getLabel());
+                        ptInfo.setJmag(magMin);
+                        ptInfo.setPointId(idMin);
+                        ptInfo.setFocus(0); // TO BE DONE
+                    }
+                    else{
+                        System.out.println("invalid point");
+                        ptInfo.setRa(((ra*180)/Math.PI));
+                        ptInfo.setDec(((dec*180)/Math.PI));
+                        ptInfo.setElementId(tips.get(j));
+                        ptInfo.setCatalogLabel("No catalog");
+                        ptInfo.setJmag(-99.9);
+                        if(tips.get(j).contains("probe1"))
+                            ptInfo.setPointId("probe1 center");
+                        else if(tips.get(j).contains("probe2"))
+                            ptInfo.setPointId("probe2 center");
+                        else if(tips.get(j).contains("probe3"))
+                            ptInfo.setPointId("probe3 center");
+                        else
+                            ptInfo.setPointId("TWFS Dectector");
+
+                        ptInfo.setFocus(0); // TO BE DONE
+                    }
                    infoList.add(ptInfo);
                }
                return infoList;
     }
+
+     public String[][] populateDataForTable(){
+        final String[][] rowData1 = new String[4][4];
+        
+        try {           
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            DefaultHandler handler = new DefaultHandler() {
+                boolean ename = false;
+                boolean cname = false;
+                boolean ra = false;
+                boolean dec = false;
+                int cnt = 0;
+                String value;
+                //String[] tempRowData = new String[4];
+                @Override
+                public void startElement(String uri, String localName,String qName,
+                Attributes attributes) throws SAXException {              
+                if (qName.equalsIgnoreCase("Element")) {
+                    // Get names and values for each attribute
+                    value = attributes.getValue(0);
+                    ename = true;
+                }
+                if (qName.equalsIgnoreCase("catalog")) {
+                    cname = true;
+                }
+                if (qName.equalsIgnoreCase("ra")) {
+                    ra = true;
+                }
+                if (qName.equalsIgnoreCase("dec")) {
+                    dec = true;
+                }
+            }
+
+            @Override
+            public void characters(char ch[], int start, int length) throws SAXException {
+                if (ename) {                 
+                    //rowData1[cnt][0] = new String(ch, start, length);
+                    rowData1[cnt][0] = value;
+                    ename = false;
+                }
+                if (cname) {
+                    rowData1[cnt][1] = new String(ch, start, length);
+                    cname = false;
+                }
+                if (ra) {
+                    rowData1[cnt][2] = new String(ch, start, length);
+                    ra = false;
+                }
+                if (dec) {
+                    rowData1[cnt][3] = new String(ch, start, length);
+                    cnt++;
+                    dec = false;
+                }
+
+            }
+            //rowData1[0][0]="";
+          };
+          File downloadCacheDir;
+          String fName = visualization.getFileName();
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                   downloadCacheDir =
+                    new File(appContext.getLocalStorage().getDirectory(),
+                    "guideStarInfo"+id+".xml");
+                }else{
+                    downloadCacheDir =
+                    new File(appContext.getLocalStorage().getDirectory(),
+                    "guideStarInfo.xml");
+                }
+          saxParser.parse(downloadCacheDir, handler);
+
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (ParserConfigurationException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (SAXException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return rowData1;
+     }
 
     public void resolveName(String type) {
         double[] tempRaDec;
@@ -888,6 +1032,35 @@ public class VisualizationControlPanel extends JPanel
             if(showTargetCheckbox.isSelected())
                 showTargetCheckbox.setSelected(false);
         }
+    }
+
+    public void clearAndInitializeConfigStructures(Config config) {
+        config.addConfigListener(this);
+    }
+
+    @Override
+    public void updateConfigElementValue(String confElementId, Value value, boolean isDisplayElement) {       
+//        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
+//                confElementId.equals("iris.oiwfs.probe2.arm") ||
+//                confElementId.equals("iris.oiwfs.probe3.arm")){
+//            BooleanValue val=(BooleanValue)value;
+//                  fetchButton.setEnabled(val.getValue());
+//
+//        }   
+    }
+
+    @Override
+    public void updateConfigElementProperty(String confElementId, String propKey, String propValue) {
+        //do nothing
+    }
+
+    @Override
+    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {      
+//        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
+//                confElementId.equals("iris.oiwfs.probe2.arm") ||
+//                confElementId.equals("iris.oiwfs.probe3.arm")){
+//            fetchButton.setEnabled(enable);
+//        }
     }
 
 //    /**

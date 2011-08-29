@@ -31,6 +31,8 @@ public class VisualizationState
 
     private Config config;
 
+    private String fileName;
+
     private ArrayList<Catalog> catalogList = new ArrayList<Catalog>();
 
     public VisualizationState() {
@@ -113,6 +115,20 @@ public class VisualizationState
 
     public ArrayList<Catalog> getCatalogs() {
         return catalogList;
+    }
+
+    /**
+     * @return the fileName
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * @param fileName the fileName to set
+     */
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
     //TODO: Code equals and .. other methods ..
 

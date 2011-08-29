@@ -655,7 +655,6 @@ public class VisualizationWorkPanel extends JPanel
                     CoordinateConverter cc = displayComp.getImageDisplay().getCoordinateConverter();
                     cc.screenToWorldCoords(centerPt, false);
                     String centerString = centerPt.getX()+","+centerPt.getY();
-                    //System.out.println("center:"+centerString);
                     visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
                     //set the initial value for probe position
                     //check if element being shown is one of the probes and set its position property accordingly

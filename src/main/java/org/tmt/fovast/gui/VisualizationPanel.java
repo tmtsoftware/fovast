@@ -101,11 +101,11 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
         return true;
     }
 
-    void save() {
+    public void save(String fName) {
         //TODO: Code to save the vis panel
         //JOptionPane.showMessageDialog(this, "To be done");
         XMLFileGenerator xf = new XMLFileGenerator();
-        xf.saveXML(appContext);
+        xf.saveXML(appContext,fName);
     }
 
     boolean isModified() {

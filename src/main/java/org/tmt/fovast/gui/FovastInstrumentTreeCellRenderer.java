@@ -85,6 +85,12 @@ public class FovastInstrumentTreeCellRenderer implements TreeCellRenderer {
                     panel.add(radio);
                 } else {
                     checkbox.setText(userObj.getLabel());
+                    if(userObj.getLabel().equalsIgnoreCase("OIWFS Probes")){
+                        if(checkbox.isSelected()){
+                            
+                        }                          
+                    }
+
                     checkbox.setSelected(((Editable)userObj).isSelected());
                     panel.add(checkbox);
                 }
