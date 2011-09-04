@@ -24,7 +24,9 @@ public class MyTableModel extends AbstractTableModel {
         this.table=table;
     }
 
-
+//    public MyTableModel(String[][] rowData , String[] colNames) {
+//        this.table=table;
+//    }
 
     // Set the column names.
     public void setColNames(String[] colNames) {

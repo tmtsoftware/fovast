@@ -31,10 +31,13 @@
 
 package org.tmt.fovast.swing.utils;
 
+import diva.gui.ApplicationContext;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicButtonUI;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import org.tmt.fovast.gui.FovastApplication;
 
 /**
  * Component to be used as tabComponent;
@@ -99,6 +102,16 @@ public class ButtonTabComponent extends JPanel {
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
             if (i != -1) {
+                org.jdesktop.application.ApplicationContext ac =FovastApplication.getApplication().getContext();
+                String defaultFileName;
+                if(i == 0)
+                   defaultFileName = "guideStarInfo.xml";
+                else
+                   defaultFileName = "guideStarInfo"+i+".xml";
+                File cachedFile = new File(ac.getLocalStorage().getDirectory(),
+                    defaultFileName);
+                if(cachedFile.exists())
+                    cachedFile.delete();
                 pane.extendedRemoveTabAt(i);
             }
         }

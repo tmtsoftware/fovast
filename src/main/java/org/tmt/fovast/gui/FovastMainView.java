@@ -7,6 +7,7 @@
 package org.tmt.fovast.gui;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
@@ -16,6 +17,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.io.File;
 
@@ -33,6 +35,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JMenu;
@@ -71,7 +74,7 @@ import voi.swing.util.ProxySettingsDialog;
  *
  */
 public class FovastMainView extends FrameView
-        implements FovastApplicationState.FovastApplicationStateListener, CatalogListener {
+        implements FovastApplicationState.FovastApplicationStateListener, CatalogListener , WindowListener  {
 
     private static final Logger logger = LoggerFactory.getLogger(FovastMainView.class);
 
@@ -206,8 +209,8 @@ public class FovastMainView extends FrameView
         this.fovastState = fovastState;
 
         initComponents();
-
-        fovastState.addListener(this);
+        getFrame().addWindowListener(this);
+        fovastState.addListener(this);    
     }
 
     private void initComponents() {
@@ -699,7 +702,18 @@ public class FovastMainView extends FrameView
     }
 
     void applicationExitAction() {
-        //controller.applicationExitAction();
+        //controller.applicationExitAction();           
+        String defaultFileName;
+        for(int i=0;i<newVisualizationId;i++){
+            if(i == 0)
+               defaultFileName = "guideStarInfo.xml";
+            else
+               defaultFileName = "guideStarInfo"+i+".xml";
+            File cachedFile = new File(appContext.getLocalStorage().getDirectory(),
+                defaultFileName);
+            if(cachedFile.exists())
+                cachedFile.delete();
+        }
         FovastApplication.getApplication().exit();
     }
 
@@ -1130,6 +1144,53 @@ public class FovastMainView extends FrameView
                 createNewVisualization();
             }
         });
+    }
+
+    @Override
+    public void windowOpened(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+
+    }
+
+    @Override
+    public void windowClosing(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+        String defaultFileName;
+        for(int i=0;i<newVisualizationId;i++){
+            if(i == 0)
+               defaultFileName = "guideStarInfo.xml";
+            else
+               defaultFileName = "guideStarInfo"+i+".xml";
+            File cachedFile = new File(appContext.getLocalStorage().getDirectory(),
+                defaultFileName);
+            if(cachedFile.exists())
+                cachedFile.delete();
+        }
+    }
+
+    @Override
+    public void windowClosed(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void windowIconified(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void windowDeiconified(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void windowActivated(WindowEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void windowDeactivated(WindowEvent e) {
+       // throw new UnsupportedOperationException("Not supported yet.");
     }
     
     static class CustomFilter extends javax.swing.filechooser.FileFilter {

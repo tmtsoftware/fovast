@@ -17,6 +17,7 @@ import javax.swing.JFileChooser;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -108,7 +109,7 @@ public class XMLFileGenerator {
         }else{
             mag = doc.createElement("k_m");
         }
-		mag.appendChild(doc.createTextNode(""+infoList.get(i).getJmag()));
+		mag.appendChild(doc.createTextNode(""+infoList.get(i).getMag()));
 		element.appendChild(mag);
 
         Element focus = doc.createElement("focus");
@@ -119,6 +120,7 @@ public class XMLFileGenerator {
 		// write the content into xml file
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT,"yes");
 		DOMSource source1 = new DOMSource(doc);
         ApplicationContext appContext = FovastApplication.getApplication().getContext();
         File downloadCacheDir;
@@ -130,14 +132,13 @@ public class XMLFileGenerator {
             downloadCacheDir =
                     new File(appContext.getLocalStorage().getDirectory(),
                     DOWNLOAD_CACHE_DIR+visId+XML_EXTENSIONS[0]);
-        }
-       
+        }    
         StreamResult result = new StreamResult(downloadCacheDir);
+        transformer.transform(source1, result);
+       
 		// Output to console for testing
 		// StreamResult result = new StreamResult(System.out);
-
-		transformer.transform(source1, result);
-
+		
 		System.out.println("File saved in cache!");
 
 	  } catch (ParserConfigurationException pce) {
@@ -181,8 +182,14 @@ public class XMLFileGenerator {
                  int retVal = fc.showSaveDialog(null);
 
                 if(retVal == JFileChooser.APPROVE_OPTION) {
+                    if(fName.contains("(")){
+                       String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                       tempName = "guideStarInfo"+id+XML_EXTENSIONS[0];
+                    }else{
+                        tempName = "guideStarInfo"+XML_EXTENSIONS[0];
+                    }
                     File cachedFile = new File(appContext.getLocalStorage().getDirectory(),
-                    DOWNLOAD_CACHE_DIR);
+                    tempName);
                     String newFilePath = fc.getSelectedFile().getAbsolutePath();
                     if(!newFilePath.contains(".xml")){
                         newFilePath += ".xml";

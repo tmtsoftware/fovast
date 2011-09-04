@@ -13,6 +13,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -42,6 +43,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
 import javax.xml.parsers.ParserConfigurationException;
 import org.openide.util.Exceptions;
 import org.tmt.fovast.gui.FovastInstrumentTree.SomeException;
@@ -131,7 +133,15 @@ public class VisualizationControlPanel extends JPanel
 
     private JTable pointInfoTable;
 
+    private DefaultTableModel model;
+
+    private JPanel tempPanel;
+
+    private JScrollPane pane;
+
     public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
+
+    private ArrayList<PointInfoForXML> prevInfoList = new ArrayList<PointInfoForXML>();
     
     public VisualizationControlPanel(ApplicationContext appContext,
             VisualizationState visualizationState) {
@@ -157,6 +167,7 @@ public class VisualizationControlPanel extends JPanel
         //Scan through the below code for relevant changes
 
         //setPreferredSize(new Dimension(150, 200));
+        tempPanel = new JPanel(new BorderLayout());
         System.out.println(appContext.getLocalStorage().getDirectory());
         setLayout(new BorderLayout(0, 0));
         setBorder(BorderFactory.createEmptyBorder());
@@ -287,7 +298,7 @@ public class VisualizationControlPanel extends JPanel
         //imageLoadStatusLabel
         imageLoadMsgLabel = new JLabel(" ");
 
-        fetchButton = new JButton("Capture Points");
+        fetchButton = new JButton("Capture guide stars");
         //fetchButton.setEnabled(false);
         fetchButton.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent event) {
@@ -299,36 +310,53 @@ public class VisualizationControlPanel extends JPanel
                //loop through catalogs
                 XMLFileGenerator xf = new XMLFileGenerator();
                 String fName = visualization.getFileName();
+                ArrayList<PointInfoForXML> infoList = new ArrayList<PointInfoForXML>();
+             
+                String tempFile;
                 if(fName.contains("(")){
                    String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
-                   xf.generateXML(populateList(catalogs),ra,dec,Integer.parseInt(id));
+                    tempFile = "guideStarInfo"+id+".xml";
+               }
+                else
+                    tempFile = "guideStarInfo.xml";
+                int flag = 0;
+                File cacheFile = new File(appContext.getLocalStorage().getDirectory(),
+                                    tempFile);
+                if(!cacheFile.exists()){
+                    flag = 1;
+                }else
+                    prevInfoList = parsePrevXml();
+                infoList = populateList(catalogs,flag);
+                
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                   xf.generateXML(infoList,ra,dec,Integer.parseInt(id));
                 }else{
-                    xf.generateXML(populateList(catalogs),ra,dec,0);
+                    xf.generateXML(infoList,ra,dec,0);
                 }
                 String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
-                String[][] rowData =new String[4][4];
-                rowData = populateDataForTable();
-                pointInfoTable = new JTable(rowData, columnNames);
+                String[][] rowData =new String[infoList.size()][4];
+                rowData = populateDataForTable();               
+                if(pointInfoTable != null){
+                    tempPanel.remove(pane);
+                }
+                pointInfoTable = new JTable();
+                model = new DefaultTableModel(rowData, columnNames);
+
+                pointInfoTable.setModel(model);
                 pointInfoTable.setEnabled(false);
-                JScrollPane pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
                         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                pane.setPreferredSize(new Dimension(300, 100));
-//                pane.setMaximumSize(new Dimension(100, 50));
-//                pane.setMinimumSize(new Dimension(100, 50));
-                configPanel.add(pane,BorderLayout.CENTER);
-                configPanel.repaint();
-                configPanel.validate();
+//                pane.setPreferredSize(new Dimension(100, 20));
+//                pane.setMaximumSize(new Dimension(100, 30));
+//                pane.setMinimumSize(new Dimension(100, 20));
+                pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 70));
+                //configPanel.add(pane,BorderLayout.SOUTH);
+                tempPanel.add(pane,BorderLayout.NORTH);
+                configPanel.revalidate();
           }
        });
-
-//       saveButton = new JButton("Save");
-//        saveButton.addActionListener(new ActionListener() {
-//           public void actionPerformed(ActionEvent event) {
-//               XMLFileGenerator xf = new XMLFileGenerator();
-//               xf.saveXML(appContext);
-//            }
-//       });
-
+       
         //raDecPanel layout        
         //GridLayout raDecPanelLayout = new GridLayout(2, 2);
         GridBagLayout raDecPanelLayout = new GridBagLayout();
@@ -500,6 +528,7 @@ public class VisualizationControlPanel extends JPanel
 
         configPanel = new JPanel(new BorderLayout());
         configPanel.add(showTargetPanel, BorderLayout.NORTH);
+        configPanel.add(tempPanel,BorderLayout.CENTER);
         try {
             //passing null for config to make a dummy tree
             makeInstrumentTree(false, null);
@@ -532,7 +561,8 @@ public class VisualizationControlPanel extends JPanel
             throws FovastInstrumentTree.SomeException {
 
         if(tree != null)
-            configPanel.remove(tree);
+            tempPanel.remove(tree);
+            //configPanel.remove(tree);
         FovastInstrumentTree instrumentTree = null;
         if(config != null) {
             configHelper = new ConfigHelper(config);
@@ -546,9 +576,10 @@ public class VisualizationControlPanel extends JPanel
         tree.setOpaque(true);
         tree.setBackground(configPanel.getBackground());
         tree.setEnabled(enabled);
-        configPanel.add(tree, BorderLayout.SOUTH);
-        configPanel.revalidate();
-
+        //configPanel.add(tree, BorderLayout.CENTER);
+        //configPanel.revalidate();       
+        tempPanel.add(tree, BorderLayout.CENTER);      
+        tempPanel.revalidate();
     }
 
     private void validateRaFieldAndShowErrorMsgField() {
@@ -813,86 +844,232 @@ public class VisualizationControlPanel extends JPanel
       decTextField.setText("");     
     }
 
-     public ArrayList<PointInfoForXML> populateList(ArrayList<Catalog> catalogs){
+    public ArrayList<PointInfoForXML> parsePrevXml(){
+        final ArrayList<PointInfoForXML> prevInfoList = new ArrayList<PointInfoForXML>();
+        try {           
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            DefaultHandler handler = new DefaultHandler() {
+                              
+                boolean ename = false;
+                boolean cname = false;
+                boolean ra = false;
+                boolean dec = false;
+                boolean pointId = false;
+                boolean focus = false;
+                boolean k_m = false;
+                boolean r_mag = false;
+                boolean jmag= false;
+                PointInfoForXML pt;
+                int cnt = 0;
+                String value;
+
+                //String[] tempRowData = new String[4];
+                @Override
+                public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+                    if (qName.equalsIgnoreCase("Element")) {
+                        // Get names and values for each attribute
+                        pt = new PointInfoForXML();
+                        value = attributes.getValue(0);
+                        ename = true;
+                    }
+                    if (qName.equalsIgnoreCase("catalog")) {
+                        cname = true;
+                    }
+                    if (qName.equalsIgnoreCase("ra")) {
+                        ra = true;
+                    }
+                    if (qName.equalsIgnoreCase("dec")) {
+                        dec = true;
+                    }
+                    if (qName.equalsIgnoreCase("ID")) {
+                        pointId = true;
+                    }
+                    if (qName.equalsIgnoreCase("focus")) {
+                        focus = true;
+                    }
+                    if (qName.equalsIgnoreCase("k_m")) {
+                        k_m = true;
+                    }
+                    if (qName.equalsIgnoreCase("jmag")) {
+                        jmag = true;
+                    }
+                    if (qName.equalsIgnoreCase("r_mag")) {
+                        r_mag = true;
+                    }
+                }
+
+                @Override
+                public void characters(char[] ch, int start, int length) throws SAXException {
+
+                    if (ename) {
+                        //rowData1[cnt][0] = new String(ch, start, length);
+                        pt.setElementId(value);
+                        ename = false;
+                    }
+                    if (cname) {
+                        pt.setCatalogLabel(new String(ch, start, length));
+                        cname = false;
+                    }
+                    if (ra) {
+                        pt.setRa(Double.parseDouble(new String(ch, start, length)));
+                        ra = false;
+                    }
+                    if (dec) {
+                        pt.setDec(Double.parseDouble(new String(ch, start, length)));
+                        dec = false;
+                    }
+                    if(pointId){
+                        pt.setPointId(new String(ch, start, length));
+                        pointId = false;
+                    }
+                    if(jmag){
+                        pt.setMag(Double.parseDouble(new String(ch, start, length)));
+                         jmag = false;
+                    }
+                    if(k_m){
+                        pt.setMag(Double.parseDouble(new String(ch, start, length)));
+                         k_m = false;
+                    }
+                    if(r_mag){
+                        pt.setMag(Double.parseDouble(new String(ch, start, length)));
+                         r_mag = false;
+                    }
+                    if(focus){
+                        pt.setFocus(Integer.parseInt(new String(ch, start, length)));
+                         focus = false;
+                        prevInfoList.add(pt);
+                    }
+                }
+                //rowData1[0][0]="";
+                //rowData1[0][0]="";
+            };
+
+            File downloadCacheDir;
+            String fName = visualization.getFileName();
+            if (fName.contains("(")) {
+                String id = fName.substring(fName.indexOf('(') + 1, fName.indexOf(')'));
+                downloadCacheDir = new File(appContext.getLocalStorage().getDirectory(), "guideStarInfo" + id + ".xml");
+            } else {
+                downloadCacheDir = new File(appContext.getLocalStorage().getDirectory(), "guideStarInfo.xml");
+            }
+            saxParser.parse(downloadCacheDir, handler);
+
+        } catch (IOException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (ParserConfigurationException ex) {
+            Exceptions.printStackTrace(ex);
+        } catch (SAXException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        return prevInfoList;
+    }
+
+     public ArrayList<PointInfoForXML> populateList(ArrayList<Catalog> catalogs,int flag){
                 ArrayList<PointInfoForXML> infoList = new ArrayList<PointInfoForXML>();
                 double raMin=Double.MAX_VALUE , decMin=Double.MAX_VALUE , magMin=Double.MAX_VALUE;
-                String idMin = "";
-                Catalog c = null;
-                
-              
+                String idMin = "",cLabel="";
+                Catalog c = null;         
                 Config conf = visualization.getConfig();
                 //string form of ra, dec (lets say 23, 34 ..
                 ArrayList<String> tips = new ArrayList<String>();
                 tips.add("iris.oiwfs.probe1.arm");
                 tips.add("iris.oiwfs.probe2.arm");
                 tips.add("iris.oiwfs.probe3.arm");
-                tips.add("nfiraos.twfs.detector");
-                if(catalogs.isEmpty()== true){
-                    JOptionPane.showMessageDialog(showTargetPanel,"Load a catalog first");
-                }
+                tips.add("nfiraos.twfs.detector");               
                 for(int j = 0; j<tips.size();j++){
                     Iterator iter = catalogs.iterator();
                     double distMin=Double.MAX_VALUE;
                     String value = conf.getConfigElementProperty(tips.get(j), "position");
-                    String[] raDecCenter = value.split(",");
-                    double ra= Double.parseDouble(raDecCenter[0])*Math.PI/180;
-                    double dec= Double.parseDouble(raDecCenter[1])*Math.PI/180;
-                    double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
-                    while(iter.hasNext())
-                    {
-                        //double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
-                        c = (Catalog)iter.next();
-                        Object[][] data=c.getData();
-                        for (int i = 0; i < data.length; i++) {
-                            Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
-                            ra1 = pos.getX()*Math.PI/180;
-                            dec1 = pos.getY()*Math.PI/180;
-                            temp1 = Math.cos(Math.PI/2-dec)*Math.cos(Math.PI/2-dec1);
-                            temp2 = Math.sin(Math.PI/2-dec)*Math.sin(Math.PI/2-dec1)*Math.cos(ra-ra1);
-                            tempDist = Math.acos(temp1+temp2);
-                            tempDist = tempDist*180/Math.PI;
-                            if(distMin > tempDist){
-                                distMin = tempDist;
-                                raMin = ra1;
-                                decMin = dec1;
-                                magMin = (Double)data[i][2];
-                                idMin = data[i][3].toString();
+                    if(conf.getConfig(tips.get(j)) != null){
+                        String[] raDecCenter = value.split(",");
+                        double ra= Double.parseDouble(raDecCenter[0])*Math.PI/180;
+                        double dec= Double.parseDouble(raDecCenter[1])*Math.PI/180;
+                        double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
+                        while(iter.hasNext())
+                        {
+                            //double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,temp2=Double.MAX_VALUE,tempDist=Double.MAX_VALUE;
+                            c = (Catalog)iter.next();
+                            Object[][] data=c.getData();
+                            for (int i = 0; i < data.length; i++) {
+                                Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+                                ra1 = pos.getX()*Math.PI/180;
+                                dec1 = pos.getY()*Math.PI/180;
+                                temp1 = Math.cos(Math.PI/2-dec)*Math.cos(Math.PI/2-dec1);
+                                temp2 = Math.sin(Math.PI/2-dec)*Math.sin(Math.PI/2-dec1)*Math.cos(ra-ra1);
+                                tempDist = Math.acos(temp1+temp2);
+                                tempDist = tempDist*180/Math.PI;
+                                if(distMin > tempDist){
+                                    distMin = tempDist;
+                                    raMin = ra1;
+                                    decMin = dec1;
+                                    magMin = (Double)data[i][2];
+                                    idMin = data[i][3].toString();
+                                    cLabel = c.getLabel();
+                                }
                             }
                         }
-                    }
-                    raMin=((raMin*180)/Math.PI);
-                    decMin=((decMin*180)/Math.PI);
-                    PointInfoForXML ptInfo = new PointInfoForXML();
-                    if(distMin<=((Math.sqrt(2.0))*2)/3600d){
-                        System.out.println("valid point:"+distMin);
-                        ptInfo.setRa(raMin);
-                        ptInfo.setDec(decMin);
-                        ptInfo.setElementId(tips.get(j));
-                        ptInfo.setCatalogLabel(c.getLabel());
-                        ptInfo.setJmag(magMin);
-                        ptInfo.setPointId(idMin);
-                        ptInfo.setFocus(0); // TO BE DONE
-                    }
-                    else{
-                        System.out.println("invalid point");
-                        ptInfo.setRa(((ra*180)/Math.PI));
-                        ptInfo.setDec(((dec*180)/Math.PI));
-                        ptInfo.setElementId(tips.get(j));
-                        ptInfo.setCatalogLabel("No catalog");
-                        ptInfo.setJmag(-99.9);
-                        if(tips.get(j).contains("probe1"))
-                            ptInfo.setPointId("probe1 center");
-                        else if(tips.get(j).contains("probe2"))
-                            ptInfo.setPointId("probe2 center");
-                        else if(tips.get(j).contains("probe3"))
-                            ptInfo.setPointId("probe3 center");
-                        else
-                            ptInfo.setPointId("TWFS Dectector");
+                        raMin=((raMin*180)/Math.PI);
+                        decMin=((decMin*180)/Math.PI);
+                        String isVisible = visualization.getConfig().getConfigElementProperty(tips.get(j),"position");
+                        PointInfoForXML ptInfo = new PointInfoForXML();
+//                        if(distMin<=((Math.sqrt(2.0))*2)/3600d){
+                        if(distMin<=(5/3600d)){
+                            System.out.println("valid point:"+distMin);
+                            ptInfo.setRa(raMin);
+                            ptInfo.setDec(decMin);
+                            ptInfo.setElementId(tips.get(j));
+                            ptInfo.setCatalogLabel(cLabel);
+                            ptInfo.setMag(magMin);
+                            ptInfo.setPointId(idMin);
+                            ptInfo.setFocus(0); // TO BE DONE
+                            ptInfo.setIsSelected(true);
+                        }
+                        else{
+                            System.out.println("invalid point");
+                            ptInfo.setRa(((ra*180)/Math.PI));
+                            ptInfo.setDec(((dec*180)/Math.PI));
+                            ptInfo.setElementId(tips.get(j));
+                            ptInfo.setCatalogLabel("No catalog");
+                            ptInfo.setMag(-99.9);
+                            if(tips.get(j).contains("probe1"))
+                                ptInfo.setPointId("probe1 center");
+                            else if(tips.get(j).contains("probe2"))
+                                ptInfo.setPointId("probe2 center");
+                            else if(tips.get(j).contains("probe3"))
+                                ptInfo.setPointId("probe3 center");
+                            else
+                                ptInfo.setPointId("TWFS Dectector");
 
-                        ptInfo.setFocus(0); // TO BE DONE
-                    }
-                   infoList.add(ptInfo);
+                            ptInfo.setFocus(0); // TO BE DONE
+                            ptInfo.setIsSelected(true);
+                        }
+                         infoList.add(ptInfo);                 
+               }else if(flag == 1 && conf.getConfig(tips.get(j)) == null){
+                        //default values
+                        PointInfoForXML pt1 = new PointInfoForXML();
+                        pt1.setCatalogLabel("null");
+                        pt1.setDec(0.0);
+                        pt1.setFocus(0);
+                        pt1.setMag(-99.9);
+                        pt1.setRa(0.0);
+                        pt1.setPointId("null");
+                        pt1.setElementId(tips.get(j));
+                        infoList.add(pt1);
+               }else if(flag != 1 && conf.getConfig(tips.get(j)) == null){
+                        //load old values
+                        PointInfoForXML pt1 = new PointInfoForXML();
+                        pt1.setCatalogLabel(prevInfoList.get(j).getCatalogLabel());
+                        pt1.setDec(prevInfoList.get(j).getDec());
+                        pt1.setFocus(prevInfoList.get(j).getFocus());
+                        pt1.setMag(prevInfoList.get(j).getMag());
+                        pt1.setRa(prevInfoList.get(j).getRa());
+                        pt1.setPointId(prevInfoList.get(j).getPointId());
+                        pt1.setElementId(tips.get(j));
+                        infoList.add(pt1);
                }
+
+         }
                return infoList;
     }
 
@@ -1055,7 +1232,8 @@ public class VisualizationControlPanel extends JPanel
     }
 
     @Override
-    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {      
+    public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
+
 //        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
 //                confElementId.equals("iris.oiwfs.probe2.arm") ||
 //                confElementId.equals("iris.oiwfs.probe3.arm")){

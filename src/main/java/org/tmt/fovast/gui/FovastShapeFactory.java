@@ -1142,6 +1142,13 @@ class FovastShapeFactory{
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 config.setConfigElementProperty("iris.oiwfs.probe1.arm", "position", centerString);
+                String tempString;
+                if(probArmFig.isVisible()){
+                    tempString = "true";
+                }else{
+                    tempString = "false";
+                }
+                config.setConfigElementProperty("iris.oiwfs.probe1.arm", "isVisible",tempString);
             }
         });
         CanvasFigure probFig1 = irisProbeArm1[1];
@@ -1242,6 +1249,13 @@ class FovastShapeFactory{
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 config.setConfigElementProperty("iris.oiwfs.probe2.arm", "position", centerString);
+                String tempString;
+                if(probArmFig.isVisible()){
+                    tempString = "true";
+                }else{
+                    tempString = "false";
+                }
+                config.setConfigElementProperty("iris.oiwfs.probe2.arm", "isVisible",tempString);
             }
         });
         CanvasFigure probFig2 = irisProbeArm2[1];
@@ -1312,11 +1326,18 @@ class FovastShapeFactory{
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm3 = makeFigure(props);
         map.put("iris.oiwfs.probe3.arm", irisProbeArm3);
+//        String tempString;
+//        if(irisProbeArm3[0].isVisible()){
+//            tempString = "true";
+//        }else{
+//            tempString = "false";
+//        }
+//        config.setConfigElementProperty("iris.oiwfs.probe3.arm", "isVisible",tempString);
         irisProbeArm3[1].addCanvasFigureListener(new CanvasFigureListener() {
 
             @Override
             public void figureSelected(CanvasFigureEvent e) {
-                //do nothing
+               //do nothing
             }
 
             @Override
@@ -1445,6 +1466,13 @@ class FovastShapeFactory{
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 //System.out.println("center:"+centerString);
                 config.setConfigElementProperty("nfiraos.twfs.detector", "position", centerString);
+                String tempString;
+                if(probArmFig.isVisible()){
+                    tempString = "true";
+                }else{
+                    tempString = "false";
+                }
+                config.setConfigElementProperty("nfiraos.twfs.detector", "isVisible",tempString);
             }
         });
         irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);

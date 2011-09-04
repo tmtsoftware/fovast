@@ -13,6 +13,11 @@ public class PointInfoForXML {
     private double ra , dec ,mag;
     private String catalogLabel , elementId ,pointId;
     private int focus;
+    /**
+     * this value is used to check if the user has 
+     * selected any prob or twfs else we should retain the values present in the xml
+     */
+    private boolean isSelected = false;
    
     /**
      * @return the ra
@@ -73,14 +78,14 @@ public class PointInfoForXML {
     /**
      * @return the mag
      */
-    public double getJmag() {
+    public double getMag() {
         return mag;
     }
 
     /**
      * @param mag the mag to set
      */
-    public void setJmag(double jmag) {
+    public void setMag(double jmag) {
         this.mag = jmag;
     }
 
@@ -110,6 +115,20 @@ public class PointInfoForXML {
      */
     public void setFocus(int focus) {
         this.focus = focus;
+    }
+
+    /**
+     * @return the isSelected
+     */
+    public boolean isIsSelected() {
+        return isSelected;
+    }
+
+    /**
+     * @param isSelected the isSelected to set
+     */
+    public void setIsSelected(boolean isSelected) {
+        this.isSelected = isSelected;
     }
 
     

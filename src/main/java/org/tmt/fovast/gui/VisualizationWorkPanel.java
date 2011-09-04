@@ -656,6 +656,13 @@ public class VisualizationWorkPanel extends JPanel
                     cc.screenToWorldCoords(centerPt, false);
                     String centerString = centerPt.getX()+","+centerPt.getY();
                     visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    String tempString;
+                    if(probArmFig.isVisible()){
+                        tempString = "true";
+                    }else{
+                        tempString = "false";
+                    }
+                    visualization.getConfig().setConfigElementProperty(confElementId, "isVisible",tempString);
                     //set the initial value for probe position
                     //check if element being shown is one of the probes and set its position property accordingly
                     
