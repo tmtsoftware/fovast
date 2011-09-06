@@ -51,6 +51,8 @@ class FovastShapeFactory{
 
     private final static String FIGURE_TYPE_PROBETIP = "probeTip";
 
+    private final static String FIGURE_TYPE_DOUBLE_ARC = "doubleArc";
+
     private final static String FIGURE_TYPE_ARC = "arc";
 
     private final static String ARC_END = "arcEnd";
@@ -108,6 +110,18 @@ class FovastShapeFactory{
     private final static String START_ANGLE = "startAngle";
 
     private final static String STOP_ANGLE = "stopAngle";
+
+    private final static String CENTER_OFFSET_X1 = "centerOffsetX1";
+
+    private final static String CENTER_OFFSET_Y1 = "centerOffsetY1";
+
+    private final static String RADIUS1 = "radius1";
+
+    private final static String ARC_END1 = "arcEnd1";
+
+    private final static String ARC_ANGLE_EXTENT1 = "angleExtent1";
+
+    private final static String ARC_START_ANGLE1 = "startAngle1";
 
     private final FovastImageDisplay fovastImageDisplay;
 
@@ -414,6 +428,94 @@ class FovastShapeFactory{
            return new CanvasFigure[]{fig};
 
        }
+       else if(figType.equals(FIGURE_TYPE_DOUBLE_ARC)) {
+           double radius = (Double)props.get(RADIUS);
+           double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+           double y_off = (Double)props.get(CENTER_OFFSET_Y);
+           double radius1 = (Double)props.get(RADIUS1);
+           double x_off1 = (Double)props.get(CENTER_OFFSET_X1); //in degrees
+           double y_off1 = (Double)props.get(CENTER_OFFSET_Y1);
+           double flag_x=1;
+           double flag_y=1;
+           double flag_x1=1;
+           double flag_y1=1;
+           Arc2D.Double arc = null;
+
+           CanvasFigure[] doubleArc = new CanvasFigure[2];
+           if(x_off < 0.0) {
+               flag_x=-1;
+           }
+           if(y_off < 0.0) {
+               flag_y=-1;
+           }
+           if(x_off1 < 0.0) {
+               flag_x1=-1;
+           }
+           if(y_off1 < 0.0) {
+               flag_y1=-1;
+           }
+           for(int i=0;i<doubleArc.length;i++){
+               Point2D.Double wcsCenter = cc.getWCSCenter();
+               double ra = wcsCenter.x ;    //RA in degrees
+               double dec = wcsCenter.y ;    //DEC
+               double factor = Math.cos(Math.toRadians(dec)); //less than 1
+               Point2D.Double pt = new Point2D.Double(ra, dec);
+               cc.worldToScreenCoords(pt, false);
+               ra = pt.x;     //in pixels now
+               dec = pt.y;
+               if(i==0){
+                   pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off = pt.x;     //in pixels now
+                   y_off = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off*flag_x;    //RA
+                   dec = dec + y_off*flag_y;    //DEC
+                   pt = new Point2D.Double(radius*factor, radius);
+                   cc.worldToScreenCoords(pt, true);
+                   radius = pt.x;
+                   ra = ra - radius ;
+                   dec = dec - radius ;
+                   int type = (Integer)props.get(ARC_END);
+                   //axis goes from east -> west
+                   double startAngle = -1.0 * (Double)props.get(ARC_START_ANGLE); //(Double)props.get(ARC_START_ANGLE);
+                   double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
+                   arc = new Arc2D.Double(ra, dec, 2*radius, 2*radius, startAngle,
+                       angleExtent, type);
+               }
+               //second arc
+               if(i==1){
+                   pt = new Point2D.Double(x_off1*factor, y_off1); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off1 = pt.x;     //in pixels now
+                   y_off1 = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off1*flag_x1;    //RA
+                   dec = dec + y_off1*flag_y1;    //DEC
+                   pt = new Point2D.Double(radius1*factor, radius1);
+                   cc.worldToScreenCoords(pt, true);
+                   radius1 = pt.x;
+                   ra = ra - radius1 ;
+                   dec = dec - radius1 ;
+                   int type = (Integer)props.get(ARC_END1);
+                   //axis goes from east -> west
+                   double startAngle = -1.0 * (Double)props.get(ARC_START_ANGLE1); //(Double)props.get(ARC_START_ANGLE);
+                   double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT1);//(Double)props.get(ARC_ANGLE_EXTENT);
+                   arc = new Arc2D.Double(ra, dec, 2*radius1, 2*radius1, startAngle,
+                       angleExtent, type);
+               }              
+               doubleArc[i] = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
+                       interactor);
+               //turns off resizing
+               if(doubleArc[i] instanceof RotatableCanvasFigure) {
+                    ((RotatableCanvasFigure)doubleArc[0]).setResizable(false);
+               }
+               dig.add(doubleArc[i]);
+               doubleArc[i].setVisible(false);
+           }
+           return doubleArc;
+
+       }
        else if(figType.equals(FIGURE_TYPE_NFIRAOS_ASTERISM)) {
            //we have to draw 6 cricles with one at center and others on a pentagon
            //of radius 35 arc sec
@@ -676,12 +778,28 @@ class FovastShapeFactory{
         CanvasFigure[] nfiraosLimitsFigs = makeFigure(props);
         map.put("nfiraos.limits", nfiraosLimitsFigs);
 
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+//        props.put(ROTATABLE, false);
+//        props.put(MOVEABLE, false);
+//        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(RADIUS, 1/60d);
+//        props.put(ARC_ANGLE_EXTENT,163.99d);
+//        props.put(ARC_START_ANGLE, -8.0d);
+//        props.put(ARC_END,ARC_END_OPEN);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.WHITE);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] nfiraosLimitsFigs = makeFigure(props);
+//        map.put("nfiraos.limits", nfiraosLimitsFigs);
+
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 0.99/60d);
+        props.put(RADIUS, 0.92/60d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_NO);
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -1053,10 +1171,67 @@ class FovastShapeFactory{
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, -2.292664743/60d);
+        props.put(RADIUS, 2.29266474/60d);
+        props.put(ARC_ANGLE_EXTENT, 51.72);
+        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_START_ANGLE,115.86);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        final CanvasFigure[] tempIrisProbeLimits1 = makeFigure(props);
+        map.put("iris.oiwfs.probe1.limits1", tempIrisProbeLimits1);
+
+        props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, -0.033091765d);
+        props.put(CENTER_OFFSET_Y, 0.019105539d);
+        props.put(RADIUS,2.29266474/60d);
+        props.put(ARC_ANGLE_EXTENT, 51.72);
+        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_START_ANGLE,355.86);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        final CanvasFigure[] tempIrisProbeLimits2 = makeFigure(props);
+        map.put("iris.oiwfs.probe2.limits1", tempIrisProbeLimits2);
+
+        props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0.033091765d);
+        props.put(CENTER_OFFSET_Y, 0.019105539d);
+        props.put(RADIUS, 2.29266474/60d);
+        props.put(ARC_ANGLE_EXTENT, 51.72);
+        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_START_ANGLE,235.86);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.WHITE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        final CanvasFigure[] tempIrisProbeLimits3 = makeFigure(props);
+        map.put("iris.oiwfs.probe3.limits1", tempIrisProbeLimits3);
+
+        props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_DOUBLE_ARC);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, -2.292664743/60d);
         props.put(RADIUS, 2.375998076/60d);
         props.put(ARC_ANGLE_EXTENT, 51.72);
         props.put(ARC_END,ARC_END_PIE);
         props.put(ARC_START_ANGLE,115.86);
+        props.put(CENTER_OFFSET_X1, 0d);
+        props.put(CENTER_OFFSET_Y1, 0d);
+        props.put(RADIUS1, 1/60d);
+        props.put(ARC_ANGLE_EXTENT1, 163.99);
+        props.put(ARC_END1,ARC_END_OPEN);
+        props.put(ARC_START_ANGLE1,-8.0);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.RED);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -1065,7 +1240,7 @@ class FovastShapeFactory{
         map.put("iris.oiwfs.probe1.limits", irisProbeLimits1);
 
         props  = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_DOUBLE_ARC);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, -0.033091765d);
@@ -1074,6 +1249,12 @@ class FovastShapeFactory{
         props.put(ARC_ANGLE_EXTENT, 51.72);
         props.put(ARC_END,ARC_END_PIE);
         props.put(ARC_START_ANGLE,355.86);
+        props.put(CENTER_OFFSET_X1, 0d);
+        props.put(CENTER_OFFSET_Y1, 0d);
+        props.put(RADIUS1, 1/60d);
+        props.put(ARC_ANGLE_EXTENT1, 163.99);
+        props.put(ARC_END1,ARC_END_OPEN);
+        props.put(ARC_START_ANGLE1,-128.0);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.GREEN);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -1082,7 +1263,7 @@ class FovastShapeFactory{
         map.put("iris.oiwfs.probe2.limits", irisProbeLimits2);
 
         props  = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_DOUBLE_ARC);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0.033091765d);
@@ -1091,6 +1272,12 @@ class FovastShapeFactory{
         props.put(ARC_ANGLE_EXTENT, 51.72);
         props.put(ARC_END,ARC_END_PIE);
         props.put(ARC_START_ANGLE,235.86);
+        props.put(CENTER_OFFSET_X1, 0d);
+        props.put(CENTER_OFFSET_Y1, 0d);
+        props.put(RADIUS1, 1/60d);
+        props.put(ARC_ANGLE_EXTENT1, 163.99);
+        props.put(ARC_END1,ARC_END_OPEN);
+        props.put(ARC_START_ANGLE1,-248.0);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.BLUE);
         props.put(FILL, FILL_OUTLINE_NO);
@@ -1162,7 +1349,7 @@ class FovastShapeFactory{
                 double x = pt.getX();
                 double y = pt.getY();
 
-                CanvasFigure[] figs = map.get("iris.oiwfs.probe1.limits");
+                CanvasFigure[] figs = map.get("iris.oiwfs.probe1.limits1");
                 CanvasFigure probLimitsFig = figs[0];
                 Shape shape = probLimitsFig.getShape();
 
@@ -1269,7 +1456,7 @@ class FovastShapeFactory{
                 double x = pt.getX();
                 double y = pt.getY();
 
-                CanvasFigure[] figs = map.get("iris.oiwfs.probe2.limits");
+                CanvasFigure[] figs = map.get("iris.oiwfs.probe2.limits1");
                 CanvasFigure probLimitsFig = figs[0];
                 Shape shape = probLimitsFig.getShape();
 
@@ -1376,7 +1563,7 @@ class FovastShapeFactory{
                 double x = pt.getX();
                 double y = pt.getY();
 
-                CanvasFigure[] figs = map.get("iris.oiwfs.probe3.limits");
+                CanvasFigure[] figs = map.get("iris.oiwfs.probe3.limits1");
                 CanvasFigure probLimitsFig = figs[0];
                 Shape shape = probLimitsFig.getShape();
 

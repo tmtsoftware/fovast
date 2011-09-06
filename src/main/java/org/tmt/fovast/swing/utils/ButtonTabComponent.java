@@ -101,13 +101,18 @@ public class ButtonTabComponent extends JPanel {
 
         public void actionPerformed(ActionEvent e) {
             int i = pane.indexOfTabComponent(ButtonTabComponent.this);
+            String visName = pane.getTitleAt(i);
+            int id = 0;
+            if(visName.contains("(")){
+                id =Integer.parseInt(visName.substring(visName.indexOf('(')+1, visName.indexOf(')')));
+            }
             if (i != -1) {
                 org.jdesktop.application.ApplicationContext ac =FovastApplication.getApplication().getContext();
                 String defaultFileName;
-                if(i == 0)
+                if(id == 0)
                    defaultFileName = "guideStarInfo.xml";
                 else
-                   defaultFileName = "guideStarInfo"+i+".xml";
+                   defaultFileName = "guideStarInfo"+id+".xml";
                 File cachedFile = new File(ac.getLocalStorage().getDirectory(),
                     defaultFileName);
                 if(cachedFile.exists())
