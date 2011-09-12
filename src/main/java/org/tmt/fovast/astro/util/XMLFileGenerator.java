@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,6 +25,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.jdesktop.application.ApplicationContext;
+import org.openide.util.Exceptions;
+import org.tmt.fovast.astro.util.DegreeCoverter.IllegalFormatException;
 import org.tmt.fovast.gui.FovastApplication;
 import org.tmt.fovast.gui.PointInfoForXML;
 import org.tmt.fovast.util.AppConfiguration;
@@ -62,11 +65,13 @@ public class XMLFileGenerator {
 		rootElement.appendChild(source);
 
         Element sourceRa = doc.createElement("SourceRa");
-		sourceRa.appendChild(doc.createTextNode(""+ra));
+		//sourceRa.appendChild(doc.createTextNode(""+ra));       
+        sourceRa.appendChild(doc.createTextNode(""+DegreeCoverter.degToHMS(ra)));
 		source.appendChild(sourceRa);
 
         Element sourceDec = doc.createElement("SourceDec");
-		sourceDec.appendChild(doc.createTextNode(""+dec));
+		//sourceDec.appendChild(doc.createTextNode(""+dec));
+        sourceDec.appendChild(doc.createTextNode(""+DegreeCoverter.degToDMS(dec)));
 		source.appendChild(sourceDec);
 
         for(int i = 0; i<infoList.size() ; i++){
@@ -194,13 +199,19 @@ public class XMLFileGenerator {
                     if(!newFilePath.contains(".xml")){
                         newFilePath += ".xml";
                     }
+                    File newFile = new File(newFilePath);
+                    int cont=JOptionPane.YES_OPTION;
+                    if(newFile.exists()){
+                        cont = JOptionPane.showConfirmDialog(fc, "Are you sure you want to replace the file?");
+                    }
+                    if(cont == JOptionPane.YES_OPTION){
                     FileInputStream in =null;
                     FileOutputStream out =null;
                     try {
                                in = new FileInputStream(
                                           cachedFile);
                                      out = new FileOutputStream(
-                                                newFilePath);
+                                                newFile);
 
                                           byte[] buf = new byte[1048576];
                                           int len;
@@ -224,6 +235,7 @@ public class XMLFileGenerator {
                                                 th.printStackTrace();
                                           }
                                     }
+        }
                 }
                }
 

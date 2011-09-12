@@ -147,8 +147,6 @@ public class VisualizationControlPanel extends JPanel
             VisualizationState visualizationState) {
         this.appContext = appContext;
         this.visualization = visualizationState;
-
-
         initComponents();
 
         visualization.addListener(this);
@@ -167,7 +165,17 @@ public class VisualizationControlPanel extends JPanel
         //Scan through the below code for relevant changes
 
         //setPreferredSize(new Dimension(150, 200));
+        
         tempPanel = new JPanel(new BorderLayout());
+        String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
+                String[][] rowData =new String[5][4];
+        model = new DefaultTableModel(rowData, columnNames);
+        pointInfoTable = new JTable(model);
+        pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 80));
+        pointInfoTable.setEnabled(false);
+        pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tempPanel.add(pane,BorderLayout.NORTH);
         System.out.println(appContext.getLocalStorage().getDirectory());
         setLayout(new BorderLayout(0, 0));
         setBorder(BorderFactory.createEmptyBorder());
@@ -337,22 +345,22 @@ public class VisualizationControlPanel extends JPanel
                 String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
                 String[][] rowData =new String[infoList.size()][4];
                 rowData = populateDataForTable();               
-                if(pointInfoTable != null){
-                    tempPanel.remove(pane);
-                }
-                pointInfoTable = new JTable();
+//                if(pointInfoTable != null){
+//                    tempPanel.remove(pane);
+//                }
+//                pointInfoTable = new JTable();
                 model = new DefaultTableModel(rowData, columnNames);
 
                 pointInfoTable.setModel(model);
                 pointInfoTable.setEnabled(false);
-                pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//                pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+//                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 //                pane.setPreferredSize(new Dimension(100, 20));
 //                pane.setMaximumSize(new Dimension(100, 30));
 //                pane.setMinimumSize(new Dimension(100, 20));
-                pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 70));
+                //pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 80));
                 //configPanel.add(pane,BorderLayout.SOUTH);
-                tempPanel.add(pane,BorderLayout.NORTH);
+//                tempPanel.add(pane,BorderLayout.NORTH);
                 configPanel.revalidate();
           }
        });
@@ -1074,7 +1082,7 @@ public class VisualizationControlPanel extends JPanel
     }
 
      public String[][] populateDataForTable(){
-        final String[][] rowData1 = new String[4][4];
+        final String[][] rowData1 = new String[5][4];
         
         try {           
             SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -1084,6 +1092,8 @@ public class VisualizationControlPanel extends JPanel
                 boolean cname = false;
                 boolean ra = false;
                 boolean dec = false;
+                boolean sRa = false;
+                boolean sDec = false;
                 int cnt = 0;
                 String value;
                 //String[] tempRowData = new String[4];
@@ -1104,16 +1114,34 @@ public class VisualizationControlPanel extends JPanel
                 if (qName.equalsIgnoreCase("dec")) {
                     dec = true;
                 }
+                if (qName.equalsIgnoreCase("SourceRa")) {
+                    sRa = true;
+                }
+                if (qName.equalsIgnoreCase("SourceDec")) {
+                    sDec = true;
+                }
+                if (qName.equalsIgnoreCase("Source")) {
+                    ename = true;
+                    cname = true;
+                }
+
+
             }
 
             @Override
-            public void characters(char ch[], int start, int length) throws SAXException {
+            public void characters(char ch[], int start, int length) throws SAXException {                  
                 if (ename) {                 
                     //rowData1[cnt][0] = new String(ch, start, length);
+                    if(cnt == 0)
+                        rowData1[cnt][0]="image.center";
+                    else
                     rowData1[cnt][0] = value;
                     ename = false;
                 }
                 if (cname) {
+                    if(cnt == 0)
+                        rowData1[cnt][1]="null";
+                    else
                     rowData1[cnt][1] = new String(ch, start, length);
                     cname = false;
                 }
@@ -1126,7 +1154,15 @@ public class VisualizationControlPanel extends JPanel
                     cnt++;
                     dec = false;
                 }
-
+                if(sRa){
+                    rowData1[cnt][2] = new String(ch, start, length);
+                    sRa = false;
+                }
+                if (sDec) {
+                    rowData1[cnt][3] = new String(ch, start, length);
+                    cnt++;
+                    sDec = false;
+                }
             }
             //rowData1[0][0]="";
           };

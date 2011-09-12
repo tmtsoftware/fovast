@@ -7,6 +7,8 @@
 package org.tmt.fovast.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -14,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import nom.tam.fits.FitsException;
 import org.jdesktop.application.ApplicationContext;
 import org.slf4j.Logger;
@@ -87,10 +87,14 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
         controlPanel = new VisualizationControlPanel(appContext, visualization);
         workPanel = new VisualizationWorkPanel(appContext, visualization, imageCache);
         workPanel.addVisualizationWorkPanelListener(controlPanel);
-
-        splitPane.setLeftComponent(controlPanel);
-        splitPane.setRightComponent(workPanel);
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        splitPane.setDividerLocation((int)dim.width/3);
+        splitPane.setLeftComponent(controlPanel);        
+        splitPane.setRightComponent(workPanel);       
         add(splitPane);
+        
+
+        System.out.println("hello"+dim.width);
     }
 
     //
