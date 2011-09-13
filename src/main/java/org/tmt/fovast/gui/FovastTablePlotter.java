@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import jsky.coords.CoordinateConverter;
 import jsky.image.graphics.ShapeUtil;
 import jsky.util.java2d.ShapeUtilities;
+import org.tmt.fovast.astro.util.DegreeCoverter;
 
 /**
  *
@@ -87,10 +88,12 @@ public class FovastTablePlotter{
         
         ArrayList<Shape> figureList = new ArrayList<Shape>();
         for (int i = 0; i < data.length; i++) {
-            Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
-            CoordinateConverter coordinateConverter = _display.getCoordinateConverter();
 
-            Point2D.Double wcsCenter = coordinateConverter.getWCSCenter();//image center RA/DEC
+//            Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+            CoordinateConverter coordinateConverter = _display.getCoordinateConverter();
+           Point2D.Double pos = DegreeCoverter.correctionUsingPoints(_display,(Double)data[i][0],(Double)data[i][1]);
+/*
+          Point2D.Double wcsCenter = coordinateConverter.getWCSCenter();//image center RA/DEC
           double ra = wcsCenter.x ;    //RA in degrees
           double dec = wcsCenter.y ;    //DEC
           double factor = Math.cos(Math.toRadians(dec)); //less than 1
@@ -117,7 +120,7 @@ public class FovastTablePlotter{
             double x_offset=(ra - pos.x)*factor;
             pos.x = ra-x_offset;           //corrected x position (in pixels)
 
-
+*/
 
 
 

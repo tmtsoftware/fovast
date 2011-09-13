@@ -10,7 +10,8 @@ package org.tmt.fovast.gui;
  * @author Disha_Gujrathi
  */
 public class PointInfoForXML {
-    private double ra , dec ,mag;
+    private String ra , dec ;
+    double mag;
     private String catalogLabel , elementId ,pointId;
     private int focus;
     /**
@@ -22,28 +23,28 @@ public class PointInfoForXML {
     /**
      * @return the ra
      */
-    public double getRa() {
+    public String getRa() {
         return ra;
     }
 
     /**
      * @param ra the ra to set
      */
-    public void setRa(double ra) {
+    public void setRa(String ra) {
         this.ra = ra;
     }
 
     /**
      * @return the dec
      */
-    public double getDec() {
+    public String getDec() {
         return dec;
     }
 
     /**
      * @param dec the dec to set
      */
-    public void setDec(double dec) {
+    public void setDec(String dec) {
         this.dec = dec;
     }
 

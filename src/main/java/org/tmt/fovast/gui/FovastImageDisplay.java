@@ -15,7 +15,7 @@ import jsky.navigator.NavigatorPane;
  * Mimicing NavigatorImageDisplay as needed ..
  * 
  */
-class FovastImageDisplay extends DivaMainImageDisplay{
+public class FovastImageDisplay extends DivaMainImageDisplay{
 
     private FovastNavigatorPane _navigatorPane;
 

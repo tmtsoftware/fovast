@@ -6,10 +6,14 @@
  */
 package org.tmt.fovast.astro.util;
 
+import java.awt.geom.Point2D;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
+import jsky.coords.CoordinateConverter;
+import org.tmt.fovast.gui.FovastImageDisplay;
+import org.tmt.fovast.gui.FovastImageDisplayControl;
 
 /**
  * Util class to convert RA, DEC to degrees
@@ -304,6 +308,53 @@ public class DegreeCoverter {
         double s = (deg - m) * 60;
         String temp=sign+d+":"+m+":"+s;
         return  temp;
+    }
+
+    public static Point2D.Double correctionUsingPoints(FovastImageDisplay display,double x ,double y){
+          Point2D.Double pos = new Point2D.Double(x, y);
+          CoordinateConverter cc = display.getCoordinateConverter();
+          Point2D.Double wcsCenter = cc.getWCSCenter();//image center RA/DEC
+          double ra = wcsCenter.x ;    //RA in degrees
+          double dec = wcsCenter.y ;    //DEC
+          double factor = Math.cos(Math.toRadians(dec)); //less than 1
+          Point2D.Double pt = new Point2D.Double(ra, dec);
+          cc.worldToScreenCoords(pt, false);
+          ra = pt.x;     //in pixels now
+          dec = pt.y;
+          //cc.convertCoords(pos, CoordinateConverter.WORLD, CoordinateConverter.USER, false);
+          cc.convertCoords(pos, CoordinateConverter.WORLD, CoordinateConverter.SCREEN, false);
+          double x_offset=(ra - pos.x)*factor;
+          pos.x = ra-x_offset;           //corrected x position (in pixels)
+          return pos;
+    }
+
+    public static Point2D.Double correctionUsingOffsets(FovastImageDisplay display,double xOffset ,double yOffset){
+        double flag_x=1;
+        double flag_y=1;
+        CoordinateConverter cc = display.getCoordinateConverter();
+        if(xOffset < 0.0) {
+           flag_x=-1;
+        }
+        if(yOffset < 0.0) {
+           flag_y=-1;
+        }
+        Point2D.Double wcsCenter = cc.getWCSCenter();
+        double ra = wcsCenter.x ;    //RA in degrees
+        double dec = wcsCenter.y ;    //DEC
+        double factor = Math.cos(Math.toRadians(dec)); //less than 1
+        Point2D.Double pt = new Point2D.Double(ra, dec);
+        cc.worldToScreenCoords(pt, false);
+        ra = pt.x;     //in pixels now
+        dec = pt.y;
+        pt = new Point2D.Double(xOffset*factor, yOffset); //works only for positive offsets
+        cc.worldToScreenCoords(pt, true);
+        xOffset = pt.x;     //in pixels now
+        yOffset = pt.y;
+      //axis goes from east <-- west
+        ra = ra + xOffset*flag_x;    //RA
+        dec = dec + yOffset*flag_y;    //DEC
+        pt = new Point2D.Double(ra, dec);
+        return pt;
     }
 
 

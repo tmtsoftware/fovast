@@ -920,11 +920,11 @@ public class VisualizationControlPanel extends JPanel
                         cname = false;
                     }
                     if (ra) {
-                        pt.setRa(Double.parseDouble(new String(ch, start, length)));
+                        pt.setRa(new String(ch, start, length));
                         ra = false;
                     }
                     if (dec) {
-                        pt.setDec(Double.parseDouble(new String(ch, start, length)));
+                        pt.setDec(new String(ch, start, length));
                         dec = false;
                     }
                     if(pointId){
@@ -1024,8 +1024,8 @@ public class VisualizationControlPanel extends JPanel
 //                        if(distMin<=((Math.sqrt(2.0))*2)/3600d){
                         if(distMin<=(5/3600d)){
                             System.out.println("valid point:"+distMin);
-                            ptInfo.setRa(raMin);
-                            ptInfo.setDec(decMin);
+                            ptInfo.setRa(DegreeCoverter.degToHMS(raMin));
+                            ptInfo.setDec(DegreeCoverter.degToDMS(decMin));
                             ptInfo.setElementId(tips.get(j));
                             ptInfo.setCatalogLabel(cLabel);
                             ptInfo.setMag(magMin);
@@ -1035,8 +1035,8 @@ public class VisualizationControlPanel extends JPanel
                         }
                         else{
                             System.out.println("invalid point");
-                            ptInfo.setRa(((ra*180)/Math.PI));
-                            ptInfo.setDec(((dec*180)/Math.PI));
+                            ptInfo.setRa(DegreeCoverter.degToHMS(((ra*180)/Math.PI)));
+                            ptInfo.setDec(DegreeCoverter.degToDMS((dec*180)/Math.PI));
                             ptInfo.setElementId(tips.get(j));
                             ptInfo.setCatalogLabel("No catalog");
                             ptInfo.setMag(-99.9);
@@ -1057,10 +1057,10 @@ public class VisualizationControlPanel extends JPanel
                         //default values
                         PointInfoForXML pt1 = new PointInfoForXML();
                         pt1.setCatalogLabel("null");
-                        pt1.setDec(0.0);
+                        pt1.setDec(DegreeCoverter.degToDMS(0.0));
                         pt1.setFocus(0);
                         pt1.setMag(-99.9);
-                        pt1.setRa(0.0);
+                        pt1.setRa(DegreeCoverter.degToHMS(0.0));
                         pt1.setPointId("null");
                         pt1.setElementId(tips.get(j));
                         infoList.add(pt1);

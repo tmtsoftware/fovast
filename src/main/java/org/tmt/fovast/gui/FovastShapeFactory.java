@@ -38,6 +38,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import jsky.graphics.CanvasFigureListener;
+import org.tmt.fovast.astro.util.DegreeCoverter;
 
 /**
  *
@@ -220,12 +221,12 @@ class FovastShapeFactory{
        // roiSelectionInteractor.addInteractor(dragInteractor);
 
        if(rotatable && moveable) {
-           interactor = makeRoiSelectionInteractor(dig);
+           interactor = makeRoiSelectionInteractor(dig,true);
        } else if(rotatable) {           
-           interactor = makeRoiSelectionInteractor(dig);
+           interactor = makeRoiSelectionInteractor(dig,false);
            //remove drag interactor so that move does not happen.
-           ((CompositeInteractor)interactor).removeInteractor(
-                   dig.getDragInteractor());
+//           ((CompositeInteractor)interactor).removeInteractor(
+//                   dig.getDragInteractor());
        } else if(moveable) {
            interactor = makeDragInteractor(dig);
        }
@@ -748,32 +749,33 @@ class FovastShapeFactory{
                     double topYline1 = (Double)props.get(ARM_Line1_TOP_Y);
                     double bottomXline1 = (Double)props.get(ARM_Line1_BOTTOM_X);
                     double bottomYline1 = (Double)props.get(ARM_Line1_BOTTOM_Y);
-                    double flag_bottomX = 1,flag_bottomY = 1, flag_topX = 1,flag_topY = 1;
-                    if(bottomXline1 < 0.0) {
-                          flag_bottomX=-1;
-                       }
-                    if(bottomYline1 < 0.0) {
-                          flag_bottomY=-1;
-                    }
-                    if(topXline1 < 0.0) {
-                          flag_topX=-1;
-                       }
-                    if(topYline1 < 0.0) {
-                          flag_topY=-1;
-                    }
-                    
-                    Point2D.Double pt1 = new Point2D.Double(topXline1*factor,topYline1);
-                    cc.worldToScreenCoords(pt1, true);
-                    topXline1 = pt1.x;     //in pixels now
-                    topYline1 = pt1.y;
-                    pt1 = new Point2D.Double(ra1+topXline1*flag_topX,dec1+topYline1*flag_topY);
-
-                    Point2D.Double pt2 = new Point2D.Double(bottomXline1*factor, bottomYline1);
-                    cc.worldToScreenCoords(pt2, true);
-                    bottomXline1 = pt2.x;     //in pixels now
-                    bottomYline1 = pt2.y;
-                    pt2 = new Point2D.Double(ra1+bottomXline1*flag_bottomX, dec1+bottomYline1*flag_bottomY);
-
+//                    double flag_bottomX = 1,flag_bottomY = 1, flag_topX = 1,flag_topY = 1;
+//                    if(bottomXline1 < 0.0) {
+//                          flag_bottomX=-1;
+//                       }
+//                    if(bottomYline1 < 0.0) {
+//                          flag_bottomY=-1;
+//                    }
+//                    if(topXline1 < 0.0) {
+//                          flag_topX=-1;
+//                       }
+//                    if(topYline1 < 0.0) {
+//                          flag_topY=-1;
+//                    }
+//
+//                    Point2D.Double pt1 = new Point2D.Double(topXline1*factor,topYline1);
+//                    cc.worldToScreenCoords(pt1, true);
+//                    topXline1 = pt1.x;     //in pixels now
+//                    topYline1 = pt1.y;
+//                    pt1 = new Point2D.Double(ra1+topXline1*flag_topX,dec1+topYline1*flag_topY);
+//
+//                    Point2D.Double pt2 = new Point2D.Double(bottomXline1*factor, bottomYline1);
+//                    cc.worldToScreenCoords(pt2, true);
+//                    bottomXline1 = pt2.x;     //in pixels now
+//                    bottomYline1 = pt2.y;
+//                    pt2 = new Point2D.Double(ra1+bottomXline1*flag_bottomX, dec1+bottomYline1*flag_bottomY);
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
                     Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
                     probe[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
                    //turns off resizing
@@ -1159,74 +1161,74 @@ class FovastShapeFactory{
         ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
                 new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay,map));
 
-        //Keeping this after mobie as although mobie arcs are hidden 
-        //when sciencedetector is shown .. rotation handle goes berserk
-        props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
-        props.put(ROTATABLE, true);
-        props.put(MOVEABLE, false);
-        props.put(CENTER_OFFSET_X, 0d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
-        props.put(WIDTH_Y, 16.4/3600d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.GREEN);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        final CanvasFigure[] irisDetectorFigs = makeFigure(props);
-        //cfgIris.add(fig);
-        map.put("iris.sciencedetector", irisDetectorFigs);
-        //TODO:this listener .. does not work yet..
-        irisDetectorFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
-
-            @Override
-            public void figureSelected(CanvasFigureEvent e) {
-                //do nothing
-            }
-
-            @Override
-            public void figureDeselected(CanvasFigureEvent e) {
-                //do nothing
-            }
-
-            @Override
-            public void figureResized(CanvasFigureEvent e) {
-                //kick out twfs if it intersects with
-                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
-                //we can do this as twfs does not rotate .. 
-                if(irisDetectorFigs[0].getShape().intersects(
-                        twfsFig.getShape().getBounds2D())) {
-                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
-                    Point2D.Double center = cc.getWCSCenter();
-                    Point2D.Double pt = new Point2D.Double(
-                            center.getX()+(1/60d), center.getY());
-                    cc.worldToScreenCoords(pt, false);
-                    twfsFig.translate(pt.x, pt.y);
-                    fovastImageDisplay.repaint();
-                }                
-            }
-
-            @Override
-            public void figureMoved(CanvasFigureEvent e) {
-                //do nothing
-                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
-                //we can do this as twfs does not rotate ..
-                if(irisDetectorFigs[0].getShape().intersects(
-                        twfsFig.getShape().getBounds2D())) {
-                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
-                    Point2D.Double center = cc.getWCSCenter();
-                    Point2D.Double pt = new Point2D.Double(
-                            center.getX()+(1/60d), center.getY());
-                    cc.worldToScreenCoords(pt, false);
-                    twfsFig.translate(pt.x, pt.y);
-                    fovastImageDisplay.repaint();
-                }    
-            }
-        });
-        irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
-        //irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
-        irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
-        irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
+//        //Keeping this after mobie as although mobie arcs are hidden
+//        //when sciencedetector is shown .. rotation handle goes berserk
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+//        props.put(ROTATABLE, true);
+//        props.put(MOVEABLE, false);
+//        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
+//        props.put(WIDTH_Y, 16.4/3600d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.GREEN);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        final CanvasFigure[] irisDetectorFigs = makeFigure(props);
+//        //cfgIris.add(fig);
+//        map.put("iris.sciencedetector", irisDetectorFigs);
+//        //TODO:this listener .. does not work yet..
+//        irisDetectorFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+//
+//            @Override
+//            public void figureSelected(CanvasFigureEvent e) {
+//                //do nothing
+//            }
+//
+//            @Override
+//            public void figureDeselected(CanvasFigureEvent e) {
+//                //do nothing
+//            }
+//
+//            @Override
+//            public void figureResized(CanvasFigureEvent e) {
+//                //kick out twfs if it intersects with
+//                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+//                //we can do this as twfs does not rotate ..
+//                if(irisDetectorFigs[0].getShape().intersects(
+//                        twfsFig.getShape().getBounds2D())) {
+//                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+//                    Point2D.Double center = cc.getWCSCenter();
+//                    Point2D.Double pt = new Point2D.Double(
+//                            center.getX()+(1/60d), center.getY());
+//                    cc.worldToScreenCoords(pt, false);
+//                    twfsFig.translate(pt.x, pt.y);
+//                    fovastImageDisplay.repaint();
+//                }
+//            }
+//
+//            @Override
+//            public void figureMoved(CanvasFigureEvent e) {
+//                //do nothing
+//                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+//                //we can do this as twfs does not rotate ..
+//                if(irisDetectorFigs[0].getShape().intersects(
+//                        twfsFig.getShape().getBounds2D())) {
+//                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+//                    Point2D.Double center = cc.getWCSCenter();
+//                    Point2D.Double pt = new Point2D.Double(
+//                            center.getX()+(1/60d), center.getY());
+//                    cc.worldToScreenCoords(pt, false);
+//                    twfsFig.translate(pt.x, pt.y);
+//                    fovastImageDisplay.repaint();
+//                }
+//            }
+//        });
+//        irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
+//        //irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
+//        irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
+//        irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
         
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -1778,8 +1780,8 @@ class FovastShapeFactory{
                 config.setConfigElementProperty("nfiraos.twfs.detector", "isVisible",tempString);
             }
         });
-        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);
-        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[1]);
+
+        
         //put constraints
         //nfiraos.twfs.detector
         CanvasFigure twsFig = twsFigs[0];
@@ -1800,8 +1802,82 @@ class FovastShapeFactory{
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] nfiraosAcqusitionCameraLimits = makeFigure(props);
         map.put("nfiraos.acqusitionCameraLimits", nfiraosAcqusitionCameraLimits);
+
+        //add start
+        //Keeping this after mobie as although mobie arcs are hidden
+        //when sciencedetector is shown .. rotation handle goes berserk
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, true);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
+        props.put(WIDTH_Y, 16.4/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        final CanvasFigure[] irisDetectorFigs = makeFigure(props);
+        //cfgIris.add(fig);
+        map.put("iris.sciencedetector", irisDetectorFigs);
+        //TODO:this listener .. does not work yet..
+        irisDetectorFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //kick out twfs if it intersects with
+                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+                //we can do this as twfs does not rotate ..
+                if(irisDetectorFigs[0].getShape().intersects(
+                        twfsFig.getShape().getBounds2D())) {
+                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    Point2D.Double center = cc.getWCSCenter();
+                    Point2D.Double pt = new Point2D.Double(
+                            center.getX()+(1/60d), center.getY());
+                    cc.worldToScreenCoords(pt, false);
+                    twfsFig.translate(pt.x, pt.y);
+                    fovastImageDisplay.repaint();
+                }
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                //do nothing
+                CanvasFigure twfsFig = map.get("nfiraos.twfs.detector")[0];
+                //we can do this as twfs does not rotate ..
+                if(irisDetectorFigs[0].getShape().intersects(
+                        twfsFig.getShape().getBounds2D())) {
+                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    Point2D.Double center = cc.getWCSCenter();
+                    Point2D.Double pt = new Point2D.Double(
+                            center.getX()+(1/60d), center.getY());
+                    cc.worldToScreenCoords(pt, false);
+                    twfsFig.translate(pt.x, pt.y);
+                    fovastImageDisplay.repaint();
+                }
+            }
+        });
+        //irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosLimitsFigs[0]);
+        //irisDetectorFigs[0].addSlave((CanvasFigure) nfiraosAcqusitionCameraLimits[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) lensletFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) slicerFigs[0]);
+        //add end
+
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[0]);
+        irisDetectorFigs[0].addSlave((CanvasFigure) twsFigs[1]);
         
-        irisDetectorFigs[0].addSlave((CanvasFigure)nfiraosAcqusitionCameraLimits[0]);
+        //irisDetectorFigs[0].addSlave((CanvasFigure)nfiraosAcqusitionCameraLimits[0]);
         CanvasFigure cirFig = nfiraosAcqusitionCameraLimits[0];
         dragInteractor =  (DragInteractor) cirFig.getInteractor();
         dragInteractor.appendConstraint(new PointConstraint() {
@@ -1855,7 +1931,7 @@ class FovastShapeFactory{
     }
 
     /** Copied from DivaImageGraphics */
-    private Interactor makeRoiSelectionInteractor(DivaImageGraphics dig) {
+    private Interactor makeRoiSelectionInteractor(DivaImageGraphics dig,boolean addDragInteractor ) {
         RectangleManipulator rectangleManipulator = new RectangleManipulator();
         rectangleManipulator.getHandleInteractor().addLayerListener(new LayerAdapter() {
 
@@ -1873,7 +1949,8 @@ class FovastShapeFactory{
         // connect the different selection models
         roiSelectionInteractor.setSelectionModel(
                 dig.getSelectionInteractor().getSelectionModel());
-        roiSelectionInteractor.addInteractor(makeDragInteractor(dig));
+        if(addDragInteractor)
+            roiSelectionInteractor.addInteractor(makeDragInteractor(dig));
         roiSelectionInteractor.setConsuming(false);
 
         return roiSelectionInteractor;
