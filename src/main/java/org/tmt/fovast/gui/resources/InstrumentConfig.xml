@@ -157,6 +157,9 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
            <DisplayElement id="iris.oiwfs.probe1.vignettingLimits"  showByDefault="true">
            </DisplayElement>
 
+           <DisplayElement id="iris.oiwfs.probe1.focus"  showByDefault="false">
+           </DisplayElement>
+
         </ConfigOption>
 
         <ConfigOption id="iris.oiwfs.probe2"  selectByDefault="true">
@@ -171,6 +174,10 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
 
            <DisplayElement id="iris.oiwfs.probe2.vignettingLimits" showByDefault="true">
            </DisplayElement>
+
+           <DisplayElement id="iris.oiwfs.probe2.focus"  showByDefault="false">
+           </DisplayElement>
+
         </ConfigOption>
 
         <ConfigOption id="iris.oiwfs.probe3" selectByDefault="true">
@@ -185,6 +192,10 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
 
            <DisplayElement id="iris.oiwfs.probe3.vignettingLimits" showByDefault="true">
            </DisplayElement>
+
+           <DisplayElement id="iris.oiwfs.probe3.focus"  showByDefault="false">
+           </DisplayElement>
+
         </ConfigOption>
         
     </ConfigOption>

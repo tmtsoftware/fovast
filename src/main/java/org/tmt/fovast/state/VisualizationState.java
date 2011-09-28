@@ -12,7 +12,6 @@ import org.tmt.fovast.mvc.ListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.Config;
-import org.tmt.fovast.instrumentconfig.ConfigHelper;
 
 
 /**
@@ -28,6 +27,8 @@ public class VisualizationState
     private Double targetDec;
 
     private boolean showTarget;
+
+    private boolean showFocus;
 
     private Config config;
 
@@ -92,6 +93,17 @@ public class VisualizationState
         }
     }
 
+    private void fireVslTargetChanged(boolean show,int selectedIndex) {
+        for(int i=0; i<listeners.size(); i++) {
+            try {
+                ((VisualizationStateListener)(listeners.get(i))).vslShowFocus(
+                        show,selectedIndex);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
     private void fireVslConfigChanged(Config c) {
         for(int i=0; i<listeners.size(); i++) {
             try {
@@ -130,6 +142,11 @@ public class VisualizationState
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
+    public void showFocusTarget(boolean show, int selectedIndex) {
+       showFocus = show;
+        fireVslTargetChanged(show,selectedIndex);
+    }
     //TODO: Code equals and .. other methods ..
 
 
@@ -139,6 +156,8 @@ public class VisualizationState
                 String raEntered, String decEntered);
 
         public void vslShowTarget(boolean show);
+
+        public void vslShowFocus(boolean show,int selectedIndex);
 
         public void vslConfigChanged(Config config);
     }

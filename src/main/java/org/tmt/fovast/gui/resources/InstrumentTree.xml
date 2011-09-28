@@ -81,16 +81,19 @@
             <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.arm" label="Show Arm"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe1.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe1.focus" label="Default Focus"/>
                 <!--CheckboxNode configOptionId="iris.oiwfs.probe1.vignettingLimits" label="Show Vignetting Limits"/-->
             </CheckboxNode>
             <CheckboxNode configOptionId="iris.oiwfs.probe2" label="Probe2">
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.arm" label="Show Arm"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe2.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe2.focus" label="Default Focus"/>
                 <!--CheckboxNode configOptionId="iris.oiwfs.probe2.vignettingLimits" label="Show Vignetting Limits"/-->
             </CheckboxNode>
             <CheckboxNode configOptionId="iris.oiwfs.probe3" label="Probe3">
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.arm" label="Show Arm"/>
                 <CheckboxNode configOptionId="iris.oiwfs.probe3.limits" label="Show Limits"/>
+                <CheckboxNode configOptionId="iris.oiwfs.probe3.focus" label="Default Focus"/>
                 <!--CheckboxNode configOptionId="iris.oiwfs.probe3.vignettingLimits" label="Show Vignetting Limits"/-->
             </CheckboxNode>
         </CheckboxGroupNode>

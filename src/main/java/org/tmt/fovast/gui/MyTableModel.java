@@ -25,13 +25,17 @@ public class MyTableModel extends AbstractTableModel {
     }
 
 //    public MyTableModel(String[][] rowData , String[] colNames) {
-//        this.table=table;
+//        for(int i=0;i<rowData.length;i++){
+//            this.data.add(rowData[i]);
+//        }
+//        this.columnNames = colNames;
 //    }
 
     // Set the column names.
     public void setColNames(String[] colNames) {
         columnNames = new String[colNames.length];
         for (int i = 0; i < colNames.length; i++) {
+
             columnNames[i] = colNames[i];
         }
     }
@@ -60,16 +64,16 @@ public class MyTableModel extends AbstractTableModel {
     }
 
     // Return the datatype of particular column.
-    public Class getColumnClass(int c) {
-//        if (_flag == 1) {
-//            if (c == 0 || c == 3 || c == 4 || c == 5) {
-//                return Integer.class;
-//            }
-//        }
-
-//        return String.class;
-        return table.getColumnInfo(c).getContentClass();
-    }
+//    public Class getColumnClass(int c) {
+////        if (_flag == 1) {
+////            if (c == 0 || c == 3 || c == 4 || c == 5) {
+////                return Integer.class;
+////            }
+////        }
+//
+////        return String.class;
+//        return table.getColumnInfo(c).getContentClass();
+//    }
 
     // We want a editable table
     public boolean isCellEditable(int row, int col) {
@@ -79,6 +83,9 @@ public class MyTableModel extends AbstractTableModel {
     // Initiallize the data array
     public void initiallize(int numRows, int numCols) {
         //this.numCols = numCols;
+        data = new ArrayList<Object[]>();
+        for (int i = 0; i < data.size(); i++)
+        data.add(new Object[numCols]);
     }
 
     public void setValueAt(Object value, int row, int col) {

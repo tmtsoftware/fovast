@@ -6,8 +6,10 @@
  */
 package org.tmt.fovast.gui;
 
+import diva.gui.toolbox.JPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Insets;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -36,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTree;
@@ -43,7 +46,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
 import javax.xml.parsers.ParserConfigurationException;
 import org.openide.util.Exceptions;
 import org.tmt.fovast.gui.FovastInstrumentTree.SomeException;
@@ -135,9 +142,15 @@ public class VisualizationControlPanel extends JPanel
 
     private DefaultTableModel model;
 
+    //private MyTableModel model;
+
     private JPanel tempPanel;
 
     private JScrollPane pane;
+
+    private JLabel focusLabel;
+
+    private JComboBox focusComboBox;
 
     public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
 
@@ -170,7 +183,29 @@ public class VisualizationControlPanel extends JPanel
         String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
                 String[][] rowData =new String[5][4];
         model = new DefaultTableModel(rowData, columnNames);
-        pointInfoTable = new JTable(model);
+        //model = new MyTableModel(rowData, columnNames);
+        //pointInfoTable = new JTable(model);
+        pointInfoTable = new JTable(model){
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer,
+                    int Index_row, int Index_col) {
+                  Component comp = super.prepareRenderer(renderer, Index_row, Index_col);
+                  //even index, selected or not selected
+                  if (focusComboBox.getSelectedIndex()==0 && Index_row==1) {
+                  comp.setBackground(Color.YELLOW);
+                  }
+                else if(focusComboBox.getSelectedIndex() == 1 && Index_row == 2) {
+                  comp.setBackground(Color.YELLOW);
+                  }
+                else if(focusComboBox.getSelectedIndex() == 2 && Index_row == 3) {
+                  comp.setBackground(Color.YELLOW);
+                  }
+                  else {
+                  comp.setBackground(Color.white);
+                  }
+                  return comp;
+                  }
+                  };
         pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 80));
         pointInfoTable.setEnabled(false);
         pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
@@ -294,6 +329,7 @@ public class VisualizationControlPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) {
                 setTargetButtonClicked();
+                fetchButtonActionPerformed(null);
             }
 
         });
@@ -310,59 +346,8 @@ public class VisualizationControlPanel extends JPanel
         //fetchButton.setEnabled(false);
         fetchButton.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent event) {
-
-               ArrayList<Catalog> catalogs = visualization.getCatalogs();
-               Double[] center = visualization.getTarget();
-               double ra = center[0];
-               double dec = center[1];
-               //loop through catalogs
-                XMLFileGenerator xf = new XMLFileGenerator();
-                String fName = visualization.getFileName();
-                ArrayList<PointInfoForXML> infoList = new ArrayList<PointInfoForXML>();
-             
-                String tempFile;
-                if(fName.contains("(")){
-                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
-                    tempFile = "guideStarInfo"+id+".xml";
-               }
-                else
-                    tempFile = "guideStarInfo.xml";
-                int flag = 0;
-                File cacheFile = new File(appContext.getLocalStorage().getDirectory(),
-                                    tempFile);
-                if(!cacheFile.exists()){
-                    flag = 1;
-                }else
-                    prevInfoList = parsePrevXml();
-                infoList = populateList(catalogs,flag);
-                
-                if(fName.contains("(")){
-                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
-                   xf.generateXML(infoList,ra,dec,Integer.parseInt(id));
-                }else{
-                    xf.generateXML(infoList,ra,dec,0);
-                }
-                String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
-                String[][] rowData =new String[infoList.size()][4];
-                rowData = populateDataForTable();               
-//                if(pointInfoTable != null){
-//                    tempPanel.remove(pane);
-//                }
-//                pointInfoTable = new JTable();
-                model = new DefaultTableModel(rowData, columnNames);
-
-                pointInfoTable.setModel(model);
-                pointInfoTable.setEnabled(false);
-//                pane = new JScrollPane(pointInfoTable,JScrollPane.VERTICAL_SCROLLBAR_NEVER,
-//                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//                pane.setPreferredSize(new Dimension(100, 20));
-//                pane.setMaximumSize(new Dimension(100, 30));
-//                pane.setMinimumSize(new Dimension(100, 20));
-                //pointInfoTable.setPreferredScrollableViewportSize(new Dimension(300, 80));
-                //configPanel.add(pane,BorderLayout.SOUTH);
-//                tempPanel.add(pane,BorderLayout.NORTH);
-                configPanel.revalidate();
-          }
+                fetchButtonActionPerformed(event);
+            }
        });
        
         //raDecPanel layout        
@@ -500,6 +485,28 @@ public class VisualizationControlPanel extends JPanel
             }
         });
 
+        focusComboBox = new JComboBox();
+        focusLabel = new JLabel("Default focus");
+        focusComboBox.addItem("probe1");
+        focusComboBox.addItem("probe2");
+        focusComboBox.addItem("probe3");
+        focusComboBox.setSelectedIndex(-1);
+        focusComboBox.addItemListener(new ItemListener() {
+
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                fetchButtonActionPerformed(null);
+                traverse();
+                //showFocusMarker();
+               }
+        });
+        focusComboBox.setEnabled(false);
+        focusLabel.setEnabled(false);
+
+        JPanel focusPanel = new JPanel(new FlowLayout());
+        focusPanel.add(focusLabel);
+        focusPanel.add(focusComboBox);
+
         //showTargetPanel layout
         showTargetPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbcIcp = new GridBagConstraints();
@@ -519,6 +526,16 @@ public class VisualizationControlPanel extends JPanel
         gbcIcp.weightx = 1;
         //showTargetLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         showTargetPanel.add(showTargetLabel, gbcIcp);
+
+        
+
+        gbcIcp.gridx = 0;
+        gbcIcp.gridy = 1;
+        gbcIcp.gridwidth = GridBagConstraints.REMAINDER;
+        gbcIcp.anchor = GridBagConstraints.WEST;
+        showTargetPanel.add(focusPanel, gbcIcp);
+
+
 
 //  JTREE DOES NOT WORK WITH GRID BAG CONSTRAINTS THAT WELLL .. 
 //        gbcIcp.gridx = 0;
@@ -559,11 +576,120 @@ public class VisualizationControlPanel extends JPanel
         mainPanel.setBorder(BorderFactory.createEmptyBorder(
                 10, 10, 10, 10));
         mainPanel.add(raDecPanel, BorderLayout.NORTH);
-        mainPanel.add(configPanel, BorderLayout.CENTER);
-
-        
+        mainPanel.add(configPanel, BorderLayout.CENTER);     
         add(new JScrollPane(mainPanel));
     }
+
+    public void fetchButtonActionPerformed(ActionEvent ae){
+
+               ArrayList<Catalog> catalogs = visualization.getCatalogs();
+               Double[] center = visualization.getTarget();
+               double ra = center[0];
+               double dec = center[1];
+               //loop through catalogs
+                XMLFileGenerator xf = new XMLFileGenerator();
+                String fName = visualization.getFileName();
+                ArrayList<PointInfoForXML> infoList = new ArrayList<PointInfoForXML>();
+
+                String tempFile;
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                    tempFile = "guideStarInfo"+id+".xml";
+               }
+                else
+                    tempFile = "guideStarInfo.xml";
+                int flag = 0;
+                File cacheFile = new File(appContext.getLocalStorage().getDirectory(),
+                                    tempFile);
+                if(!cacheFile.exists()){
+                    flag = 1;
+                }else
+                    prevInfoList = parsePrevXml();
+                infoList = populateList(catalogs,flag);
+
+                if(fName.contains("(")){
+                   String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
+                   xf.generateXML(infoList,ra,dec,Integer.parseInt(id));
+                }else{
+                    xf.generateXML(infoList,ra,dec,0);
+                }
+                String[] columnNames ={"Element Name","Catalog Name","RA","DEC"};
+                String[][] rowData =new String[infoList.size()][4];
+                rowData = populateDataForTable();
+//                if(pointInfoTable != null){
+//                    tempPanel.remove(pane);
+//                }
+//                pointInfoTable = new JTable();
+                model = new DefaultTableModel(rowData, columnNames);
+                //model = new MyTableModel(rowData, columnNames);
+                pointInfoTable.setModel(model);
+                pointInfoTable.setEnabled(false);
+                configPanel.revalidate();
+                Config config = visualization.getConfig();
+                if(focusComboBox.getSelectedIndex()==-1){
+                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","null");
+                }else{
+                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","red");
+                }
+
+    }
+
+    public void traverse() { 
+    TreeModel model = tree.getModel();
+    if (model != null) {
+        DefaultMutableTreeNode root =
+                    (DefaultMutableTreeNode)model.getRoot();
+       // Object root = model.getRoot();
+        System.out.println("$$$$$$$$$$$$$$$$$$"+((FovastInstrumentTree.UserObject)root.getUserObject()).getLabel());
+        walk(model,root);
+        }
+    else
+       System.out.println("Tree is empty.");
+    }
+
+  protected void walk(TreeModel model, Object o){
+      int cc;
+      cc = model.getChildCount(o);
+      for (int i = 0; i < cc; i++) {
+          DefaultMutableTreeNode child = (DefaultMutableTreeNode) model.getChild(o, i);
+          if (model.isLeaf(child)) {
+              System.out.println("##################" + ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel());
+              String leafLabel = ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel();
+              if (leafLabel.equalsIgnoreCase("Default Focus")) {
+                  DefaultMutableTreeNode parent = (DefaultMutableTreeNode) child.getParent();
+                  String parentLabel = ((FovastInstrumentTree.UserObject) parent.getUserObject()).getLabel();
+                  String focusComboString = "no probe" ;
+                  if(focusComboBox.getSelectedIndex()!=-1)
+                     focusComboString = focusComboBox.getSelectedItem().toString();
+                  if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(false);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                      FovastInstrumentTree.CheckboxUserObject cuo =
+                                    (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                        Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(false);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                  }
+                  if (parentLabel.equalsIgnoreCase(focusComboString)) {
+                      System.out.println("hey"+focusComboString);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
+                      FovastInstrumentTree.CheckboxUserObject cuo =
+                                    (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                        Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(true);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                   }
+              }
+          } else {
+              System.out.print("###############" + ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel() + "--");
+              walk(model, child);
+          }
+      }
+   }
+
 
     private void makeInstrumentTree(boolean enabled, Config config)
             throws FovastInstrumentTree.SomeException {
@@ -710,13 +836,17 @@ public class VisualizationControlPanel extends JPanel
         
         //if(showTargetCheckbox.isSelected()) {
             visualization.showTarget(true);
-            updateUIForShowTarget(true);
+            updateUIForShowTarget(true);           
         //}
     }
 
     private void enableDisableShowTargetCheckBox(boolean enable) {
         showTargetCheckbox.setEnabled(enable);
         showTargetLabel.setEnabled(enable);
+        showTargetCheckbox.setSelected(false);
+        showTargetCheckbox.setSelected(true);
+        focusComboBox.setEnabled(enable);
+        focusLabel.setEnabled(enable);
         if(tree != null)
             tree.setEnabled(enable);
     }
@@ -725,6 +855,14 @@ public class VisualizationControlPanel extends JPanel
         boolean show = showTargetCheckbox.isSelected();
         visualization.showTarget(show);
         updateUIForShowTarget(show);
+    }
+
+    public void showFocusMarker() {
+        boolean show=false;
+        if(focusComboBox.getSelectedIndex()!= -1){
+            show = true;
+        }
+        visualization.showFocusTarget(show,focusComboBox.getSelectedIndex());
     }
 
     //
@@ -989,6 +1127,11 @@ public class VisualizationControlPanel extends JPanel
                     Iterator iter = catalogs.iterator();
                     double distMin=Double.MAX_VALUE;
                     String value = conf.getConfigElementProperty(tips.get(j), "position");
+                    String focus;
+                    if(focusComboBox.getSelectedIndex()==-1)
+                        focus=null;
+                    else
+                        focus = focusComboBox.getSelectedItem().toString();
                     if(conf.getConfig(tips.get(j)) != null){
                         String[] raDecCenter = value.split(",");
                         double ra= Double.parseDouble(raDecCenter[0])*Math.PI/180;
@@ -1020,8 +1163,7 @@ public class VisualizationControlPanel extends JPanel
                         raMin=((raMin*180)/Math.PI);
                         decMin=((decMin*180)/Math.PI);
                         String isVisible = visualization.getConfig().getConfigElementProperty(tips.get(j),"position");
-                        PointInfoForXML ptInfo = new PointInfoForXML();
-//                        if(distMin<=((Math.sqrt(2.0))*2)/3600d){
+                        PointInfoForXML ptInfo = new PointInfoForXML();                        
                         if(distMin<=(5/3600d)){
                             System.out.println("valid point:"+distMin);
                             ptInfo.setRa(DegreeCoverter.degToHMS(raMin));
@@ -1030,7 +1172,10 @@ public class VisualizationControlPanel extends JPanel
                             ptInfo.setCatalogLabel(cLabel);
                             ptInfo.setMag(magMin);
                             ptInfo.setPointId(idMin);
-                            ptInfo.setFocus(0); // TO BE DONE
+                            if(focus != null && tips.get(j).contains(focus))
+                                ptInfo.setFocus(1);
+                            else
+                                ptInfo.setFocus(0);
                             ptInfo.setIsSelected(true);
                         }
                         else{
@@ -1049,7 +1194,10 @@ public class VisualizationControlPanel extends JPanel
                             else
                                 ptInfo.setPointId("TWFS Dectector");
 
-                            ptInfo.setFocus(0); // TO BE DONE
+                            if(focus != null && tips.get(j).contains(focus))
+                                ptInfo.setFocus(1);
+                            else
+                                ptInfo.setFocus(0);
                             ptInfo.setIsSelected(true);
                         }
                          infoList.add(ptInfo);                 
@@ -1058,7 +1206,10 @@ public class VisualizationControlPanel extends JPanel
                         PointInfoForXML pt1 = new PointInfoForXML();
                         pt1.setCatalogLabel("null");
                         pt1.setDec(DegreeCoverter.degToDMS(0.0));
-                        pt1.setFocus(0);
+                        if(focus != null && tips.get(j).contains(focus))
+                                pt1.setFocus(1);
+                            else
+                                pt1.setFocus(0);
                         pt1.setMag(-99.9);
                         pt1.setRa(DegreeCoverter.degToHMS(0.0));
                         pt1.setPointId("null");
@@ -1124,8 +1275,6 @@ public class VisualizationControlPanel extends JPanel
                     ename = true;
                     cname = true;
                 }
-
-
             }
 
             @Override
@@ -1277,6 +1426,12 @@ public class VisualizationControlPanel extends JPanel
 //        }
     }
 
+    @Override
+    public void vslShowFocus(boolean show, int selectedIndex) {
+        //do nothing
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
 //    /**
 //     * As of also enables and selects the target checkbox
 //     *
@@ -1291,5 +1446,4 @@ public class VisualizationControlPanel extends JPanel
 //    }
 //
 }
-
 

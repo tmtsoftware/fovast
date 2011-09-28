@@ -38,6 +38,7 @@ import org.jdesktop.application.ApplicationContext;
 import org.jdesktop.application.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tmt.fovast.astro.util.DegreeCoverter;
 import org.tmt.fovast.gui.VisualizationPanel.CatalogListener;
 import org.tmt.fovast.instrumentconfig.BooleanValue;
 import org.tmt.fovast.instrumentconfig.Config;
@@ -81,6 +82,8 @@ public class VisualizationWorkPanel extends JPanel
     private Double targetDec = 0.0;
 
     private CanvasFigure targetMarker;
+
+    private CanvasFigure focusMarker;
 
     private boolean gridShown = false;
 
@@ -775,6 +778,59 @@ public class VisualizationWorkPanel extends JPanel
     @Override
     public void updateConfigElementProperty(String confElementId, String propKey, String propValue) {
         //nothing todo as of now 
+    }
+
+    @Override
+    public void vslShowFocus(boolean show, int selectedIndex) {
+        showFocus(show,selectedIndex);
+    }
+
+    private void showFocus(boolean show, int selectedIndex) {
+        DivaImageGraphics canvasGraphics =
+                (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
+
+        if(targetSet) {
+            if(focusMarker != null) {
+                canvasGraphics.remove(focusMarker);
+                focusMarker = null;
+                canvasGraphics.repaint();
+            }
+            if(show) {
+                Config config = visualization.getConfig();
+                String center;
+                Color color=null;
+                if(selectedIndex==0){
+                    center = config.getConfigElementProperty("iris.oiwfs.probe1.arm", "position");
+                    color= Color.RED;
+                }else if(selectedIndex==1){
+                    center = config.getConfigElementProperty("iris.oiwfs.probe2.arm", "position");
+                    color= Color.GREEN;
+                }else{
+                    center = config.getConfigElementProperty("iris.oiwfs.probe3.arm", "position");
+                    color= Color.BLUE;
+                }
+                String[] raDecCenter = center.split(",");
+                double ra= Double.parseDouble(raDecCenter[0]);
+                double dec= Double.parseDouble(raDecCenter[1]);
+                CoordinateConverter converter = displayComp.getImageDisplay(
+                        ).getCoordinateConverter();
+                
+                //makeing clone
+                Point2D.Double centerPixel = new Point2D.Double(ra, dec);
+                converter.imageToScreenCoords(centerPixel, false);
+                int halfWidth = 20;
+                Shape shape = ShapeUtil.makePlus(centerPixel,
+                        new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
+                        new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
+                focusMarker = canvasGraphics.makeFigure(shape, null, color, 2.0f);
+                //this remove basichighlighter set as interactor over the
+                //marker ..
+                focusMarker.setInteractor(null);
+                canvasGraphics.add(focusMarker);
+                canvasGraphics.repaint();
+            }
+        }
+        System.out.println(show+"-"+selectedIndex);
     }
 
     
