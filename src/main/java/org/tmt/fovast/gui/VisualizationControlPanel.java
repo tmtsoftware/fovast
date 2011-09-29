@@ -486,7 +486,7 @@ public class VisualizationControlPanel extends JPanel
         });
 
         focusComboBox = new JComboBox();
-        focusLabel = new JLabel("Default focus");
+        focusLabel = new JLabel("Focus correction");
         focusComboBox.addItem("probe1");
         focusComboBox.addItem("probe2");
         focusComboBox.addItem("probe3");
@@ -661,23 +661,24 @@ public class VisualizationControlPanel extends JPanel
                   String focusComboString = "no probe" ;
                   if(focusComboBox.getSelectedIndex()!=-1)
                      focusComboString = focusComboBox.getSelectedItem().toString();
-                  if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+//                  if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(false);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                       FovastInstrumentTree.CheckboxUserObject cuo =
                                     (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
                         Object value = cuo.getConfigOptionValue();
                         if(value == null) //means its simple on/off config
                             value = new BooleanValue(false);
                         configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
-                  }
+                  //}
                   if (parentLabel.equalsIgnoreCase(focusComboString)) {
                       System.out.println("hey"+focusComboString);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
-                      FovastInstrumentTree.CheckboxUserObject cuo =
-                                    (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
-                        Object value = cuo.getConfigOptionValue();
+                        ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                       cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                       value = cuo.getConfigOptionValue();
                         if(value == null) //means its simple on/off config
                             value = new BooleanValue(true);
                         configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);

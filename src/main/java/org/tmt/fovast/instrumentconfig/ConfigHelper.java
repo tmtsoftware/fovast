@@ -72,6 +72,7 @@ public class ConfigHelper implements Config.ConfigListener{
 //                    return;
 //                }
 //            }
+
             logger.debug("Setting .. config element " + confElementId);
             config.setConfigElementValue(confElementId, value);
             //checkDependants(confElementId, false);

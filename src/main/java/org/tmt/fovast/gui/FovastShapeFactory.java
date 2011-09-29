@@ -66,6 +66,8 @@ class FovastShapeFactory{
 
     private final static String FIGURE_TYPE_PROBETIP = "probeTip";
 
+    private final static String FIGURE_TYPE_FOCUS_PROBETIP = "focusProbeTip";
+
     private final static String FIGURE_TYPE_DOUBLE_ARC = "doubleArc";
 
     private final static String FIGURE_TYPE_ARC = "arc";
@@ -162,6 +164,11 @@ class FovastShapeFactory{
 
     static CoordinateConverter cc1 = null;
 
+    //DO NOT CHANGE INDEX POSITIONS OF FOLLOWING ITEMS
+    private final static int PROBETIP_RECTANGLE_INDEX = 0;
+    private final static int PROBETIP_CIRCLE_INDEX = 1;
+    private final static int ARM_LINE_INDEX = 2;
+
     DivaImageGraphics dig ;
 
     FovastShapeFactory(FovastImageDisplay fovastImageDisplay) {
@@ -187,6 +194,20 @@ class FovastShapeFactory{
 //        double dec = centerPt.getY();
 //        
 //    }
+
+    public CanvasFigure updateArmLines(DivaImageGraphics dig,
+            Point2D.Double arm_line_top_pos,
+            Point2D.Double arm_line_bottom_pos,
+            Interactor interactor,
+            Color color) {
+    	float linewidth = 1.0f;
+    	CanvasFigure cfg = null;
+        Line2D.Double newline = new Line2D.Double(arm_line_top_pos, arm_line_bottom_pos);
+        cfg = dig.makeFigure(newline, color, color, linewidth, interactor);
+        cfg.setVisible(true);
+    	return cfg;
+	}
+
 
     public CanvasFigure[] makeFigure(HashMap<String, Object> props) {
        String figType = (String) props.get(FIGURE_TYPE);
@@ -920,6 +941,101 @@ class FovastShapeFactory{
            probe[1].addSlave(probe[0]);
            return probe;
        }
+       else if(figType.equals(FIGURE_TYPE_FOCUS_PROBETIP)){
+               double width = (Double)props.get(WIDTH_X);//in degrees
+           double height = (Double)props.get(WIDTH_Y);
+           double radius = (Double)props.get(RADIUS);
+           CanvasFigure[] probe = new CanvasFigure[2];
+           for(int i=0; i<probe.length; i++)  {
+               double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+               double y_off = (Double)props.get(CENTER_OFFSET_Y);
+               double flag_x=1;
+               double flag_y=1;
+
+               if(x_off < 0.0) {
+                   flag_x=-1;
+               }
+               if(y_off < 0.0) {
+                   flag_y=-1;
+               }
+               Point2D.Double wcsCenter = cc.getWCSCenter();
+               double ra = wcsCenter.x ;    //RA in degrees
+               double dec = wcsCenter.y ;    //DEC
+               double factor = Math.cos(Math.toRadians(dec)); //less than 1
+               Point2D.Double pt = new Point2D.Double(ra, dec);
+               cc.worldToScreenCoords(pt, false);
+               ra = pt.x;     //in pixels now
+               dec = pt.y;
+
+               double ra1 = ra;
+               double dec1 = dec;
+               pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+               cc.worldToScreenCoords(pt, true);
+               x_off = pt.x;     //in pixels now
+               y_off = pt.y;
+             //axis goes from east <-- west
+               ra = ra + x_off*flag_x;    //RA
+               dec = dec + y_off*flag_y;    //DEC
+//               double x = (Double)props.get(CENTER_OFFSET_X);
+//               double y = (Double)props.get(CENTER_OFFSET_Y);
+//               Point2D.Double wcsCenter = cc.getWCSCenter();
+//               x = wcsCenter.x + x;
+//               y = wcsCenter.y + y;
+//               Point2D.Double pt = new Point2D.Double(x, y);
+//               cc.worldToScreenCoords(pt, false);
+//               x = pt.x;
+//               y = pt.y;
+               if(i == 1)
+               {
+                   pt = new Point2D.Double(radius*factor, radius);
+                   cc.worldToScreenCoords(pt, true);
+                   radius = pt.x;
+                   ra = ra - radius ;
+                   dec = dec - radius ;
+                   Ellipse2D.Double ell = new Ellipse2D.Double(ra, dec, 2*radius, 2*radius);
+//                   pt = new Point2D.Double(radius, radius);
+//                   cc.worldToScreenCoords(pt, true);
+//                   radius = pt.x;
+//                   x = x - radius;
+//                   y = y - radius;
+//                   Ellipse2D.Double ell = new Ellipse2D.Double(x, y, 2*radius, 2*radius);
+
+                   probe[i] = dig.makeFigure(ell, fillColor, outlineColor, outlineWidth,interactor);
+                   //turns off resizing
+                   if(probe[i] instanceof RotatableCanvasFigure) {
+                        ((RotatableCanvasFigure)probe[i]).setResizable(false);
+                   }
+                   dig.add(probe[i]);
+                   probe[i].setVisible(false);
+               }
+               else if(i == 0){
+                   pt = new Point2D.Double(width*factor, height);
+                   cc.worldToScreenCoords(pt, true);
+                   width = pt.x;   //in pixels now
+                   height = pt.y;
+                   ra = ra - width/2;           //go to top left corner
+                   dec = dec - height/2;
+                   Rectangle2D.Double rect = new Rectangle2D.Double(ra, dec, width, height);
+//                   pt = new Point2D.Double(width, height);
+//                   cc.worldToScreenCoords(pt, true);
+//                   width = pt.x;
+//                   height = pt.y;
+//                   x = x - width/2;
+//                   y = y - height/2;
+//                   Rectangle2D.Double rect = new Rectangle2D.Double(x, y, width, height);
+                   probe[i] = dig.makeFigure(rect, fillColor, outlineColor, outlineWidth,null);
+                   //turns off resizing
+                   if(probe[i] instanceof RotatableCanvasFigure) {
+                        ((RotatableCanvasFigure)probe[i]).setResizable(false);
+                   }
+                   dig.add(probe[i]);
+                   probe[i].setVisible(false);
+                }
+
+           }
+           probe[1].addSlave(probe[0]);
+           return probe;
+       }
        else {
            return null;
        }
@@ -1202,40 +1318,6 @@ class FovastShapeFactory{
 
 
         //Group2 starts - mobie related elements
-        /*props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, false);
-        props.put(CENTER_OFFSET_X, 0d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 5.4/60d);
-        props.put(ARC_END, ARC_END_CHORD);
-        props.put(ARC_START_ANGLE, 90d);
-        props.put(ARC_ANGLE_EXTENT, 180d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.WHITE);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] mobieFigures1 = makeFigure(props);
-        map.put("mobie.detector.center1", mobieFigures1);
-        
-        props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, false);
-        props.put(CENTER_OFFSET_X, 0d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 5.5/60d);
-        props.put(ARC_END, ARC_END_CHORD);
-        props.put(ARC_START_ANGLE, 90d);
-        props.put(ARC_ANGLE_EXTENT, 180d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.WHITE);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] mobieFigures2 = makeFigure(props);
-        map.put("mobie.detector.center2", mobieFigures2);
-
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
@@ -1268,7 +1350,41 @@ class FovastShapeFactory{
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieEdgeOfFiledFigs = makeFigure(props);
-        map.put("mobie.edgeoffield", mobieEdgeOfFiledFigs);*/
+        map.put("mobie.edgeoffield", mobieEdgeOfFiledFigs);
+
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+//        props.put(ROTATABLE, false);
+//        props.put(MOVEABLE, false);
+//        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(RADIUS, 5.6/60d);
+//        props.put(ARC_END, ARC_END_CHORD);
+//        props.put(ARC_START_ANGLE, 90d);
+//        props.put(ARC_ANGLE_EXTENT, 180d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.WHITE);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] mobieFigures1 = makeFigure(props);
+//        map.put("mobie.vignettingstart", mobieFigures1);
+//
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+//        props.put(ROTATABLE, false);
+//        props.put(MOVEABLE, false);
+//        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(RADIUS, 5.4/60d);
+//        props.put(ARC_END, ARC_END_CHORD);
+//        props.put(ARC_START_ANGLE, 90d);
+//        props.put(ARC_ANGLE_EXTENT, 180d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.WHITE);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] mobieFigures2 = makeFigure(props);
+//        map.put("mobie.edgeoffield", mobieFigures2);
 
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -1284,54 +1400,16 @@ class FovastShapeFactory{
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] mobieFigures1 = makeFigure(props);
-        map.put("mobie.vignettingstart", mobieFigures1);
-
-        props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, false);
-        props.put(CENTER_OFFSET_X, 0d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(RADIUS, 5.6/60d);
-        props.put(ARC_END, ARC_END_CHORD);
-        props.put(ARC_START_ANGLE, 90d);
-        props.put(ARC_ANGLE_EXTENT, 180d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.WHITE);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieFigures2 = makeFigure(props);
-        map.put("mobie.edgeoffield", mobieFigures2);
-
-//        props = new HashMap<String, Object>();
-//        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
-//        props.put(ROTATABLE, false);
-//        props.put(MOVEABLE, true);
-//        //MOBIE DIMENSIONS ARE 4.2 x 9.6
-//        props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
-//        props.put(CENTER_OFFSET_Y, 0d);
-//        props.put(WIDTH_X, 4.2/60d);
-//        props.put(WIDTH_Y, 9.6/60d);
-//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-//        props.put(OUTLINE_COLOR, Color.BLUE);
-//        props.put(FILL, FILL_OUTLINE_NO);
-//        props.put(OUTLINE_WIDTH, 1.0f);
-//        CanvasFigure[] mobieDetectorFigs = makeFigure(props);
-//        //cfgIris.add(fig);
-//        map.put("mobie.detector", mobieDetectorFigs);
-//        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
-//                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay,map));
+        map.put("mobie.limits", mobieFigures2);
 
         props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_DETECTOR);
-        props.put(ROTATABLE, true);
-        props.put(MOVEABLE, false);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
         //MOBIE DIMENSIONS ARE 4.2 x 9.6
         props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(CENTER_OFFSET_X1,-(5.4)/60d); // -5.4' offet-x
-        props.put(CENTER_OFFSET_Y1, 0d);
         props.put(WIDTH_X, 4.2/60d);
         props.put(WIDTH_Y, 9.6/60d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
@@ -1341,6 +1419,27 @@ class FovastShapeFactory{
         CanvasFigure[] mobieDetectorFigs = makeFigure(props);
         //cfgIris.add(fig);
         map.put("mobie.detector", mobieDetectorFigs);
+        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
+                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay,map));
+
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_DETECTOR);
+//        props.put(ROTATABLE, true);
+//        props.put(MOVEABLE, true);
+//        //MOBIE DIMENSIONS ARE 4.2 x 9.6
+//        props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(CENTER_OFFSET_X1,-(5.4)/60d); // -5.4' offet-x
+//        props.put(CENTER_OFFSET_Y1, 0d);
+//        props.put(WIDTH_X, 4.2/60d);
+//        props.put(WIDTH_Y, 9.6/60d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.BLUE);
+//        props.put(FILL, FILL_OUTLINE_NO);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] mobieDetectorFigs = makeFigure(props);
+//        //cfgIris.add(fig);
+//        map.put("mobie.detector", mobieDetectorFigs);
 //        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(
 //                new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay,map));
 
@@ -1548,7 +1647,7 @@ class FovastShapeFactory{
         map.put("iris.oiwfs.probe3.limits", irisProbeLimits3);
 
         props  = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_PROBETIP);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
         props.put(CENTER_OFFSET_X, 0d);
@@ -1644,6 +1743,7 @@ class FovastShapeFactory{
         
         dragInteractor.appendConstraint(new PointConstraint() {
             Point2D prevPt = null;
+            CanvasFigure iris_oiwfs_probe1_line = null;
 
             @Override
             public void constrain(Point2D pt) {
@@ -1651,23 +1751,23 @@ class FovastShapeFactory{
                 double y = pt.getY();
 
                 CanvasFigure[] figs = map.get("iris.oiwfs.probe1.limits1");
-                CanvasFigure probLimitsFig = figs[0];
+                CanvasFigure probLimitsFig = figs[PROBETIP_RECTANGLE_INDEX];
                 Shape shape = probLimitsFig.getShape();
 
                 CanvasFigure[] figs2 = map.get("nfiraos.limits1");
-                CanvasFigure nfiraosLimitsFig = figs2[0];
+                CanvasFigure nfiraosLimitsFig = figs2[PROBETIP_RECTANGLE_INDEX];
                 Shape shape2 = nfiraosLimitsFig.getShape();
 
                 CanvasFigure[] figs1 = map.get("iris.oiwfs.probe1.arm");
-                CanvasFigure probArmFig = figs1[0];
+                CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
                 CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.arm");
-                CanvasFigure probArm2Fig = figsProbe2[1];
+                CanvasFigure probArm2Fig = figsProbe2[PROBETIP_CIRCLE_INDEX];
                 Shape shapeProbe2 = probArm2Fig.getShape();
 
                 CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.arm");
-                CanvasFigure probArm3Fig = figsProbe3[1];
+                CanvasFigure probArm3Fig = figsProbe3[PROBETIP_CIRCLE_INDEX];
                 Shape shapeProbe3 = probArm3Fig.getShape();
 
                 double centerX = shape1.getBounds2D().getCenterX();
@@ -1689,6 +1789,52 @@ class FovastShapeFactory{
                 } else {
                     prevPt = pt;
                 }
+
+                //tushar
+//                Point2D.Double arm_line1_top = new Point2D.Double(
+//                figs1[ARM_LINE_INDEX].getShape().getBounds2D().getX(),
+//                figs1[ARM_LINE_INDEX].getShape().getBounds2D().getY());
+                Point2D.Double arm_line1_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0, -2.292664743/60);
+//					// code to rotate object by some angle.
+//	                CanvasFigure linefig = figs1[ARM_LINE_INDEX];								//figure line
+                CanvasFigure circlefig1 = figs1[PROBETIP_CIRCLE_INDEX];
+                Point2D.Double circle1CenterPt =
+                    new Point2D.Double(circlefig1.getShape().getBounds2D().getCenterX(),
+                                                            circlefig1.getShape().getBounds2D().getCenterY());
+//                	/**
+//                	 * theta = tan-1 [(x2 - x1) / (y1 - y2)]
+//                	 */
+//                	double newtheta;
+//                	double y1y2 =  arm_line1_top.getY() - circleshapeCenterY;
+//                	double x2x1 =  circleshapeCenterX - arm_line1_top.getX();
+//                	double rotationangle = Math.atan((x2x1) / (y1y2));
+//
+//                	newtheta = rotationangle - oldTheta;		//delta theta
+//                	oldTheta = rotationangle;
+//
+//                    AffineTransform rotation =
+//                    			AffineTransform.getRotateInstance(
+//										newtheta, arm_line1_top.getX(), arm_line1_top.getY());
+//                    linefig.transform(rotation);
+
+                    if(iris_oiwfs_probe1_line != null)
+                    {
+                    	iris_oiwfs_probe1_line.setVisible(false);
+                    	iris_oiwfs_probe1_line = null;
+                    }
+                    else
+                    {
+                    	//will be executed for first time only
+                    	figs1[ARM_LINE_INDEX].setVisible(false);
+                    }
+                    //extend the line
+                    CanvasGraphics cg = fovastImageDisplay.getCanvasGraphics();
+                    DivaImageGraphics dig = (DivaImageGraphics) cg;
+                    Interactor interactor = null;
+                    iris_oiwfs_probe1_line = updateArmLines(dig, arm_line1_top, circle1CenterPt, interactor, Color.RED);
+                    dig.add(iris_oiwfs_probe1_line);
+//                    dig.repaint();
+
             }
 
             /**
@@ -1702,7 +1848,7 @@ class FovastShapeFactory{
         });
 
         props  = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_PROBETIP);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
         props.put(CENTER_OFFSET_X, -0.011d);
@@ -1799,22 +1945,22 @@ class FovastShapeFactory{
         dragInteractor.appendConstraint(new PointConstraint() {
 
             Point2D prevPt = null;
-
+            CanvasFigure iris_oiwfs_probe2_line = null;
             @Override
             public void constrain(Point2D pt) {
                 double x = pt.getX();
                 double y = pt.getY();
 
                 CanvasFigure[] figs = map.get("iris.oiwfs.probe2.limits1");
-                CanvasFigure probLimitsFig = figs[0];
+                CanvasFigure probLimitsFig = figs[PROBETIP_RECTANGLE_INDEX];
                 Shape shape = probLimitsFig.getShape();
 
                 CanvasFigure[] figs2 = map.get("nfiraos.limits1");
-                CanvasFigure nfiraosLimitsFig = figs2[0];
+                CanvasFigure nfiraosLimitsFig = figs2[PROBETIP_RECTANGLE_INDEX];
                 Shape shape2 = nfiraosLimitsFig.getShape();
 
                 CanvasFigure[] figs1 = map.get("iris.oiwfs.probe2.arm");
-                CanvasFigure probArmFig = figs1[0];
+                CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
                 double centerX = shape1.getBounds2D().getCenterX();
@@ -1835,6 +1981,53 @@ class FovastShapeFactory{
                 } else {
                     prevPt = pt;
                 }
+
+                //tushar
+                CanvasFigure linefig = figs1[ARM_LINE_INDEX];								//figure line
+	                CanvasFigure circlefig2 = figs1[PROBETIP_CIRCLE_INDEX];				//figure circle
+//
+//					Point2D.Double arm_line2_top = new Point2D.Double(
+//                	figs1[ARM_LINE_INDEX].getShape().getBounds2D().getX(),
+//                	figs1[ARM_LINE_INDEX].getShape().getBounds2D().getY());
+
+                    Point2D.Double arm_line2_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
+	                Point2D.Double circle2CenterPt =
+	                	new Point2D.Double(circlefig2.getShape().getBounds2D().getCenterX(),
+	                											circlefig2.getShape().getBounds2D().getCenterY());
+//                	/**
+//                	 * theta = tan-1 [(x2 - x1) / (y1 - y2)]
+//                	 */
+//                	double newtheta;
+//                	double y1y2 =  arm_line1_top.getY() - circleshapeCenterY;
+//                	double x2x1 =  circleshapeCenterX - arm_line1_top.getX();
+//                	double rotationangle = Math.atan((x2x1) / (y1y2));
+//
+//                	newtheta = rotationangle - oldTheta;		//delta theta
+//                	oldTheta = rotationangle;
+//
+//                    AffineTransform rotation =
+//                    			AffineTransform.getRotateInstance(
+//										newtheta, arm_line1_top.getX(), arm_line1_top.getY());
+//                    linefig.transform(rotation);
+
+                    if(iris_oiwfs_probe2_line != null)
+                    {
+                    	iris_oiwfs_probe2_line.setVisible(false);
+                    	iris_oiwfs_probe2_line = null;
+                    }
+                    else
+                    {
+                    	//will be executed for first time only
+                    	figs1[ARM_LINE_INDEX].setVisible(false);
+                    }
+                    //extend the line
+                    CanvasGraphics cg = fovastImageDisplay.getCanvasGraphics();
+                    DivaImageGraphics dig = (DivaImageGraphics) cg;
+                    Interactor interactor = null;
+                    iris_oiwfs_probe2_line = updateArmLines(dig, arm_line2_top, circle2CenterPt, interactor, Color.GREEN);
+                    dig.add(iris_oiwfs_probe2_line);
+//                    dig.repaint();
+
             }
 
             /**
@@ -1848,7 +2041,7 @@ class FovastShapeFactory{
         });
 
         props  = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_PROBETIP);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
         props.put(CENTER_OFFSET_X, +0.011d);
@@ -1936,22 +2129,22 @@ class FovastShapeFactory{
         dragInteractor.appendConstraint(new PointConstraint() {
 
             Point2D prevPt = null;
-
+            CanvasFigure iris_oiwfs_probe3_line = null;
             @Override
             public void constrain(Point2D pt) {
                 double x = pt.getX();
                 double y = pt.getY();
 
                 CanvasFigure[] figs = map.get("iris.oiwfs.probe3.limits1");
-                CanvasFigure probLimitsFig = figs[0];
+                CanvasFigure probLimitsFig = figs[PROBETIP_RECTANGLE_INDEX];
                 Shape shape = probLimitsFig.getShape();
 
                 CanvasFigure[] figs2 = map.get("nfiraos.limits1");
-                CanvasFigure nfiraosLimitsFig = figs2[0];
+                CanvasFigure nfiraosLimitsFig = figs2[PROBETIP_RECTANGLE_INDEX];
                 Shape shape2 = nfiraosLimitsFig.getShape();
 
                 CanvasFigure[] figs1 = map.get("iris.oiwfs.probe3.arm");
-                CanvasFigure probArmFig = figs1[0];
+                CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
                 double centerX = shape1.getBounds2D().getCenterX();
@@ -1972,6 +2165,53 @@ class FovastShapeFactory{
                 } else {
                     prevPt = pt;
                 }
+
+                //tushar
+                CanvasFigure linefig = figs1[ARM_LINE_INDEX];								//figure line
+	                CanvasFigure circlefig3 = figs1[PROBETIP_CIRCLE_INDEX];				//figure circle
+//
+//					Point2D.Double arm_line3_top = new Point2D.Double(
+//                	figs1[ARM_LINE_INDEX].getShape().getBounds2D().getX(),
+//                	figs1[ARM_LINE_INDEX].getShape().getBounds2D().getY());
+
+                    Point2D.Double arm_line3_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
+	                Point2D.Double circle3CenterPt =
+	                	new Point2D.Double(circlefig3.getShape().getBounds2D().getCenterX(),
+	                											circlefig3.getShape().getBounds2D().getCenterY());
+//                	/**
+//                	 * theta = tan-1 [(x2 - x1) / (y1 - y2)]
+//                	 */
+//                	double newtheta;
+//                	double y1y2 =  arm_line1_top.getY() - circleshapeCenterY;
+//                	double x2x1 =  circleshapeCenterX - arm_line1_top.getX();
+//                	double rotationangle = Math.atan((x2x1) / (y1y2));
+//
+//                	newtheta = rotationangle - oldTheta;		//delta theta
+//                	oldTheta = rotationangle;
+//
+//                    AffineTransform rotation =
+//                    			AffineTransform.getRotateInstance(
+//										newtheta, arm_line1_top.getX(), arm_line1_top.getY());
+//                    linefig.transform(rotation);
+
+                    if(iris_oiwfs_probe3_line != null)
+                    {
+                    	iris_oiwfs_probe3_line.setVisible(false);
+                    	iris_oiwfs_probe3_line = null;
+                    }
+                    else
+                    {
+                    	//will be executed for first time only
+                    	figs1[ARM_LINE_INDEX].setVisible(false);
+                    }
+                    //extend the line
+                    CanvasGraphics cg = fovastImageDisplay.getCanvasGraphics();
+                    DivaImageGraphics dig = (DivaImageGraphics) cg;
+                    Interactor interactor = null;
+                    iris_oiwfs_probe3_line = updateArmLines(dig, arm_line3_top, circle3CenterPt, interactor, Color.BLUE);
+                    dig.add(iris_oiwfs_probe3_line);
+//                    dig.repaint();
+
             }
 
             /**
@@ -2334,11 +2574,15 @@ class FovastShapeFactory{
             }
             */
 
-            CanvasFigure[] figs = map.get("mobie.vignettingstart");
-            CanvasFigure probLimitsFig = figs[0];
-            Shape shape = probLimitsFig.getShape();
+//            CanvasFigure[] figs = map.get("mobie.vignettingstart");
+//            CanvasFigure probLimitsFig = figs[0];
+//            Shape shape = probLimitsFig.getShape();
+//
+//            CanvasFigure[] figs2 = map.get("mobie.edgeoffield");
+//            CanvasFigure nfiraosLimitsFig = figs2[0];
+//            Shape shape2 = nfiraosLimitsFig.getShape();
 
-            CanvasFigure[] figs2 = map.get("mobie.edgeoffield");
+            CanvasFigure[] figs2 = map.get("mobie.limits");
             CanvasFigure nfiraosLimitsFig = figs2[0];
             Shape shape2 = nfiraosLimitsFig.getShape();
 
@@ -2354,7 +2598,8 @@ class FovastShapeFactory{
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    if(!shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+//                    if(shape.contains(newCenterPt) && !shape2.contains(newCenterPt)){
+                    if(shape2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
                     } else {
