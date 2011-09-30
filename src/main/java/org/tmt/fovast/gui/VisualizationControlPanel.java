@@ -158,7 +158,7 @@ public class VisualizationControlPanel extends JPanel
 
     /**
      * flags to check check whether respective probe is checked or not in order to show
-     * default focus
+     * Focus Correction
      */
     private boolean isProbe1Selected = false , isProbe2Selected= false , isProbe3Selected= false;
     
@@ -201,9 +201,17 @@ public class VisualizationControlPanel extends JPanel
                     int Index_row, int Index_col) {
                   Component comp = super.prepareRenderer(renderer, Index_row, Index_col);
                   //even index, selected or not selected
-                  if (focusComboBox.getSelectedIndex()==0 && Index_row==1) {
-                  comp.setBackground(Color.YELLOW);
-                  }
+                  if (focusComboBox.getSelectedIndex() == 0 && Index_row == 1) {
+//                    for (int i = 0; i < model.getRowCount(); i++) {
+//                        String xyz = (String) model.getValueAt(i, 0);
+//                        if (xyz != null) {
+//                            if (xyz.contains(focusComboBox.getSelectedItem().toString())) {
+                                comp.setBackground(Color.YELLOW);
+//                            }
+//                        }
+//
+//                    }
+                }
                 else if(focusComboBox.getSelectedIndex() == 1 && Index_row == 2) {
                   comp.setBackground(Color.YELLOW);
                   }
@@ -353,7 +361,7 @@ public class VisualizationControlPanel extends JPanel
         imageLoadMsgLabel = new JLabel(" ");
 
         fetchButton = new JButton("Capture guide stars");
-        //fetchButton.setEnabled(false);
+        fetchButton.setEnabled(false);
         fetchButton.addActionListener(new ActionListener() {
            public void actionPerformed(ActionEvent event) {
                 fetchButtonActionPerformed(event);
@@ -496,7 +504,7 @@ public class VisualizationControlPanel extends JPanel
         });
 
         focusComboBox = new JComboBox();
-        focusLabel = new JLabel("Focus correction");
+        focusLabel = new JLabel("OWIFS focus correction");
         focusComboBox.addItem("probe1");
         focusComboBox.addItem("probe2");
         focusComboBox.addItem("probe3");
@@ -620,7 +628,7 @@ public class VisualizationControlPanel extends JPanel
                     if(((JButton)ae.getSource()).getText().equalsIgnoreCase("set as science target")){
                         infoList= new ArrayList<PointInfoForXML>();
                     }
-                }               
+                }
                 if(fName.contains("(")){
                    String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
                    xf.generateXML(infoList,ra,dec,Integer.parseInt(id));
@@ -669,8 +677,8 @@ public class VisualizationControlPanel extends JPanel
           DefaultMutableTreeNode child = (DefaultMutableTreeNode) model.getChild(o, i);
           if (model.isLeaf(child)) {              
               String leafLabel = ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel();
-              //to check if the particular node is default focus checkbox
-              if (leafLabel.equalsIgnoreCase("Default Focus")) {
+              //to check if the particular node is Focus Correction checkbox
+              if (leafLabel.equalsIgnoreCase("Focus Correction")) {
                   DefaultMutableTreeNode parent = (DefaultMutableTreeNode) child.getParent();
                   //get the label of parent
                   String parentLabel = ((FovastInstrumentTree.UserObject) parent.getUserObject()).getLabel();
@@ -679,7 +687,7 @@ public class VisualizationControlPanel extends JPanel
                      focusComboString = focusComboBox.getSelectedItem().toString();
 //                  if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
 //                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(false);
-                       //disable the default focus checkbox
+                       //disable the Focus Correction checkbox
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                       FovastInstrumentTree.CheckboxUserObject cuo =
@@ -1282,7 +1290,11 @@ public class VisualizationControlPanel extends JPanel
                }else if(flag != 1 && conf.getConfig(tips.get(j)) == null){
                         //load old values
                         PointInfoForXML pt1 = new PointInfoForXML();
-                        if(prevInfoList.size()==5){
+                        //the size of the prev infolist will never exceed 4
+                        //the check is written because in case the size is less than 4
+                        //it means that the xml also doesnt have a particular entry
+                        //which may throw a null pointer
+                        if(prevInfoList.size()>0 && j<prevInfoList.size()){
                             pt1.setCatalogLabel(prevInfoList.get(j).getCatalogLabel());
                             pt1.setDec(prevInfoList.get(j).getDec());
                             pt1.setFocus(prevInfoList.get(j).getFocus());
@@ -1488,6 +1500,7 @@ public class VisualizationControlPanel extends JPanel
               focusComboBox.setEnabled(true);
               focusLabel.setEnabled(true);
               isIrisSelected=true;
+              fetchButton.setEnabled(true);
               traverse();
           }else if(confElementId.equalsIgnoreCase("iris") && !enable){
               focusComboBox.setEnabled(false);
@@ -1496,6 +1509,7 @@ public class VisualizationControlPanel extends JPanel
               traverse();
           }else if(confElementId.equalsIgnoreCase("mobie") && enable){
               traverse();
+              fetchButton.setEnabled(true);
           }
           if(confElementId.contains("oiwfs")){
               if(confElementId.contains("probe1") && enable){
