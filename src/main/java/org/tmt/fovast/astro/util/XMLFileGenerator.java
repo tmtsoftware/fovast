@@ -65,13 +65,28 @@ public class XMLFileGenerator {
 		rootElement.appendChild(source);
 
         Element sourceRa = doc.createElement("SourceRa");
-		//sourceRa.appendChild(doc.createTextNode(""+ra));       
-        sourceRa.appendChild(doc.createTextNode(""+DegreeCoverter.degToHMS(ra)));
-		source.appendChild(sourceRa);
+		//sourceRa.appendChild(doc.createTextNode(""+ra));
+
+        String raString = DegreeCoverter.degToHMS(ra);
+        String secString = raString.substring(raString.lastIndexOf(':') + 1);
+        double secValue = Double.parseDouble(secString);
+        int temp = (int) (secValue * 1000.0); // scale it
+        secValue = (double) ((temp) / 1000.0);
+        String finalRaString = raString.substring(0, raString.lastIndexOf(':') + 1) + secValue;
+
+        sourceRa.appendChild(doc.createTextNode(finalRaString));
+        source.appendChild(sourceRa);
+
+        String decString = DegreeCoverter.degToDMS(dec);
+        secString = decString.substring(decString.lastIndexOf(':') + 1);
+        secValue = Double.parseDouble(secString);
+        temp = (int) (secValue * 100.0); // scale it
+        secValue = (double) ((temp) / 100.0);
+        String finalDecString = decString.substring(0, decString.lastIndexOf(':') + 1) + secValue;
 
         Element sourceDec = doc.createElement("SourceDec");
 		//sourceDec.appendChild(doc.createTextNode(""+dec));
-        sourceDec.appendChild(doc.createTextNode(""+DegreeCoverter.degToDMS(dec)));
+        sourceDec.appendChild(doc.createTextNode(finalDecString));
 		source.appendChild(sourceDec);
 
         for(int i = 0; i<infoList.size() ; i++){

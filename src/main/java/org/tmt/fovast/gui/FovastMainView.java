@@ -1091,17 +1091,31 @@ public class FovastMainView extends FrameView
         }
     }
 
+//    private VisualizationPanel getVisualizationPanel(int vizId) {
+//        for(int i=0; i<tabComponentList.size(); i++) {
+//            if(tabComponentList.get(i) instanceof VisualizationPanel) {
+//                VisualizationPanel vPanel = (VisualizationPanel)tabComponentList.get(i);
+//                if(vizId == vPanel.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY)) {
+//                    return vPanel;
+//                }
+//            }
+//        }
+//        return null;
+//    }
+
     private VisualizationPanel getVisualizationPanel(int vizId) {
         for(int i=0; i<tabComponentList.size(); i++) {
             if(tabComponentList.get(i) instanceof VisualizationPanel) {
                 VisualizationPanel vPanel = (VisualizationPanel)tabComponentList.get(i);
-                if(vizId == vPanel.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY)) {
+                Object obj = vPanel.getClientProperty(TABS_MENUITEM_VIZID_CLIENTPROPERTY);
+                if(vizId == ((Integer) obj).intValue()) {
                     return vPanel;
                 }
             }
         }
         return null;
     }
+
 
     private Action makeCatalogViewAction(boolean selected) {
         Action commonViewAction = menuActions.get(CATALOG_MENUITEM);

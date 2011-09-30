@@ -155,6 +155,16 @@ public class VisualizationControlPanel extends JPanel
     public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
 
     private ArrayList<PointInfoForXML> prevInfoList = new ArrayList<PointInfoForXML>();
+
+    /**
+     * flags to check check whether respective probe is checked or not in order to show
+     * default focus
+     */
+    private boolean isProbe1Selected = false , isProbe2Selected= false , isProbe3Selected= false;
+    
+    private boolean isIrisSelected;
+
+
     
     public VisualizationControlPanel(ApplicationContext appContext,
             VisualizationState visualizationState) {
@@ -162,7 +172,7 @@ public class VisualizationControlPanel extends JPanel
         this.visualization = visualizationState;
         initComponents();
 
-        visualization.addListener(this);
+        visualization.addListener(this); 
         //other initialization
         imageLoadBytesFormat = NumberFormat.getInstance();
         imageLoadBytesFormat.setMaximumFractionDigits(2);
@@ -329,7 +339,7 @@ public class VisualizationControlPanel extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) {
                 setTargetButtonClicked();
-                fetchButtonActionPerformed(null);
+                fetchButtonActionPerformed(e);
             }
 
         });
@@ -450,13 +460,13 @@ public class VisualizationControlPanel extends JPanel
         raDecPanel.add(decFormatPanel,gbc);
 
 
-        gbc.gridy = 7;
-        gbc.gridx = 0;
-        gbc.weightx = 1;
-        gbc.gridwidth = 3;
-        raDecPanel.add(targetLabel, gbc);
+//        gbc.gridy = 7;
+//        gbc.gridx = 0;
+//        gbc.weightx = 1;
+//        gbc.gridwidth = 3;
+//        raDecPanel.add(targetLabel, gbc);
 
-        gbc.gridy = 8;
+        gbc.gridy = 7;
         gbc.gridx = 0;
         gbc.weightx = 1;
         gbc.gridwidth = 3;
@@ -606,7 +616,11 @@ public class VisualizationControlPanel extends JPanel
                 }else
                     prevInfoList = parsePrevXml();
                 infoList = populateList(catalogs,flag);
-
+                if(ae!=null && ae.getSource() instanceof JButton){
+                    if(((JButton)ae.getSource()).getText().equalsIgnoreCase("set as science target")){
+                        infoList= new ArrayList<PointInfoForXML>();
+                    }
+                }               
                 if(fName.contains("(")){
                    String id = fName.substring(fName.indexOf('(')+1, fName.indexOf(')'));
                    xf.generateXML(infoList,ra,dec,Integer.parseInt(id));
@@ -633,14 +647,15 @@ public class VisualizationControlPanel extends JPanel
                 }
 
     }
-
+    /**
+     * Method to traverse the nodes of the tree
+     */
     public void traverse() { 
     TreeModel model = tree.getModel();
     if (model != null) {
         DefaultMutableTreeNode root =
                     (DefaultMutableTreeNode)model.getRoot();
        // Object root = model.getRoot();
-        System.out.println("$$$$$$$$$$$$$$$$$$"+((FovastInstrumentTree.UserObject)root.getUserObject()).getLabel());
         walk(model,root);
         }
     else
@@ -652,17 +667,19 @@ public class VisualizationControlPanel extends JPanel
       cc = model.getChildCount(o);
       for (int i = 0; i < cc; i++) {
           DefaultMutableTreeNode child = (DefaultMutableTreeNode) model.getChild(o, i);
-          if (model.isLeaf(child)) {
-              System.out.println("##################" + ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel());
+          if (model.isLeaf(child)) {              
               String leafLabel = ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel();
+              //to check if the particular node is default focus checkbox
               if (leafLabel.equalsIgnoreCase("Default Focus")) {
                   DefaultMutableTreeNode parent = (DefaultMutableTreeNode) child.getParent();
+                  //get the label of parent
                   String parentLabel = ((FovastInstrumentTree.UserObject) parent.getUserObject()).getLabel();
                   String focusComboString = "no probe" ;
                   if(focusComboBox.getSelectedIndex()!=-1)
                      focusComboString = focusComboBox.getSelectedItem().toString();
 //                  if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
-                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(false);
+//                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(false);
+                       //disable the default focus checkbox
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                       FovastInstrumentTree.CheckboxUserObject cuo =
@@ -672,20 +689,35 @@ public class VisualizationControlPanel extends JPanel
                             value = new BooleanValue(false);
                         configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
                   //}
-                  if (parentLabel.equalsIgnoreCase(focusComboString)) {
-                      System.out.println("hey"+focusComboString);
-                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
+                  if (parentLabel.equalsIgnoreCase(focusComboString)) {                      
+//                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
-                        ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                        cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
                        value = cuo.getConfigOptionValue();
                         if(value == null) //means its simple on/off config
                             value = new BooleanValue(true);
                         configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                   }else{
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
                    }
-              }
+              }              
           } else {
-              System.out.print("###############" + ((FovastInstrumentTree.UserObject) child.getUserObject()).getLabel() + "--");
+              if(isIrisSelected){
+                  if(child.getUserObject() instanceof FovastInstrumentTree.RadioUserObject){
+                        if(((FovastInstrumentTree.RadioUserObject)child.getUserObject()).getLabel().equalsIgnoreCase("iris")){
+                            ((FovastInstrumentTree.RadioUserObject)child.getNextSibling().getNextSibling().getUserObject()).setDisabled(true);
+                            tree.repaint();
+                        }
+                  }
+              }else{
+                    if(child.getUserObject() instanceof FovastInstrumentTree.RadioUserObject){
+                    if(((FovastInstrumentTree.RadioUserObject)child.getUserObject()).getLabel().equalsIgnoreCase("mobie")){
+                            ((FovastInstrumentTree.RadioUserObject)child.getPreviousSibling().getPreviousSibling().getUserObject()).setDisabled(true);
+                            tree.repaint();
+                        }
+                  }
+              }              
               walk(model, child);
           }
       }
@@ -703,6 +735,7 @@ public class VisualizationControlPanel extends JPanel
             configHelper = new ConfigHelper(config);
             instrumentTree = new FovastInstrumentTree(configHelper);
             config.addConfigListener(this);
+            configHelper.addConfigListener(VisualizationControlPanel.this);
         }
         else {
             instrumentTree = new FovastInstrumentTree(null);
@@ -846,8 +879,8 @@ public class VisualizationControlPanel extends JPanel
         showTargetLabel.setEnabled(enable);
         showTargetCheckbox.setSelected(false);
         showTargetCheckbox.setSelected(true);
-        focusComboBox.setEnabled(enable);
-        focusLabel.setEnabled(enable);
+//        focusComboBox.setEnabled(enable);
+//        focusLabel.setEnabled(enable);
         if(tree != null)
             tree.setEnabled(enable);
     }
@@ -1167,8 +1200,23 @@ public class VisualizationControlPanel extends JPanel
                         PointInfoForXML ptInfo = new PointInfoForXML();                        
                         if(distMin<=(5/3600d)){
                             System.out.println("valid point:"+distMin);
-                            ptInfo.setRa(DegreeCoverter.degToHMS(raMin));
-                            ptInfo.setDec(DegreeCoverter.degToDMS(decMin));
+
+                            String raString = DegreeCoverter.degToHMS(raMin);
+                            String secString = raString.substring(raString.lastIndexOf(':')+1);
+                            double secValue = Double.parseDouble(secString);
+                            int temp = (int) (secValue * 1000.0); // scale it
+                            secValue = (double) ((temp) / 1000.0);
+                            String finalRaString = raString.substring(0,raString.lastIndexOf(':')+1)+secValue;
+                            ptInfo.setRa(finalRaString);
+
+                            String decString = DegreeCoverter.degToDMS(decMin);
+                            secString = decString.substring(decString.lastIndexOf(':')+1);
+                            secValue = Double.parseDouble(secString);
+                            temp = (int) (secValue * 100.0); // scale it
+                            secValue = (double) ((temp) / 100.0);
+                            String finalDecString = decString.substring(0,decString.lastIndexOf(':')+1)+secValue;
+                            ptInfo.setDec(finalDecString);
+                            
                             ptInfo.setElementId(tips.get(j));
                             ptInfo.setCatalogLabel(cLabel);
                             ptInfo.setMag(magMin);
@@ -1181,8 +1229,23 @@ public class VisualizationControlPanel extends JPanel
                         }
                         else{
                             System.out.println("invalid point");
-                            ptInfo.setRa(DegreeCoverter.degToHMS(((ra*180)/Math.PI)));
-                            ptInfo.setDec(DegreeCoverter.degToDMS((dec*180)/Math.PI));
+
+                            String raString = DegreeCoverter.degToHMS(((ra*180)/Math.PI));
+                            String secString = raString.substring(raString.lastIndexOf(':')+1);
+                            double secValue = Double.parseDouble(secString);
+                            int temp = (int) (secValue * 1000.0); // scale it
+                            secValue = (double) ((temp) / 1000.0);
+                            String finalRaString = raString.substring(0,raString.lastIndexOf(':')+1)+secValue;
+                            ptInfo.setRa(finalRaString);
+
+                            String decString = DegreeCoverter.degToDMS((dec*180)/Math.PI);
+                            secString = decString.substring(decString.lastIndexOf(':')+1);
+                            secValue = Double.parseDouble(secString);
+                            temp = (int) (secValue * 100.0); // scale it
+                            secValue = (double) ((temp) / 100.0);
+                            String finalDecString = decString.substring(0,decString.lastIndexOf(':')+1)+secValue;
+                            ptInfo.setDec(finalDecString);
+
                             ptInfo.setElementId(tips.get(j));
                             ptInfo.setCatalogLabel("No catalog");
                             ptInfo.setMag(-99.9);
@@ -1219,14 +1282,16 @@ public class VisualizationControlPanel extends JPanel
                }else if(flag != 1 && conf.getConfig(tips.get(j)) == null){
                         //load old values
                         PointInfoForXML pt1 = new PointInfoForXML();
-                        pt1.setCatalogLabel(prevInfoList.get(j).getCatalogLabel());
-                        pt1.setDec(prevInfoList.get(j).getDec());
-                        pt1.setFocus(prevInfoList.get(j).getFocus());
-                        pt1.setMag(prevInfoList.get(j).getMag());
-                        pt1.setRa(prevInfoList.get(j).getRa());
-                        pt1.setPointId(prevInfoList.get(j).getPointId());
-                        pt1.setElementId(tips.get(j));
-                        infoList.add(pt1);
+                        if(prevInfoList.size()==5){
+                            pt1.setCatalogLabel(prevInfoList.get(j).getCatalogLabel());
+                            pt1.setDec(prevInfoList.get(j).getDec());
+                            pt1.setFocus(prevInfoList.get(j).getFocus());
+                            pt1.setMag(prevInfoList.get(j).getMag());
+                            pt1.setRa(prevInfoList.get(j).getRa());
+                            pt1.setPointId(prevInfoList.get(j).getPointId());
+                            pt1.setElementId(tips.get(j));
+                            infoList.add(pt1);
+                        }
                }
 
          }
@@ -1283,7 +1348,7 @@ public class VisualizationControlPanel extends JPanel
                 if (ename) {                 
                     //rowData1[cnt][0] = new String(ch, start, length);
                     if(cnt == 0)
-                        rowData1[cnt][0]="image.center";
+                        rowData1[cnt][0]="base position";
                     else
                     rowData1[cnt][0] = value;
                     ename = false;
@@ -1378,10 +1443,10 @@ public class VisualizationControlPanel extends JPanel
         //TODO: parameterised message should come from resource map
         //TODO: This being event handler we cannot rely on text field values
         // RA, DEC format should be preserved in the model.
-        if(raEntered == null && decEntered == null)
-            targetLabel.setText("Target: " + ra + ",  " + dec);
-        else
-            targetLabel.setText("Target: " + raEntered + ",  " + decEntered);
+//        if(raEntered == null && decEntered == null)
+//            targetLabel.setText("Target: " + ra + ",  " + dec);
+//        else
+//            targetLabel.setText("Target: " + raEntered + ",  " + decEntered);
         enableDisableShowTargetCheckBox(true);
         //also show the marker
         //showTargetCheckbox.setSelected(true);
@@ -1419,12 +1484,51 @@ public class VisualizationControlPanel extends JPanel
 
     @Override
     public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
-
-//        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
-//                confElementId.equals("iris.oiwfs.probe2.arm") ||
-//                confElementId.equals("iris.oiwfs.probe3.arm")){
-//            fetchButton.setEnabled(enable);
-//        }
+          if(confElementId.equalsIgnoreCase("iris") && enable){
+              focusComboBox.setEnabled(true);
+              focusLabel.setEnabled(true);
+              isIrisSelected=true;
+              traverse();
+          }else if(confElementId.equalsIgnoreCase("iris") && !enable){
+              focusComboBox.setEnabled(false);
+              focusLabel.setEnabled(false);
+              isIrisSelected=false;
+              traverse();
+          }else if(confElementId.equalsIgnoreCase("mobie") && enable){
+              traverse();
+          }
+          if(confElementId.contains("oiwfs")){
+              if(confElementId.contains("probe1") && enable){
+                    isProbe1Selected=true;
+              }
+              if(confElementId.contains("probe1") && !enable){
+                    isProbe1Selected=false;
+              }
+              else if(confElementId.contains("probe2") && enable)
+              {
+                    isProbe2Selected=true;
+              }
+              else if(confElementId.contains("probe2") && !enable)
+              {
+                    isProbe2Selected=false;
+              }
+              else if(confElementId.contains("probe3") && enable)
+              {
+                    isProbe3Selected=true;
+              }
+              else if(confElementId.contains("probe3") && !enable)
+              {
+                    isProbe3Selected=false;
+              }
+              if(isProbe1Selected || isProbe2Selected || isProbe3Selected){
+                  focusComboBox.setEnabled(true);
+                  focusLabel.setEnabled(true);
+                  traverse();
+              }else{
+                  focusComboBox.setEnabled(false);
+                  focusLabel.setEnabled(false);
+              }
+          }         
     }
 
     @Override

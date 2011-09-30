@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.BooleanValue;
 import org.tmt.fovast.instrumentconfig.Config.ConfigListener;
 import org.tmt.fovast.instrumentconfig.ConfigHelper;
+import org.tmt.fovast.instrumentconfig.ConfigOption;
 import org.tmt.fovast.instrumentconfig.Value;
 
 /**
@@ -60,6 +61,8 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     private JTree tree;
     
     private DefaultTreeModel treeModel;
+
+    private String defaultFocusSelected="no probe";
 
     private HashMap<String, ArrayList<UserObject>> confIdUserObjectMap =
             new HashMap<String, ArrayList<UserObject>>();
@@ -222,6 +225,12 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
             }
 
             CustomDefaultMutableTreeNode tNode = new CustomDefaultMutableTreeNode(uo);
+              if(tNode.getUserObject() instanceof CheckboxUserObject){
+                  if(((CheckboxUserObject)tNode.getUserObject()).getLabel().equalsIgnoreCase("Default Focus")){
+                ((CheckboxUserObject)tNode.getUserObject()).setDisabled(true);                
+              
+                  }
+            }       
             treeNode.add(tNode);
 
             if(treeNode.getChildCount() > 0) {
@@ -231,9 +240,17 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
     }
 
     private synchronized void selectNode(String confElementId, Value value) {
-
         logger.debug("in selectNode ... " + confElementId);
-        
+        if(confElementId.equalsIgnoreCase("iris")){
+            if(((BooleanValue)value).getValue()==true){
+                System.out.println("IRISSSSSSSS");                
+             }
+        }
+        if(confElementId.equalsIgnoreCase("mobie")){
+            if(((BooleanValue)value).getValue()==true){
+                System.out.println("MOBIEEEEEEEEEE");
+             }
+        }
         ArrayList<UserObject> uoList = confIdUserObjectMap.get(confElementId);
         if(uoList == null) {
             logger.warn("in selectNode ... element unknown " + confElementId);
@@ -260,6 +277,48 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                             treeModel.nodeChanged(uo.getTreeNode());
                             setSelectedCheckboxGroupNodeTraversingUp(uo.getTreeNode());
                         }
+                    }
+                 if(value != null){
+                    if(cuo.getLabel().equalsIgnoreCase("Default Focus")){
+                        if(((BooleanValue)value).getValue()==true)
+                            defaultFocusSelected = cuo.getConfigOptionId();
+                        cuo.setDisabled(true);
+                }
+               
+                    if(cuo.getLabel().equalsIgnoreCase("Show Arm")){
+                        //show getting deselected
+                        Value prevFocusValue;
+                        if(((BooleanValue)value).getValue()==false){
+                            if(confElementId.contains("probe1")){
+                                //prevFocusValue = configHelper.config.getConfig("iris.oiwfs.probe1.focus");
+                                configHelper.setConfig("iris.oiwfs.probe1.focus", value);
+                            }
+                            else if(confElementId.contains("probe2")){
+                                //prevFocusValue = configHelper.config.getConfig("iris.oiwfs.probe2.focus");
+                                configHelper.setConfig("iris.oiwfs.probe2.focus", value);
+                            }
+                            else if(confElementId.contains("probe3")){
+                                //prevFocusValue = configHelper.config.getConfig("iris.oiwfs.probe3.focus");
+                                configHelper.setConfig("iris.oiwfs.probe3.focus", value);
+                            }
+                        }
+                        //show getting selected
+                        else{
+                            if(confElementId.contains("probe1")){
+                                if(defaultFocusSelected.contains("probe1"))
+                                    configHelper.setConfig("iris.oiwfs.probe1.focus", new BooleanValue(true));
+                            }
+                            else if(confElementId.contains("probe2")){
+                                if(defaultFocusSelected.contains("probe2"))
+                                    configHelper.setConfig("iris.oiwfs.probe2.focus", new BooleanValue(true));
+                            }
+                            else if(confElementId.contains("probe3")){
+                                if(defaultFocusSelected.contains("probe3"))
+                                    configHelper.setConfig("iris.oiwfs.probe3.focus", new BooleanValue(true));
+                            }
+                        }
+                                                 
+                    }
                     }
                     return;
                 }
