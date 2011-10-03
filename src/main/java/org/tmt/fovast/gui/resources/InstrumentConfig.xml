@@ -269,6 +269,12 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
         <DisplayElement showByDefault="true" id="mobie.edgeoffield">
         </DisplayElement>
 
+        <DisplayElement showByDefault="true" id="mobie.wavefrontSensorFOV">
+        </DisplayElement>
+
+        <DisplayElement showByDefault="true" id="mobie.guider">
+        </DisplayElement>
+
         <DisplayElement showByDefault="false" id="mobie.drag">
         </DisplayElement>
 

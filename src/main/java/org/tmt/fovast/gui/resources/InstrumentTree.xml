@@ -115,6 +115,8 @@
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
         <CheckboxNode configOptionId="mobie.vignettingstart" label="Show Vignetting Start"/>
         <CheckboxNode configOptionId="mobie.edgeoffield" label="Show Edge of Field"/>
+        <CheckboxNode configOptionId="mobie.wavefrontSensorFOV" label="Show Wavefront Sensor FOV"/>
+        <CheckboxNode configOptionId="mobie.guider" label="Show Guider"/>
         <CheckboxNode configOptionId="mobie.drag" label="Show Dragger"/>
     </RadioNode>
 </Tree>

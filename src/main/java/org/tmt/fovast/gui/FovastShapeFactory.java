@@ -47,6 +47,8 @@ class FovastShapeFactory {
 
     private String FIGURE_TYPE_MOBIE_DETECTOR = "mobieDetector";
 
+    private String FIGURE_TYPE_MOBIE_GUIDER = "mobieGuider";
+
     private String FIGURE_TYPE_PROBETIP = "probeTip";
 
     private String FIGURE_TYPE_FOCUS_PROBETIP = "focusProbeTip";
@@ -114,6 +116,8 @@ class FovastShapeFactory {
     private String CENTER_OFFSET_Y1 = "centerOffsetY1";
 
     private String RADIUS1 = "radius1";
+
+    private String RADIUS2 = "radius2";
 
     private String ARC_END1 = "arcEnd1";
 
@@ -332,6 +336,111 @@ class FovastShapeFactory {
 //           compFig[2].addSlave(compFig[0]);
 //           compFig[2].addSlave(compFig[1]);
            return compFig;
+       }
+       else if(figType.equals(FIGURE_TYPE_MOBIE_GUIDER)){
+           double radius = (Double)props.get(RADIUS);
+           double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+           double y_off = (Double)props.get(CENTER_OFFSET_Y);
+           double x_off1 = (Double)props.get(CENTER_OFFSET_X1); //in degrees
+           double y_off1 = (Double)props.get(CENTER_OFFSET_Y1);
+           double radius1 = (Double)props.get(RADIUS1);
+           double radius2 = (Double)props.get(RADIUS2);
+           double flag_x=1;
+           double flag_y=1;
+           double flag_x1=1;
+           double flag_y1=1;
+           Arc2D.Double arc = null;
+           CanvasFigure[] doubleArc = new CanvasFigure[3];
+           if(x_off < 0.0) {
+               flag_x=-1;
+           }
+           if(y_off < 0.0) {
+               flag_y=-1;
+           }
+           if(x_off1 < 0.0) {
+               flag_x1=-1;
+           }
+           if(y_off1 < 0.0) {
+               flag_y1=-1;
+           }
+           for(int i=0;i<doubleArc.length;i++){
+               Point2D.Double wcsCenter = cc.getWCSCenter();
+               double ra = wcsCenter.x ;    //RA in degrees
+               double dec = wcsCenter.y ;    //DEC
+               double factor = Math.cos(Math.toRadians(dec)); //less than 1
+               Point2D.Double pt = new Point2D.Double(ra, dec);
+               cc.worldToScreenCoords(pt, false);
+               ra = pt.x;     //in pixels now
+               dec = pt.y;              
+               if(i==0){
+                   pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off = pt.x;     //in pixels now
+                   y_off = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off*flag_x;    //RA
+                   dec = dec + y_off*flag_y;    //DEC
+                   pt = new Point2D.Double(radius*factor, radius);
+                   cc.worldToScreenCoords(pt, true);
+                   radius = pt.x;
+                   ra = ra - radius ;
+                   dec = dec - radius ;
+                   int type = (Integer)props.get(ARC_END);
+                   //axis goes from east -> west
+                   double startAngle = -1.0 * (Double)props.get(ARC_START_ANGLE); //(Double)props.get(ARC_START_ANGLE);
+                   double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
+                   arc = new Arc2D.Double(ra, dec, 2*radius, 2*radius, startAngle,
+                       angleExtent, type);
+               }
+               //second arc
+               if(i==1){
+                   pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off = pt.x;     //in pixels now
+                   y_off = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off*flag_x;    //RA
+                   dec = dec + y_off*flag_y;    //DEC
+                   pt = new Point2D.Double(radius1*factor, radius1);
+                   cc.worldToScreenCoords(pt, true);
+                   radius1 = pt.x;
+                   ra = ra - radius1 ;
+                   dec = dec - radius1 ;
+                   int type = (Integer)props.get(ARC_END);
+                   //axis goes from east -> west
+                   double startAngle = -1.0 * (Double)props.get(ARC_START_ANGLE); //(Double)props.get(ARC_START_ANGLE);
+                   double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
+                   arc = new Arc2D.Double(ra, dec, 2*radius1, 2*radius1, startAngle,
+                       angleExtent, type);
+               }
+               if(i==2){
+                   pt = new Point2D.Double(x_off1*factor, y_off1); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off1 = pt.x;     //in pixels now
+                   y_off1 = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off1*flag_x1;    //RA
+                   dec = dec + y_off1*flag_y1;    //DEC
+                   pt = new Point2D.Double(radius2*factor, radius2);
+                   cc.worldToScreenCoords(pt, true);
+                   radius2 = pt.x;
+                   ra = ra - radius2 ;
+                   dec = dec - radius2 ;
+                   Ellipse2D.Double ell = new Ellipse2D.Double(ra, dec, 2*radius2, 2*radius2);
+                   fig = dig.makeFigure(ell, fillColor, outlineColor, outlineWidth,
+                           interactor);
+                   
+               }
+               doubleArc[i] = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
+                       interactor);
+               //turns off resizing
+               if(doubleArc[i] instanceof RotatableCanvasFigure) {
+                    ((RotatableCanvasFigure)doubleArc[0]).setResizable(false);
+               }
+               dig.add(doubleArc[i]);
+               doubleArc[i].setVisible(false);
+           }
+           return doubleArc;
        }
        else if(figType.equals(FIGURE_TYPE_CIRCLE)) {
            double radius = (Double)props.get(RADIUS);
@@ -891,6 +1000,44 @@ class FovastShapeFactory {
         //cfgIris.add(fig);
         map.put("iris.ifuimager.slicer", slicerFigs);
 
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, (5.4)/60d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 5.239275/60d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieWavefrontSensorFigs = makeFigure(props);
+        map.put("mobie.wavefrontSensorFOV", mobieWavefrontSensorFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_GUIDER);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(CENTER_OFFSET_X1,0d);
+        props.put(CENTER_OFFSET_Y1, 0d);
+        props.put(RADIUS, 1.9/60d);
+        props.put(RADIUS1, 0.7/60d);
+        props.put(RADIUS2, 21/60d);
+        props.put(ARC_ANGLE_EXTENT, 120.0d);
+        props.put(ARC_END,ARC_END_OPEN);
+        props.put(ARC_START_ANGLE,60.0d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieGuiderFigs = makeFigure(props);
+        map.put("mobie.guider", mobieGuiderFigs);
+
         //Group2 starts - mobie related elements
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -941,7 +1088,7 @@ class FovastShapeFactory {
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieFigures2 = makeFigure(props);
-        map.put("mobie.limits", mobieFigures2);
+        map.put("mobie.limits", mobieFigures2);       
 
 //        props = new HashMap<String, Object>();
 //        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
@@ -1011,7 +1158,7 @@ class FovastShapeFactory {
         System.arraycopy(tempmobieDetectorFigs, 0, mobieDetectorFigs, 0, tempmobieDetectorFigs.length);
         System.arraycopy(tempSciDetectorFig, 0, mobieDetectorFigs, tempmobieDetectorFigs.length, tempSciDetectorFig.length);
         map.put("mobie.detector", mobieDetectorFigs);
-        
+     
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
