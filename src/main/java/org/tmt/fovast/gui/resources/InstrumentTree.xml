@@ -76,6 +76,7 @@
             <RadioNode configOptionId="iris.ifuimager" configOptionValue="Slicer" label="Slicer">
                 <CheckboxNode configOptionId="iris.ifuimager.slicer" label="Show Slicer" />
             </RadioNode>
+            <CheckboxNode configOptionId="iris.ifuimager.drag" label="Dragger"/>
         </CheckboxNode>
         <CheckboxGroupNode label="OIWFS Probes">
             <CheckboxNode configOptionId="iris.oiwfs.probe1" label="Probe1">
@@ -114,5 +115,6 @@
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>
         <CheckboxNode configOptionId="mobie.vignettingstart" label="Show Vignetting Start"/>
         <CheckboxNode configOptionId="mobie.edgeoffield" label="Show Edge of Field"/>
+        <CheckboxNode configOptionId="mobie.drag" label="Show Dragger"/>
     </RadioNode>
 </Tree>

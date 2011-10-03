@@ -120,7 +120,11 @@ public class VisualizationControlPanel extends JPanel
 
     private JCheckBox showTargetCheckbox;
 
+    private JCheckBox showDragCheckbox;
+
     private JLabel showTargetLabel;
+
+    private JLabel showDragLabel;
 
     private  JLabel raFormatLabel;
 
@@ -198,29 +202,41 @@ public class VisualizationControlPanel extends JPanel
         pointInfoTable = new JTable(model){
             @Override
             public Component prepareRenderer(TableCellRenderer renderer,
-                    int Index_row, int Index_col) {
+                  int Index_row, int Index_col) {
                   Component comp = super.prepareRenderer(renderer, Index_row, Index_col);
                   //even index, selected or not selected
-                  if (focusComboBox.getSelectedIndex() == 0 && Index_row == 1) {
-//                    for (int i = 0; i < model.getRowCount(); i++) {
-//                        String xyz = (String) model.getValueAt(i, 0);
-//                        if (xyz != null) {
-//                            if (xyz.contains(focusComboBox.getSelectedItem().toString())) {
-                                comp.setBackground(Color.YELLOW);
-//                            }
-//                        }
-//
-//                    }
-                }
-                else if(focusComboBox.getSelectedIndex() == 1 && Index_row == 2) {
-                  comp.setBackground(Color.YELLOW);
+                  if(focusComboBox.getSelectedIndex() != -1){
+//                  if (focusComboBox.getSelectedIndex() == 0 && Index_row == 1) {
+                      //if(Index_row == 1 || Index_row == 2 || Index_row == 3 ){
+                        for (int i = 0; i < model.getRowCount(); i++) {
+                            if(Index_row == i ){
+                            String xyz = (String) model.getValueAt(i, 0);
+                            if (xyz != null) {
+                                if (xyz.contains(focusComboBox.getSelectedItem().toString())) {
+                                    
+                                    comp.setBackground(Color.YELLOW);
+                                }
+                                else {
+                                    comp.setBackground(Color.WHITE);
+                                }
+                            }
+                             else
+                                    comp.setBackground(Color.WHITE);
+                            }
+
+                        }
+                      //}
                   }
-                else if(focusComboBox.getSelectedIndex() == 2 && Index_row == 3) {
-                  comp.setBackground(Color.YELLOW);
-                  }
-                  else {
-                  comp.setBackground(Color.white);
-                  }
+//                }
+//                else if(focusComboBox.getSelectedIndex() == 1 && Index_row == 2) {
+//                  comp.setBackground(Color.YELLOW);
+//                  }
+//                else if(focusComboBox.getSelectedIndex() == 2 && Index_row == 3) {
+//                  comp.setBackground(Color.YELLOW);
+//                  }
+//                  else {
+//                  comp.setBackground(Color.white);
+//                  }
                   return comp;
                   }
                   };
@@ -503,8 +519,20 @@ public class VisualizationControlPanel extends JPanel
             }
         });
 
+        showDragLabel = new JLabel("Drag");
+        showDragLabel.setEnabled(false);
+        showDragCheckbox = new JCheckBox();
+        showDragCheckbox.setEnabled(false);
+        showDragCheckbox.addItemListener(new ItemListener() {
+
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                traverse();
+            }
+        });
+
         focusComboBox = new JComboBox();
-        focusLabel = new JLabel("OWIFS focus correction");
+        focusLabel = new JLabel("OIWFS focus correction");
         focusComboBox.addItem("probe1");
         focusComboBox.addItem("probe2");
         focusComboBox.addItem("probe3");
@@ -513,9 +541,12 @@ public class VisualizationControlPanel extends JPanel
 
             @Override
             public void itemStateChanged(ItemEvent e) {
-                fetchButtonActionPerformed(null);
-                traverse();
-                //showFocusMarker();
+                if(e.getStateChange() == ItemEvent.SELECTED)
+                {
+                    fetchButtonActionPerformed(null);
+                    traverse();
+                    //showFocusMarker();
+                }
                }
         });
         focusComboBox.setEnabled(false);
@@ -545,10 +576,20 @@ public class VisualizationControlPanel extends JPanel
         //showTargetLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
         showTargetPanel.add(showTargetLabel, gbcIcp);
 
-        
-
         gbcIcp.gridx = 0;
         gbcIcp.gridy = 1;
+        gbc.insets = new Insets(10, 0, 0, 0);
+        //showTargetCheckbox.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        showTargetPanel.add(showDragCheckbox, gbcIcp);
+
+        gbcIcp.gridx = 1;
+        gbcIcp.gridy = 1;
+        gbcIcp.weightx = 1;
+        //showTargetLabel.setBorder(BorderFactory.createLineBorder(Color.YELLOW));
+        showTargetPanel.add(showDragLabel, gbcIcp);
+
+        gbcIcp.gridx = 0;
+        gbcIcp.gridy = 2;
         gbcIcp.gridwidth = GridBagConstraints.REMAINDER;
         gbcIcp.anchor = GridBagConstraints.WEST;
         showTargetPanel.add(focusPanel, gbcIcp);
@@ -647,13 +688,13 @@ public class VisualizationControlPanel extends JPanel
                 pointInfoTable.setModel(model);
                 pointInfoTable.setEnabled(false);
                 configPanel.revalidate();
-                Config config = visualization.getConfig();
-                if(focusComboBox.getSelectedIndex()==-1){
-                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","null");
-                }else{
-                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","red");
-                }
-
+                //TODO:Remove these 4 lines if not reqd
+//                Config config = visualization.getConfig();
+//                if(focusComboBox.getSelectedIndex()==-1){
+//                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","null");
+//                }else{
+//                    config.setConfigElementProperty("iris.oiwfs.probe1.arm", "defaultFocus","red");
+//                }
     }
     /**
      * Method to traverse the nodes of the tree
@@ -709,7 +750,22 @@ public class VisualizationControlPanel extends JPanel
                    }else{
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
                    }
-              }              
+              }
+              else if(leafLabel.equalsIgnoreCase("Show Dragger") || leafLabel.equalsIgnoreCase("Dragger")) {
+                  ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                  if (showDragCheckbox.isSelected()) {
+//                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                       FovastInstrumentTree.CheckboxUserObject cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                       Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(true);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                   }else{
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                   }
+              }
           } else {
               if(isIrisSelected){
                   if(child.getUserObject() instanceof FovastInstrumentTree.RadioUserObject){
@@ -887,6 +943,8 @@ public class VisualizationControlPanel extends JPanel
         showTargetLabel.setEnabled(enable);
         showTargetCheckbox.setSelected(false);
         showTargetCheckbox.setSelected(true);
+ //       showDragCheckbox.setEnabled(enable);
+ //       showDragLabel.setEnabled(enable);
 //        focusComboBox.setEnabled(enable);
 //        focusLabel.setEnabled(enable);
         if(tree != null)
@@ -1290,11 +1348,18 @@ public class VisualizationControlPanel extends JPanel
                }else if(flag != 1 && conf.getConfig(tips.get(j)) == null){
                         //load old values
                         PointInfoForXML pt1 = new PointInfoForXML();
+                        boolean addPoint=false;
+                        for(int tp=0;tp<prevInfoList.size();tp++){
+                            if(prevInfoList.get(tp).getElementId().equalsIgnoreCase(tips.get(j))){
+                                addPoint=true;
+                            }
+                        }
+                        if(addPoint){
                         //the size of the prev infolist will never exceed 4
                         //the check is written because in case the size is less than 4
                         //it means that the xml also doesnt have a particular entry
                         //which may throw a null pointer
-                        if(prevInfoList.size()>0 && j<prevInfoList.size()){
+                        if(prevInfoList.size()>0 && j<prevInfoList.size()-1){
                             pt1.setCatalogLabel(prevInfoList.get(j).getCatalogLabel());
                             pt1.setDec(prevInfoList.get(j).getDec());
                             pt1.setFocus(prevInfoList.get(j).getFocus());
@@ -1303,6 +1368,7 @@ public class VisualizationControlPanel extends JPanel
                             pt1.setPointId(prevInfoList.get(j).getPointId());
                             pt1.setElementId(tips.get(j));
                             infoList.add(pt1);
+                        }
                         }
                }
 
@@ -1499,6 +1565,8 @@ public class VisualizationControlPanel extends JPanel
           if(confElementId.equalsIgnoreCase("iris") && enable){
               focusComboBox.setEnabled(true);
               focusLabel.setEnabled(true);
+              showDragLabel.setEnabled(true);
+              showDragCheckbox.setEnabled(true);
               isIrisSelected=true;
               fetchButton.setEnabled(true);
               traverse();
@@ -1508,6 +1576,8 @@ public class VisualizationControlPanel extends JPanel
               isIrisSelected=false;
               traverse();
           }else if(confElementId.equalsIgnoreCase("mobie") && enable){
+              showDragLabel.setEnabled(true);
+              showDragCheckbox.setEnabled(true);
               traverse();
               fetchButton.setEnabled(true);
           }
@@ -1542,7 +1612,11 @@ public class VisualizationControlPanel extends JPanel
                   focusComboBox.setEnabled(false);
                   focusLabel.setEnabled(false);
               }
-          }         
+          }
+       if(confElementId.equalsIgnoreCase("mobie.drag") || confElementId.equalsIgnoreCase("iris.ifuimager.drag")){
+           traverse();
+           tree.repaint();
+       }       
     }
 
     @Override

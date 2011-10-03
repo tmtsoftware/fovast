@@ -138,6 +138,8 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
                     </EnableConditions>
                 </DisplayElement>
             </ConfigOption>
+            <DisplayElement id="iris.ifuimager.drag"  showByDefault="false">
+           </DisplayElement>
         </ConfigOption>
 
         <!-- For each probe we have to store the probe tip RA, DEC
@@ -265,6 +267,9 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
         </DisplayElement>
         
         <DisplayElement showByDefault="true" id="mobie.edgeoffield">
+        </DisplayElement>
+
+        <DisplayElement showByDefault="false" id="mobie.drag">
         </DisplayElement>
 
     </ConfigOption>

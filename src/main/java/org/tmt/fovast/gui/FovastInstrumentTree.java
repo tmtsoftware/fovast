@@ -227,8 +227,13 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
             CustomDefaultMutableTreeNode tNode = new CustomDefaultMutableTreeNode(uo);
               if(tNode.getUserObject() instanceof CheckboxUserObject){
                   if(((CheckboxUserObject)tNode.getUserObject()).getLabel().equalsIgnoreCase("Focus Correction")){
-                ((CheckboxUserObject)tNode.getUserObject()).setDisabled(true);                
-              
+                    ((CheckboxUserObject)tNode.getUserObject()).setDisabled(true);
+                  }
+                  if(((CheckboxUserObject)tNode.getUserObject()).getLabel().equalsIgnoreCase("Show Dragger")){
+                    ((CheckboxUserObject)tNode.getUserObject()).setDisabled(true);                             
+                  }
+                  if(((CheckboxUserObject)tNode.getUserObject()).getLabel().equalsIgnoreCase("Dragger")){
+                    ((CheckboxUserObject)tNode.getUserObject()).setDisabled(true);
                   }
             }       
             treeNode.add(tNode);
@@ -279,6 +284,15 @@ public class FovastInstrumentTree implements ConfigListener, CellEditorListener 
                         }
                     }
                  if(value != null){
+
+                    if(cuo.getLabel().equalsIgnoreCase("show dragger")){
+                        if(((BooleanValue)value).getValue()==true)
+                        cuo.setDisabled(true);
+                }
+                    if(cuo.getLabel().equalsIgnoreCase("Dragger")){
+                        if(((BooleanValue)value).getValue()==true)
+                        cuo.setDisabled(true);
+                }
                     if(cuo.getLabel().equalsIgnoreCase("Focus Correction")){
                         if(((BooleanValue)value).getValue()==true)
                             defaultFocusSelected = cuo.getConfigOptionId();
