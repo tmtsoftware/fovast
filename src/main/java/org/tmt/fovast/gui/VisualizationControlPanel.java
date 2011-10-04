@@ -751,7 +751,29 @@ public class VisualizationControlPanel extends JPanel
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
                    }
               }
-              else if(leafLabel.equalsIgnoreCase("Show Dragger") || leafLabel.equalsIgnoreCase("Dragger")) {
+              else if(isIrisSelected && leafLabel.equalsIgnoreCase("Dragger"))
+              {
+                  ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                  if (showDragCheckbox.isSelected()) {
+//                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
+                       FovastInstrumentTree.CheckboxUserObject cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                       Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(true);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                   }else{
+                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                      FovastInstrumentTree.CheckboxUserObject cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                      Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(false);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
+                   }
+              }
+              else if(!isIrisSelected && leafLabel.equalsIgnoreCase("Show Dragger"))
+              {
                   ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                   if (showDragCheckbox.isSelected()) {
 //                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
@@ -764,6 +786,11 @@ public class VisualizationControlPanel extends JPanel
                         configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
                    }else{
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                      FovastInstrumentTree.CheckboxUserObject cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
+                      Object value = cuo.getConfigOptionValue();
+                        if(value == null) //means its simple on/off config
+                            value = new BooleanValue(false);
+                        configHelper.setConfig(cuo.getConfigOptionId(), (Value) value);
                    }
               }
           } else {
@@ -1219,10 +1246,14 @@ public class VisualizationControlPanel extends JPanel
                 Config conf = visualization.getConfig();
                 //string form of ra, dec (lets say 23, 34 ..
                 ArrayList<String> tips = new ArrayList<String>();
-                tips.add("iris.oiwfs.probe1.arm");
-                tips.add("iris.oiwfs.probe2.arm");
-                tips.add("iris.oiwfs.probe3.arm");
-                tips.add("nfiraos.twfs.detector");               
+                if(isIrisSelected){
+                    tips.add("iris.oiwfs.probe1.arm");
+                    tips.add("iris.oiwfs.probe2.arm");
+                    tips.add("iris.oiwfs.probe3.arm");
+                    tips.add("nfiraos.twfs.detector");
+                }else{
+                    tips.add("mobie.guider.guider");
+                }
                 for(int j = 0; j<tips.size();j++){
                     Iterator iter = catalogs.iterator();
                     double distMin=Double.MAX_VALUE;
@@ -1321,9 +1352,10 @@ public class VisualizationControlPanel extends JPanel
                                 ptInfo.setPointId("probe2 center");
                             else if(tips.get(j).contains("probe3"))
                                 ptInfo.setPointId("probe3 center");
+                            else if(tips.get(j).contains("twfs"))
+                                ptInfo.setPointId("TWFS Detector");
                             else
-                                ptInfo.setPointId("TWFS Dectector");
-
+                                ptInfo.setPointId("Mobie Guider");
                             if(focus != null && tips.get(j).contains(focus))
                                 ptInfo.setFocus(1);
                             else

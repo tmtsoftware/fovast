@@ -113,7 +113,6 @@ public class VisualizationWorkPanel extends JPanel
                 (FovastImageDisplay)displayComp.getImageDisplay());
 
     }
-
     private void initComponents() {
         setLayout(new BorderLayout());
         displayComp = new FovastImageDisplayControl(); //new ImageDisplayControl();

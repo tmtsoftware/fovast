@@ -341,27 +341,18 @@ class FovastShapeFactory {
            double radius = (Double)props.get(RADIUS);
            double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
            double y_off = (Double)props.get(CENTER_OFFSET_Y);
-           double x_off1 = (Double)props.get(CENTER_OFFSET_X1); //in degrees
-           double y_off1 = (Double)props.get(CENTER_OFFSET_Y1);
            double radius1 = (Double)props.get(RADIUS1);
-           double radius2 = (Double)props.get(RADIUS2);
            double flag_x=1;
            double flag_y=1;
            double flag_x1=1;
            double flag_y1=1;
            Arc2D.Double arc = null;
-           CanvasFigure[] doubleArc = new CanvasFigure[3];
+           CanvasFigure[] doubleArc = new CanvasFigure[4];
            if(x_off < 0.0) {
                flag_x=-1;
            }
            if(y_off < 0.0) {
                flag_y=-1;
-           }
-           if(x_off1 < 0.0) {
-               flag_x1=-1;
-           }
-           if(y_off1 < 0.0) {
-               flag_y1=-1;
            }
            for(int i=0;i<doubleArc.length;i++){
                Point2D.Double wcsCenter = cc.getWCSCenter();
@@ -391,6 +382,8 @@ class FovastShapeFactory {
                    double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
                    arc = new Arc2D.Double(ra, dec, 2*radius, 2*radius, startAngle,
                        angleExtent, type);
+                   doubleArc[i] = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
+                       interactor);
                }
                //second arc
                if(i==1){
@@ -412,27 +405,29 @@ class FovastShapeFactory {
                    double angleExtent = (Double)props.get(ARC_ANGLE_EXTENT);//(Double)props.get(ARC_ANGLE_EXTENT);
                    arc = new Arc2D.Double(ra, dec, 2*radius1, 2*radius1, startAngle,
                        angleExtent, type);
+                   doubleArc[i] = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
+                       interactor);
                }
                if(i==2){
-                   pt = new Point2D.Double(x_off1*factor, y_off1); //works only for positive offsets
-                   cc.worldToScreenCoords(pt, true);
-                   x_off1 = pt.x;     //in pixels now
-                   y_off1 = pt.y;
-                 //axis goes from east <-- west
-                   ra = ra + x_off1*flag_x1;    //RA
-                   dec = dec + y_off1*flag_y1;    //DEC
-                   pt = new Point2D.Double(radius2*factor, radius2);
-                   cc.worldToScreenCoords(pt, true);
-                   radius2 = pt.x;
-                   ra = ra - radius2 ;
-                   dec = dec - radius2 ;
-                   Ellipse2D.Double ell = new Ellipse2D.Double(ra, dec, 2*radius2, 2*radius2);
-                   fig = dig.makeFigure(ell, fillColor, outlineColor, outlineWidth,
-                           interactor);
-                   
+                    double topXline1 = 0.015834d;
+                    double topYline1 = -0.027424d;
+                    double bottomXline1 = 0.005834;
+                    double bottomYline1 = -0.010104;
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
+                    Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
+                   doubleArc[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
                }
-               doubleArc[i] = dig.makeFigure(arc, fillColor, outlineColor, outlineWidth,
-                       interactor);
+               if(i==3){
+                    double topXline1 = 0.015834d;
+                    double topYline1 = 0.027424d;
+                    double bottomXline1 = 0.005834;
+                    double bottomYline1 = 0.010104;
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
+                    Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
+                   doubleArc[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
+               }
                //turns off resizing
                if(doubleArc[i] instanceof RotatableCanvasFigure) {
                     ((RotatableCanvasFigure)doubleArc[0]).setResizable(false);
@@ -1023,11 +1018,11 @@ class FovastShapeFactory {
         props.put(MOVEABLE, false);
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
-        props.put(CENTER_OFFSET_X1,0d);
+        props.put(CENTER_OFFSET_X1,1.3/60d);
         props.put(CENTER_OFFSET_Y1, 0d);
         props.put(RADIUS, 1.9/60d);
         props.put(RADIUS1, 0.7/60d);
-        props.put(RADIUS2, 21/60d);
+        props.put(RADIUS2, 10.5/3600d);
         props.put(ARC_ANGLE_EXTENT, 120.0d);
         props.put(ARC_END,ARC_END_OPEN);
         props.put(ARC_START_ANGLE,60.0d);
@@ -1035,8 +1030,8 @@ class FovastShapeFactory {
         props.put(OUTLINE_COLOR, Color.RED);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] mobieGuiderFigs = makeFigure(props);
-        map.put("mobie.guider", mobieGuiderFigs);
+        CanvasFigure[] mobieGuiderLimitsFigs = makeFigure(props);
+        map.put("mobie.guider.limits", mobieGuiderLimitsFigs);
 
         //Group2 starts - mobie related elements
         props = new HashMap<String, Object>();
@@ -1088,7 +1083,7 @@ class FovastShapeFactory {
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieFigures2 = makeFigure(props);
-        map.put("mobie.limits", mobieFigures2);       
+        map.put("mobie.limits", mobieFigures2);     
 
 //        props = new HashMap<String, Object>();
 //        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
@@ -1109,55 +1104,51 @@ class FovastShapeFactory {
 //        //TUSHAR
 //        MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay, map); 
 //        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(mdc);
-        
+
         props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_DETECTOR);
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, false);
-        //MOBIE DIMENSIONS ARE 4.2 x 9.6
-        props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(CENTER_OFFSET_X1,-(5.4)/60d); // -5.4' offet-x
-        props.put(CENTER_OFFSET_Y1, 0d);
-        props.put(WIDTH_X, 4.2/60d);
-        props.put(WIDTH_Y, 9.6/60d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.RED);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        //store in temp values, need to add sciencedetector to this only.
-        CanvasFigure[] tempmobieDetectorFigs = makeFigure(props);
-        
-        //now add sciencedetector
-        props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
-        props.put(ROTATABLE, false);
-        props.put(MOVEABLE, true);
+         props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_DETECTOR);
+         props.put(ROTATABLE, false);
+         props.put(MOVEABLE, false);
+         //MOBIE DIMENSIONS ARE 4.2 x 9.6
+         props.put(CENTER_OFFSET_X, (5.4)/60d); // 5.4' offet-x
+         props.put(CENTER_OFFSET_Y, 0d);
+         props.put(CENTER_OFFSET_X1,-(5.4)/60d); // -5.4' offet-x
+         props.put(CENTER_OFFSET_Y1, 0d);
+         props.put(WIDTH_X, 4.2/60d);
+         props.put(WIDTH_Y, 9.6/60d);
+         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+         props.put(OUTLINE_COLOR, Color.RED);
+         props.put(FILL, FILL_OUTLINE_NO);
+         props.put(OUTLINE_WIDTH, 1.0f);
+         //store in temp values, need to add sciencedetector to this only.
+         CanvasFigure[] mobieDetectorFigs = makeFigure(props);
+         map.put("mobie.detector", mobieDetectorFigs);
+
+         //now add dragger
+         props = new HashMap<String, Object>();
+         props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+         props.put(ROTATABLE, false);
+         props.put(MOVEABLE, true);
 //        props.put(CENTER_OFFSET_X, 0d);
-        props.put(CENTER_OFFSET_X, (5.4)/108d);
-        props.put(CENTER_OFFSET_Y, 0d);
-        props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
-        props.put(WIDTH_Y, 16.4/3600d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
-        props.put(OUTLINE_COLOR, Color.GREEN);
-        props.put(FILL, FILL_OUTLINE_NO);
-        props.put(OUTLINE_WIDTH, 1.0f);
-        CanvasFigure[] tempSciDetectorFig = makeFigure(props);
-        
+         props.put(CENTER_OFFSET_X, (5.4)/108d);
+         props.put(CENTER_OFFSET_Y, 0d);
+         props.put(WIDTH_X, 16.4/3600d); //16.4 arcsec
+         props.put(WIDTH_Y, 16.4/3600d);
+         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+         props.put(OUTLINE_COLOR, Color.GREEN);
+         props.put(FILL, FILL_OUTLINE_NO);
+         props.put(OUTLINE_WIDTH, 1.0f);
+         CanvasFigure[] mobieDragFig = makeFigure(props);
+         map.put("mobie.drag", mobieDragFig);
+
 //        //add CanvasFigureListener
-//        tempSciDetectorFig[0].addCanvasFigureListener(new MobieDetectorFigListener());
-        if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
-        {
-			MobieDetectorConstraint mdc = new MobieDetectorConstraint(tempSciDetectorFig[0], fovastImageDisplay, map); 
-			((DragInteractor)tempSciDetectorFig[0].getInteractor()).appendConstraint(mdc);
-        }
-        
-        //combine the two arrays
-        int length = tempmobieDetectorFigs.length + tempSciDetectorFig.length;
-        final CanvasFigure[] mobieDetectorFigs = new CanvasFigure[length];
-        System.arraycopy(tempmobieDetectorFigs, 0, mobieDetectorFigs, 0, tempmobieDetectorFigs.length);
-        System.arraycopy(tempSciDetectorFig, 0, mobieDetectorFigs, tempmobieDetectorFigs.length, tempSciDetectorFig.length);
-        map.put("mobie.detector", mobieDetectorFigs);
+//        mobieDragFig[0].addCanvasFigureListener(new MobieDetectorFigListener());
+         if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
+         {
+             MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDragFig[0], fovastImageDisplay, map);
+
+((DragInteractor)mobieDragFig[0].getInteractor()).appendConstraint(mdc);
+         }
      
         props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
@@ -1798,6 +1789,110 @@ class FovastShapeFactory {
         });
 
         props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        props.put(CENTER_OFFSET_X, (1.3)/60d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 10.5/3600d);
+        props.put(ARC_END, ARC_END_CHORD);
+        props.put(ARC_START_ANGLE, 90d);
+        props.put(ARC_ANGLE_EXTENT, 180d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieGuiderFigs = makeFigure(props);
+        map.put("mobie.guider.guider", mobieGuiderFigs);
+        mobieGuiderFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+
+            @Override
+            public void figureSelected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureDeselected(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureResized(CanvasFigureEvent e) {
+                //do nothing
+            }
+
+            @Override
+            public void figureMoved(CanvasFigureEvent e) {
+                CanvasFigure[] figs1 = map.get("mobie.guider.guider");
+                CanvasFigure mobieGuiderFig = figs1[0];
+                Shape shape1 = mobieGuiderFig.getShape();
+                double centerX = shape1.getBounds2D().getCenterX();
+                double centerY = shape1.getBounds2D().getCenterY();
+                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                cc.screenToWorldCoords(centerPt, false);
+                String centerString = centerPt.getX()+","+centerPt.getY();
+                config.setConfigElementProperty("mobie.guider.guider", "position", centerString);
+            }
+        });
+        dragInteractor =  (DragInteractor) mobieGuiderFigs[0].getInteractor();
+        dragInteractor.appendConstraint(new PointConstraint() {
+
+            Point2D prevPt = null;
+            @Override
+            public void constrain(Point2D pt) {
+
+                CanvasFigure[] figs = map.get("mobie.guider.limits");
+                CanvasFigure mobieLimitsFig = figs[0];
+                Shape shape = mobieLimitsFig.getShape();
+
+                CanvasFigure[] figs1 = map.get("mobie.guider.limits");
+                CanvasFigure mobieLimitsFig1 = figs1[1];
+                Shape shape1 = mobieLimitsFig1.getShape();
+                
+                CanvasFigure[] figs2 = map.get("mobie.guider.limits");
+                CanvasFigure mobieLimitsFig2 = figs2[2];
+                Shape shape2 = mobieLimitsFig2.getShape();
+
+                CanvasFigure[] figs3 = map.get("mobie.guider.limits");
+                CanvasFigure mobieLimitsFig3 = figs3[3];
+                Shape shape3 = mobieLimitsFig3.getShape();
+
+                CanvasFigure[] figs4 = map.get("mobie.guider.guider");
+                CanvasFigure mobieguiderFig = figs4[0];
+                Shape shape4 = mobieguiderFig.getShape();
+
+                double centerX = shape4.getBounds2D().getCenterX();
+                double centerY = shape4.getBounds2D().getCenterY();
+//                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
+
+                if(prevPt != null) {
+                    Point2D.Double newCenterPt = new Point2D.Double(
+                                centerX + (pt.getX() - prevPt.getX()),
+                                centerY + (pt.getY() - prevPt.getY())
+                    );
+                    if(shape.contains(newCenterPt) /*&& shape1.contains(newCenterPt) &&
+                            shape2.contains(newCenterPt) && shape3.contains(newCenterPt)*/){
+                        prevPt = pt;
+                        //leave pt as is
+                    } else {
+                        pt.setLocation(prevPt.getX(), prevPt.getY());
+                    }
+                } else {
+                    prevPt = pt;
+                }
+            }
+            /**
+             * As of now never snaps
+             *
+             */
+            @Override
+            public boolean snapped() {
+                return false;
+            }
+        });
+
+        props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
         props.put(FIGURE_LABEL, "TWFS");
         props.put(ROTATABLE, false);
@@ -2136,8 +2231,9 @@ class FovastShapeFactory {
         @Override
         public void constrain(Point2D pt) {
           CanvasFigure[] figs1 = map.get("mobie.detector");
-          CanvasFigure mobieDetectorFig = figs1[0];
-          CanvasFigure sciencedetectorfig = figs1[1];
+            CanvasFigure mobieDetectorFig = figs1[0];
+            CanvasFigure[] figs2 = map.get("mobie.drag");
+            CanvasFigure sciencedetectorfig = figs2[0];
           
 ////            CanvasFigure[] figs = map.get("mobie.vignettingstart");
 ////            CanvasFigure probLimitsFig = figs[0];
