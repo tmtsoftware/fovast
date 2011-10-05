@@ -137,6 +137,8 @@ class FovastShapeFactory {
     private int PROBETIP_RECTANGLE_INDEX = 0;
     private int PROBETIP_CIRCLE_INDEX = 1;
     private int ARM_LINE_INDEX = 2;
+    //radius of circle. Is used to reduced height of rectanglur arm of IRIS
+    private int CIRCLE_RADIUS = 5;	//is 5 arc sec
 
     DivaImageGraphics dig ;
 
@@ -149,17 +151,81 @@ class FovastShapeFactory {
         this.config = config;
     }
 
-    public CanvasFigure updateArmLines(DivaImageGraphics dig,
-            Point2D.Double arm_line_top_pos,
-            Point2D.Double arm_line_bottom_pos,
-            Interactor interactor,
-            Color color) {
-    	float linewidth = 1.0f;
+//    public CanvasFigure updateArmLines(DivaImageGraphics dig,
+//            Point2D.Double arm_line_top_pos,
+//            Point2D.Double arm_line_bottom_pos,
+//            Interactor interactor,
+//            Color color) {
+//    	float linewidth = 1.0f;
+//    	CanvasFigure cfg = null;
+//        Line2D.Double newline = new Line2D.Double(arm_line_top_pos, arm_line_bottom_pos);
+//        cfg = dig.makeFigure(newline, color, color, linewidth, interactor);
+//        cfg.setVisible(true);
+//    	return cfg;
+//	}
+    
+	public CanvasFigure updateArmRectangles(DivaImageGraphics dig,
+																			Point2D.Double topPt1,
+																			Point2D.Double bottomPt2,
+																			Color fillColor,
+																			Color outlineColor,
+																			double widthInPixel,
+																			float outlineWidth,
+																			double radianTheta,
+																			Interactor interactor) {
     	CanvasFigure cfg = null;
-        Line2D.Double newline = new Line2D.Double(arm_line_top_pos, arm_line_bottom_pos);
-        cfg = dig.makeFigure(newline, color, color, linewidth, interactor);
+		//height = slope formula => sq. root([(y2 - y1)*(y2 - y1)] + [(x2 - x1)*(x2 - x1)])
+		double height = Math.sqrt(((bottomPt2.getY() - topPt1.getY())*(bottomPt2.getY() - topPt1.getY())) 
+										+ ((bottomPt2.getX() - topPt1.getX())*(bottomPt2.getX() - topPt1.getX())));
+		double radius = CIRCLE_RADIUS / 3600d;
+		
+		Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+		double factor = Math.cos(Math.toRadians(wcsCenter.y)); //dec, less than 1
+		Point2D.Double pt = new Point2D.Double(radius * factor, radius);
+		fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(pt, true);
+		radius = pt.x;
+		height = height - radius;
+		
+        double recra = topPt1.getX() - (widthInPixel / 2);
+        double recdec = topPt1.getY();
+        Rectangle2D.Double rect = new Rectangle2D.Double(recra, recdec, widthInPixel, height);
+        cfg = dig.makeFigure(rect, fillColor, outlineColor, outlineWidth, interactor);
         cfg.setVisible(true);
+		
+		//rotate the figure by angle theta
+        AffineTransform rotation = 
+        	AffineTransform.getRotateInstance(radianTheta, topPt1.getX(), topPt1.getY());
+        cfg.transform(rotation);
     	return cfg;
+	}
+
+	private double calculateArmAngle(double topX1,
+																double topY1,
+																double bottomX2,
+																double bottomY2) {
+		/**
+         * theta = tan-1 [(y2 - y1) / (x2 - x1)]
+         */
+		double rotationangle = Math.atan((bottomY2 - topY1) / (bottomX2 - topX1));
+        
+        //as tan -1 goes from -90 to 90, required
+        if((bottomY2 - topY1) > 0 && (bottomX2 - topX1) > 0)	//1st quadrant
+        {
+        	rotationangle = rotationangle + Math.toRadians(90);
+        }
+        else if((bottomY2 - topY1) > 0 && (bottomX2 - topX1) < 0)	//2nd quadrant
+        {
+        	rotationangle = rotationangle + Math.toRadians(270);
+        }
+        else if((bottomY2 - topY1) < 0 && (bottomX2 - topX1) < 0)	//3rd quadrant
+        {
+        	rotationangle = rotationangle + Math.toRadians(270);
+        }
+        else if((bottomY2 - topY1) < 0 && (bottomX2 - topX1) > 0)	//4th quadrant
+        {
+        	rotationangle = rotationangle + Math.toRadians(90);
+        }
+		return rotationangle;
 	}
 
     public CanvasFigure[] makeFigure(HashMap<String, Object> props) {
@@ -344,8 +410,8 @@ class FovastShapeFactory {
            double radius1 = (Double)props.get(RADIUS1);
            double flag_x=1;
            double flag_y=1;
-           double flag_x1=1;
-           double flag_y1=1;
+//           double flag_x1=1;
+//           double flag_y1=1;
            Arc2D.Double arc = null;
            CanvasFigure[] doubleArc = new CanvasFigure[4];
            if(x_off < 0.0) {
@@ -768,14 +834,39 @@ class FovastShapeFactory {
                    probe[i].setVisible(false);
                 }
                 else if(i == 2){
+//                    double topXline1 = (Double)props.get(ARM_Line1_TOP_X);
+//                    double topYline1 = (Double)props.get(ARM_Line1_TOP_Y);
+//                    double bottomXline1 = (Double)props.get(ARM_Line1_BOTTOM_X);
+//                    double bottomYline1 = (Double)props.get(ARM_Line1_BOTTOM_Y);
+//                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
+//                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
+//                    Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
+//                    probe[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
+                	
+                	//draw rectangle instead of lines
                     double topXline1 = (Double)props.get(ARM_Line1_TOP_X);
                     double topYline1 = (Double)props.get(ARM_Line1_TOP_Y);
                     double bottomXline1 = (Double)props.get(ARM_Line1_BOTTOM_X);
                     double bottomYline1 = (Double)props.get(ARM_Line1_BOTTOM_Y);
+					Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
                     Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
-                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
-                    Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
-                    probe[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
+					//to calculate theta
+		            double rotationangle = calculateArmAngle(topXline1, topYline1, bottomXline1, bottomYline1);
+					//add 180
+		            rotationangle = rotationangle + Math.toRadians(180);
+		            
+		          //calculate width of all three rectangles
+		          //width in degrees
+		          double rectanleWidth = 3.6377 / 3600d;
+		          double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
+		          Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
+		          fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+		          //width in pixels
+		          rectanleWidth = temppt.getX();
+		          
+//		          probe[i] = updateArmRectangles(dig, pt1, pt2, fillColor, outlineColor, rectanleWidth, outlineWidth, rotationangle, null);
+		          probe[i] = updateArmRectangles(dig, pt1, pt2, outlineColor, outlineColor, rectanleWidth, outlineWidth, rotationangle, null);
+					
                    //turns off resizing
                    if(probe[i] instanceof RotatableCanvasFigure) {
                         ((RotatableCanvasFigure)probe[i]).setResizable(false);
@@ -1136,7 +1227,8 @@ class FovastShapeFactory {
          props.put(WIDTH_Y, 16.4/3600d);
          props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
          props.put(OUTLINE_COLOR, Color.GREEN);
-         props.put(FILL, FILL_OUTLINE_NO);
+        props.put(FILL, FILL_OUTLINE_YES);
+        props.put(FILL_COLOR,  Color.GREEN);
          props.put(OUTLINE_WIDTH, 1.0f);
          CanvasFigure[] mobieDragFig = makeFigure(props);
          map.put("mobie.drag", mobieDragFig);
@@ -1288,17 +1380,17 @@ class FovastShapeFactory {
         props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
-        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_X, 1/3600d);
         props.put(CENTER_OFFSET_Y, -0.013d);
         props.put(ARM_Line1_TOP_X, 0d);
         props.put(ARM_Line1_TOP_Y, -2.292664743/60d);
 //        props.put(ARM_Line2_TOP_X, 0d);
 //        props.put(ARM_Line2_TOP_Y, -2.1/60d);
-        props.put(ARM_Line1_BOTTOM_X, 0d);
+        props.put(ARM_Line1_BOTTOM_X, 1/3600d);
         props.put(ARM_Line1_BOTTOM_Y, -0.013d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS,  CIRCLE_RADIUS / 3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
@@ -1312,22 +1404,23 @@ class FovastShapeFactory {
         props.put(FIGURE_TYPE, FIGURE_TYPE_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
-        props.put(CENTER_OFFSET_X, 0d);
+//        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_X, 1 / 3600d);
         props.put(CENTER_OFFSET_Y, -0.013d);
         props.put(ARM_Line1_TOP_X, 0d);
         props.put(ARM_Line1_TOP_Y, -2.292664743/60d);
 //        props.put(ARM_Line2_TOP_X, 0d);
-//        props.put(ARM_Line2_TOP_Y, -2.1/60d);
-        props.put(ARM_Line1_BOTTOM_X, 0d);
+        props.put(ARM_Line1_BOTTOM_X, 1 / 3600d);
         props.put(ARM_Line1_BOTTOM_Y, -0.013d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS, CIRCLE_RADIUS/3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.RED);
-        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(FILL, FILL_OUTLINE_YES);
+//        props.put(FILL_COLOR,  Color.RED);
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm1 = makeFigure(props);
         map.put("iris.oiwfs.probe1.arm", irisProbeArm1);
@@ -1375,7 +1468,6 @@ class FovastShapeFactory {
         
         dragInteractor.appendConstraint(new PointConstraint() {
             Point2D prevPt = null;
-//            double oldTheta = 0;
             CanvasFigure iris_oiwfs_probe1_line = null;
 
             @Override
@@ -1438,9 +1530,34 @@ class FovastShapeFactory {
 					iris_oiwfs_probe1_line.setVisible(false);
 					iris_oiwfs_probe1_line = null;
 				}
-				//extend the line
+//				//extend the line
+//				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+//				iris_oiwfs_probe1_line = updateArmLines(dig, arm_line1_top, circle1CenterPt, null, Color.RED);
+//				dig.remove(figs1[ARM_LINE_INDEX]);
+//				figs1[ARM_LINE_INDEX] = iris_oiwfs_probe1_line;
+//				figs1[ARM_LINE_INDEX].setVisible(true);
+//				dig.add(figs1[ARM_LINE_INDEX]);
+                
+				//extend the rectangle
+				float otwidth = 1.0f;				
+				double rotationangle = calculateArmAngle(arm_line1_top.getX(), arm_line1_top.getY(), 
+																						circle1CenterPt.getX(), circle1CenterPt.getY());
+				rotationangle = rotationangle + Math.toRadians(180);
+				
+				//calculate width of all three rectangles
+				//width in degrees
+				double rectanleWidth = 3.6377 / 3600d;
+				Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+				double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
+				Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
+				fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+				//width in pixels
+				rectanleWidth = temppt.getX();
+				
 				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
-				iris_oiwfs_probe1_line = updateArmLines(dig, arm_line1_top, circle1CenterPt, null, Color.RED);
+				iris_oiwfs_probe1_line = updateArmRectangles(dig, arm_line1_top, circle1CenterPt, 
+																								Color.RED, Color.RED, 
+																								rectanleWidth, otwidth, rotationangle, null);
 				dig.remove(figs1[ARM_LINE_INDEX]);
 				figs1[ARM_LINE_INDEX] = iris_oiwfs_probe1_line;
 				figs1[ARM_LINE_INDEX].setVisible(true);
@@ -1473,7 +1590,7 @@ class FovastShapeFactory {
         props.put(ARM_Line1_BOTTOM_Y, +0.0065d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS, CIRCLE_RADIUS / 3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
@@ -1499,12 +1616,13 @@ class FovastShapeFactory {
         props.put(ARM_Line1_BOTTOM_Y, +0.0065d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS, CIRCLE_RADIUS / 3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.GREEN);
-        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(FILL, FILL_OUTLINE_YES);
+//        props.put(FILL_COLOR,  Color.GREEN);
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm2 = makeFigure(props);
         map.put("iris.oiwfs.probe2.arm", irisProbeArm2);
@@ -1555,7 +1673,6 @@ class FovastShapeFactory {
         dragInteractor.appendConstraint(new PointConstraint() {
 
             Point2D prevPt = null;
-          //double oldTheta = 0;
             CanvasFigure iris_oiwfs_probe2_line = null;
             @Override
             public void constrain(Point2D pt) {
@@ -1607,9 +1724,34 @@ class FovastShapeFactory {
 					iris_oiwfs_probe2_line.setVisible(false);
 					iris_oiwfs_probe2_line = null;
 				}
-				//extend the line
+//				//extend the line
+//				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+//				iris_oiwfs_probe2_line = updateArmLines(dig, arm_line2_top, circle2CenterPt, null, Color.GREEN);
+//				dig.remove(figs1[ARM_LINE_INDEX]);
+//				figs1[ARM_LINE_INDEX] = iris_oiwfs_probe2_line;
+//				figs1[ARM_LINE_INDEX].setVisible(true);
+//				dig.add(figs1[ARM_LINE_INDEX]);
+				
+				//extend the rectangle
+				float otwidth = 1.0f;
+				double rotationangle = calculateArmAngle(arm_line2_top.getX(), arm_line2_top.getY(), 
+																						circle2CenterPt.getX(), circle2CenterPt.getY());
+				rotationangle = rotationangle + Math.toRadians(180);
+				
+				//calculate width of all three rectangles
+				//width in degrees
+				double rectanleWidth = 3.6377 / 3600d;
+				Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+				double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
+				Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
+				fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+				// width in pixels
+				rectanleWidth = temppt.getX();
+		          
 				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
-				iris_oiwfs_probe2_line = updateArmLines(dig, arm_line2_top, circle2CenterPt, null, Color.GREEN);
+				iris_oiwfs_probe2_line = updateArmRectangles(dig, arm_line2_top, circle2CenterPt, 
+																								Color.GREEN, Color.GREEN, 
+																								rectanleWidth, otwidth, rotationangle, null);
 				dig.remove(figs1[ARM_LINE_INDEX]);
 				figs1[ARM_LINE_INDEX] = iris_oiwfs_probe2_line;
 				figs1[ARM_LINE_INDEX].setVisible(true);
@@ -1642,7 +1784,7 @@ class FovastShapeFactory {
         props.put(ARM_Line1_BOTTOM_Y,+0.0065d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS, CIRCLE_RADIUS / 3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
@@ -1668,12 +1810,13 @@ class FovastShapeFactory {
         props.put(ARM_Line1_BOTTOM_Y,+0.0065d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
-        props.put(RADIUS, 5/3600d);
+        props.put(RADIUS, CIRCLE_RADIUS / 3600d);
         props.put(WIDTH_X, 4/3600d); //1 arcsec
         props.put(WIDTH_Y, 4/3600d);
         props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
         props.put(OUTLINE_COLOR, Color.BLUE);
-        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(FILL, FILL_OUTLINE_YES);
+//        props.put(FILL_COLOR,  Color.BLUE);
         props.put(OUTLINE_WIDTH, 1.0f);
         final CanvasFigure[] irisProbeArm3 = makeFigure(props);
         map.put("iris.oiwfs.probe3.arm", irisProbeArm3);
@@ -1712,7 +1855,6 @@ class FovastShapeFactory {
         });
         
         CanvasFigure probFig3 = irisProbeArm3[1];
-//        double oldTheta = 0;
         dragInteractor =  (DragInteractor) probFig3.getInteractor();
         dragInteractor.appendConstraint(new PointConstraint() {
 
@@ -1769,9 +1911,34 @@ class FovastShapeFactory {
 						iris_oiwfs_probe3_line.setVisible(false);
 						iris_oiwfs_probe3_line = null;
 					}
-					//extend the line
+//					//extend the line
+//					DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+//					iris_oiwfs_probe3_line = updateArmLines(dig, arm_line3_top, circle3CenterPt, null, Color.BLUE);
+//					dig.remove(figs1[ARM_LINE_INDEX]);
+//					figs1[ARM_LINE_INDEX] = iris_oiwfs_probe3_line;
+//					figs1[ARM_LINE_INDEX].setVisible(true);
+//					dig.add(figs1[ARM_LINE_INDEX]);
+					
+					//extend the rectangle
+					float otwidth = 1.0f;
+					double rotationangle = calculateArmAngle(arm_line3_top.getX(), arm_line3_top.getY(), 
+																							circle3CenterPt.getX(), circle3CenterPt.getY());
+					rotationangle = rotationangle + Math.toRadians(180);
+					
+					//calculate width of all three rectangles
+					//width in degrees
+					double rectanleWidth = 3.6377 / 3600d;
+					Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+					double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
+					Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
+					fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+					// width in pixels
+					rectanleWidth = temppt.getX();
+					
 					DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
-					iris_oiwfs_probe3_line = updateArmLines(dig, arm_line3_top, circle3CenterPt, null, Color.BLUE);
+					iris_oiwfs_probe3_line = updateArmRectangles(dig, arm_line3_top, circle3CenterPt, 
+																									Color.BLUE, Color.BLUE, 
+																									rectanleWidth, otwidth, rotationangle, null);
 					dig.remove(figs1[ARM_LINE_INDEX]);
 					figs1[ARM_LINE_INDEX] = iris_oiwfs_probe3_line;
 					figs1[ARM_LINE_INDEX].setVisible(true);
@@ -2193,6 +2360,20 @@ class FovastShapeFactory {
 //		@Override
 //		public void figureMoved(CanvasFigureEvent fig) {
 //			System.out.println(">>>>>>>> Inside figureMoved ......");
+//			CanvasFigure[] figs1 = map.get("mobie.detector");
+//			CanvasFigure mobieDetectorFig = figs1[0];
+//			CanvasFigure sciencedetectorfig = figs1[1];
+//			
+//			double sciX = sciencedetectorfig.getShape().getBounds2D().getX();
+//			double sciY = sciencedetectorfig.getShape().getBounds2D().getY();
+//			System.out.println("sciX = " + sciX + "\t sciY = " + sciY);
+//			double mobieX = mobieDetectorFig.getShape().getBounds2D().getX();
+//			double mobieY = mobieDetectorFig.getShape().getBounds2D().getY();
+//			System.out.println("mobieX = " + mobieX + "\t mobieY = " + mobieY);
+//			sciencedetectorfig.translate((mobieX - sciX), (mobieY - sciY));
+//			sciX = sciencedetectorfig.getShape().getBounds2D().getX();
+//			sciY = sciencedetectorfig.getShape().getBounds2D().getY();
+//			System.out.println("after sciX = " + sciX + "\t after sciY = " + sciY);
 //		}
 //
 //		@Override
