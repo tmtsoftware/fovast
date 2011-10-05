@@ -757,6 +757,8 @@ public class VisualizationControlPanel extends JPanel
                   if (showDragCheckbox.isSelected()) {
 //                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setEditState(true);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                      ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(true);
                       ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setDisabled(true);
                        FovastInstrumentTree.CheckboxUserObject cuo =  (FovastInstrumentTree.CheckboxUserObject)child.getUserObject();
                        Object value = cuo.getConfigOptionValue();
@@ -1594,11 +1596,21 @@ public class VisualizationControlPanel extends JPanel
 
     @Override
     public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
+          if(confElementId.equalsIgnoreCase("iris.ifuimager") && enable){
+              showDragLabel.setEnabled(true);
+              showDragCheckbox.setEnabled(true);
+              //showDragCheckbox.setSelected(true);
+          }
+          if(confElementId.equalsIgnoreCase("iris.ifuimager") && !enable){
+              showDragLabel.setEnabled(false);
+              showDragCheckbox.setEnabled(false);
+              showDragCheckbox.setSelected(false);
+          }
           if(confElementId.equalsIgnoreCase("iris") && enable){
               focusComboBox.setEnabled(true);
               focusLabel.setEnabled(true);
-              showDragLabel.setEnabled(true);
-              showDragCheckbox.setEnabled(true);
+//              showDragLabel.setEnabled(true);
+//              showDragCheckbox.setEnabled(true);
               isIrisSelected=true;
               fetchButton.setEnabled(true);
               traverse();

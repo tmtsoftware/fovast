@@ -1085,7 +1085,31 @@ class FovastShapeFactory {
         CanvasFigure[] slicerFigs = makeFigure(props);
         //cfgIris.add(fig);
         map.put("iris.ifuimager.slicer", slicerFigs);
-
+        
+//        //now add dragger
+//        props = new HashMap<String, Object>();
+//        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+//        props.put(ROTATABLE, false);
+//        props.put(MOVEABLE, true);
+////		props.put(CENTER_OFFSET_X, (5.4)/108d);
+//        props.put(CENTER_OFFSET_X, (27.0/3600d));
+//        props.put(CENTER_OFFSET_Y, 0d);
+//        props.put(WIDTH_Y, 2.0/3600d);
+//        props.put(WIDTH_X, 2.0/3600d);
+//        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+//        props.put(OUTLINE_COLOR, Color.GREEN);
+//        props.put(FILL, FILL_OUTLINE_YES);
+//        props.put(FILL_COLOR,  Color.GREEN);
+//        props.put(OUTLINE_WIDTH, 1.0f);
+//        CanvasFigure[] irisDragFig = makeFigure(props);
+//        map.put("iris.ifuimager.drag", irisDragFig);
+//        if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
+//        {
+//        	IrisDraggerConstraint idc = new IrisDraggerConstraint(fovastImageDisplay, map);
+//            ((DragInteractor) irisDragFig[0].getInteractor()).appendConstraint(idc);
+//        }
+        
+        //mobie
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
@@ -1123,6 +1147,40 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieGuiderLimitsFigs = makeFigure(props);
         map.put("mobie.guider.limits", mobieGuiderLimitsFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 0.0145867d);
+        props.put(ARC_ANGLE_EXTENT, 120.0d);
+        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_START_ANGLE,60.0d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieGuiderLimitsSmallFigs = makeFigure(props);
+        map.put("mobie.guider.limits.small", mobieGuiderLimitsSmallFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_ARC);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 0.0287534d);
+        props.put(ARC_ANGLE_EXTENT, 100.0d);
+        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_START_ANGLE,50.0d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] mobieGuiderLimitsLargeFigs = makeFigure(props);
+        map.put("mobie.guider.limits.large", mobieGuiderLimitsLargeFigs);
 
         //Group2 starts - mobie related elements
         props = new HashMap<String, Object>();
@@ -1194,7 +1252,7 @@ class FovastShapeFactory {
 //        
 //        //TUSHAR
 //        MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDetectorFigs[0], fovastImageDisplay, map); 
-//        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(mdc);
+//        ((DragInteractor)mobieDetectorFigs[0].getInteractor()).appendConstraint(mdc);        
 
         props = new HashMap<String, Object>();
          props.put(FIGURE_TYPE, FIGURE_TYPE_MOBIE_DETECTOR);
@@ -1238,8 +1296,7 @@ class FovastShapeFactory {
          if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
          {
              MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDragFig[0], fovastImageDisplay, map);
-
-((DragInteractor)mobieDragFig[0].getInteractor()).appendConstraint(mdc);
+             ((DragInteractor)mobieDragFig[0].getInteractor()).appendConstraint(mdc);
          }
      
         props  = new HashMap<String, Object>();
@@ -1377,16 +1434,32 @@ class FovastShapeFactory {
         map.put("iris.oiwfs.probe3.limits", irisProbeLimits3);
 
         props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, -0.013d);
+        props.put(RADIUS, 10 / 3600d);
+        props.put(WIDTH_X, 4/3600d); //1 arcsec
+        props.put(WIDTH_Y, 4/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.RED);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 3.0f);
+        final CanvasFigure[] irisProbeContraint1 = makeFigure(props);
+        map.put("iris.oiwfs.probe1.contraint", irisProbeContraint1);
+
+        props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
-        props.put(CENTER_OFFSET_X, 1/3600d);
+        props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, -0.013d);
         props.put(ARM_Line1_TOP_X, 0d);
         props.put(ARM_Line1_TOP_Y, -2.292664743/60d);
 //        props.put(ARM_Line2_TOP_X, 0d);
 //        props.put(ARM_Line2_TOP_Y, -2.1/60d);
-        props.put(ARM_Line1_BOTTOM_X, 1/3600d);
+        props.put(ARM_Line1_BOTTOM_X, 0d);
         props.put(ARM_Line1_BOTTOM_Y, -0.013d);
 //        props.put(ARM_Line2_BOTTOM_X, 0d);
 //        props.put(ARM_Line2_BOTTOM_Y, 0d);
@@ -1425,6 +1498,7 @@ class FovastShapeFactory {
         final CanvasFigure[] irisProbeArm1 = makeFigure(props);
         map.put("iris.oiwfs.probe1.arm", irisProbeArm1);
         irisProbeArm1[1].addSlave(irisProbeFocus1[1]);
+        irisProbeArm1[1].addSlave(irisProbeContraint1[0]);
         irisProbeArm1[1].addCanvasFigureListener(new CanvasFigureListener() {
 
             @Override
@@ -1484,12 +1558,12 @@ class FovastShapeFactory {
                 CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
-                CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.arm");
-                CanvasFigure probArm2Fig = figsProbe2[PROBETIP_CIRCLE_INDEX];
+                CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.contraint");
+                CanvasFigure probArm2Fig = figsProbe2[0];
                 Shape shapeProbe2 = probArm2Fig.getShape();
 
-                CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.arm");
-                CanvasFigure probArm3Fig = figsProbe3[PROBETIP_CIRCLE_INDEX];
+                CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.contraint");
+                CanvasFigure probArm3Fig = figsProbe3[0];
                 Shape shapeProbe3 = probArm3Fig.getShape();
 
                 double centerX = shape1.getBounds2D().getCenterX();
@@ -1575,6 +1649,22 @@ class FovastShapeFactory {
         });
 
         props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        props.put(CENTER_OFFSET_X, -0.011d);
+        props.put(CENTER_OFFSET_Y, +0.0065d);
+        props.put(RADIUS, 10 / 3600d);
+        props.put(WIDTH_X, 4/3600d); //1 arcsec
+        props.put(WIDTH_Y, 4/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 3.0f);
+        final CanvasFigure[] irisProbeContraint2 = makeFigure(props);
+        map.put("iris.oiwfs.probe2.contraint", irisProbeContraint2);
+
+        props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
@@ -1627,6 +1717,7 @@ class FovastShapeFactory {
         final CanvasFigure[] irisProbeArm2 = makeFigure(props);
         map.put("iris.oiwfs.probe2.arm", irisProbeArm2);
         irisProbeArm2[1].addSlave(irisProbeFocus2[1]);
+        irisProbeArm2[1].addSlave(irisProbeContraint2[0]);
         irisProbeArm2[1].addCanvasFigureListener(new CanvasFigureListener() {
 
             @Override
@@ -1688,6 +1779,14 @@ class FovastShapeFactory {
                 CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
+                CanvasFigure[] figsProbe1 = map.get("iris.oiwfs.probe1.contraint");
+                CanvasFigure probArm1Fig = figsProbe1[0];
+                Shape shapeProbe1 = probArm1Fig.getShape();
+
+                CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.contraint");
+                CanvasFigure probArm3Fig = figsProbe3[0];
+                Shape shapeProbe3 = probArm3Fig.getShape();
+
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
 //                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
@@ -1697,7 +1796,8 @@ class FovastShapeFactory {
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt) &&
+                            !shapeProbe1.contains(newCenterPt) && !shapeProbe3.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
                     } else {
@@ -1769,6 +1869,22 @@ class FovastShapeFactory {
         });
 
         props  = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+        props.put(CENTER_OFFSET_X, +0.011d);
+        props.put(CENTER_OFFSET_Y, +0.0065d);
+        props.put(RADIUS, 10 / 3600d);
+        props.put(WIDTH_X, 4/3600d); //1 arcsec
+        props.put(WIDTH_Y, 4/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.BLUE);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 3.0f);
+        final CanvasFigure[] irisProbeContraint3 = makeFigure(props);
+        map.put("iris.oiwfs.probe3.contraint", irisProbeContraint3);
+
+        props  = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_FOCUS_PROBETIP);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
@@ -1821,6 +1937,7 @@ class FovastShapeFactory {
         final CanvasFigure[] irisProbeArm3 = makeFigure(props);
         map.put("iris.oiwfs.probe3.arm", irisProbeArm3);
         irisProbeArm3[1].addSlave(irisProbeFocus3[1]);
+        irisProbeArm3[1].addSlave(irisProbeContraint3[0]);
         irisProbeArm3[1].addCanvasFigureListener(new CanvasFigureListener() {
 
             @Override
@@ -1875,6 +1992,14 @@ class FovastShapeFactory {
                 CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
+                CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.contraint");
+                CanvasFigure probArm2Fig = figsProbe2[0];
+                Shape shapeProbe2 = probArm2Fig.getShape();
+
+                CanvasFigure[] figsProbe1 = map.get("iris.oiwfs.probe1.contraint");
+                CanvasFigure probArm1Fig = figsProbe1[0];
+                Shape shapeProbe1 = probArm1Fig.getShape();
+
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
 //                Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
@@ -1884,7 +2009,8 @@ class FovastShapeFactory {
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt)){
+                    if(shape.contains(newCenterPt) && shape2.contains(newCenterPt) &&
+                            !shapeProbe1.contains(newCenterPt) && !shapeProbe2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
                     } else {
@@ -1955,6 +2081,29 @@ class FovastShapeFactory {
             }
         });
 
+        //now add dragger
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_RECTANGLE);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, true);
+//		props.put(CENTER_OFFSET_X, (5.4)/108d);
+        props.put(CENTER_OFFSET_X, (27.0/3600d));
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(WIDTH_Y, 2.0/3600d);
+        props.put(WIDTH_X, 2.0/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_YES);
+        props.put(FILL_COLOR,  Color.GREEN);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] irisDragFig = makeFigure(props);
+        map.put("iris.ifuimager.drag", irisDragFig);
+        if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
+        {
+        	IrisDraggerConstraint idc = new IrisDraggerConstraint(fovastImageDisplay, map);
+            ((DragInteractor) irisDragFig[0].getInteractor()).appendConstraint(idc);
+        }
+
         props = new HashMap<String, Object>();
         props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
         props.put(ROTATABLE, false);
@@ -2009,21 +2158,13 @@ class FovastShapeFactory {
             @Override
             public void constrain(Point2D pt) {
 
-                CanvasFigure[] figs = map.get("mobie.guider.limits");
+                CanvasFigure[] figs = map.get("mobie.guider.limits.small");
                 CanvasFigure mobieLimitsFig = figs[0];
                 Shape shape = mobieLimitsFig.getShape();
 
-                CanvasFigure[] figs1 = map.get("mobie.guider.limits");
-                CanvasFigure mobieLimitsFig1 = figs1[1];
+                CanvasFigure[] figs1 = map.get("mobie.guider.limits.large");
+                CanvasFigure mobieLimitsFig1 = figs1[0];
                 Shape shape1 = mobieLimitsFig1.getShape();
-                
-                CanvasFigure[] figs2 = map.get("mobie.guider.limits");
-                CanvasFigure mobieLimitsFig2 = figs2[2];
-                Shape shape2 = mobieLimitsFig2.getShape();
-
-                CanvasFigure[] figs3 = map.get("mobie.guider.limits");
-                CanvasFigure mobieLimitsFig3 = figs3[3];
-                Shape shape3 = mobieLimitsFig3.getShape();
 
                 CanvasFigure[] figs4 = map.get("mobie.guider.guider");
                 CanvasFigure mobieguiderFig = figs4[0];
@@ -2038,8 +2179,7 @@ class FovastShapeFactory {
                                 centerX + (pt.getX() - prevPt.getX()),
                                 centerY + (pt.getY() - prevPt.getY())
                     );
-                    if(shape.contains(newCenterPt) /*&& shape1.contains(newCenterPt) &&
-                            shape2.contains(newCenterPt) && shape3.contains(newCenterPt)*/){
+                    if(!shape.contains(newCenterPt) && shape1.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
                     } else {
@@ -2387,6 +2527,79 @@ class FovastShapeFactory {
 //		}
 //    }
     
+    private class IrisDraggerConstraint  implements PointConstraint {
+    	
+    	private FovastImageDisplay fovastImageDisplay;
+    	private HashMap<String, CanvasFigure[]> map;
+        private double oldTheta = -1000;
+        private CoordinateConverter cc = null;
+        
+        public IrisDraggerConstraint(FovastImageDisplay imageDisplay, 
+        		HashMap<String, CanvasFigure[]> map) {
+        	this.map = map;
+        	this.fovastImageDisplay = imageDisplay;
+        	this.cc = fovastImageDisplay.getCoordinateConverter();
+        }
+
+    	@Override
+        public boolean snapped() {
+            return false; // no snapping
+        }
+        
+        @Override
+        public void constrain(Point2D pt) {
+        	CanvasFigure[] figs1 = map.get("iris.ifuimager.lenslet");
+            CanvasFigure irisLensletFig = figs1[0];
+        	CanvasFigure[] figs2 = map.get("iris.ifuimager.slicer");
+            CanvasFigure irisSlicerFig = figs2[0];
+            CanvasFigure[] figs3 = map.get("iris.ifuimager.drag");
+            CanvasFigure draggerFig = figs3[0];
+            
+            /**
+             * theta = tan-1 [(y2 - y1) / (x2 - x1)]
+             */
+			//required as point at which fig is to be rotated in not (0, 0)
+			Point2D.Double center = cc.getWCSCenter();
+			Point2D.Double point = new Point2D.Double(center.getX(), center.getY());
+			cc.worldToScreenCoords(point, false);
+			
+            double x = draggerFig.getShape().getBounds2D().getX();
+            double y = draggerFig.getShape().getBounds2D().getY();
+            
+            if(oldTheta == -1000)
+            {
+            	//will be invoke for first time
+            	oldTheta = Math.atan((y - point.getY()) / (x - point.getX()));
+            }
+            
+            double newtheta;
+            double rotationangle = Math.atan((y - point.getY()) / (x - point.getX()));
+            
+            //as tan -1 goes from -90 to 90, required
+            if(((y - point.getY()) > 0) && ((x - point.getX()) < 0))
+            {
+            	rotationangle = rotationangle + Math.toRadians(180);
+            }
+            else if(((y - point.getY()) < 0) && ((x - point.getX()) < 0))
+            {
+            	rotationangle = rotationangle + Math.toRadians(180);
+            }
+            
+            newtheta = rotationangle - oldTheta;		//delta theta
+            oldTheta = rotationangle;
+            
+            AffineTransform rotation = AffineTransform.getRotateInstance(newtheta, point.getX(), point.getY());
+            if(irisLensletFig.isVisible())
+            {
+            	irisLensletFig.transform(rotation);
+            }
+            else if(irisSlicerFig.isVisible())
+            {
+            	irisSlicerFig.transform(rotation);
+            }
+        }	
+    }
+    
     private class MobieDetectorConstraint implements PointConstraint {
 
 //        private CanvasFigure mobieFigure;
@@ -2411,10 +2624,15 @@ class FovastShapeFactory {
         
         @Override
         public void constrain(Point2D pt) {
-          CanvasFigure[] figs1 = map.get("mobie.detector");
+        	CanvasFigure[] figs1 = map.get("mobie.detector");
             CanvasFigure mobieDetectorFig = figs1[0];
             CanvasFigure[] figs2 = map.get("mobie.drag");
             CanvasFigure sciencedetectorfig = figs2[0];
+            CanvasFigure[] fovfigs = map.get("mobie.wavefrontSensorFOV");
+            CanvasFigure[] guiderfig = map.get("mobie.guider.guider");
+            CanvasFigure[] guiderlimitfig = map.get("mobie.guider.limits");
+            CanvasFigure[] guiderlimitSmallfig = map.get("mobie.guider.limits.small");
+            CanvasFigure[] guiderlimitLargefig = map.get("mobie.guider.limits.large");
           
 ////            CanvasFigure[] figs = map.get("mobie.vignettingstart");
 ////            CanvasFigure probLimitsFig = figs[0];
@@ -2493,6 +2711,14 @@ class FovastShapeFactory {
             
             AffineTransform rotation = AffineTransform.getRotateInstance(newtheta, point.getX(), point.getY());
             mobieDetectorFig.transform(rotation);
+            fovfigs[0].transform(rotation);
+            guiderfig[0].transform(rotation);
+            guiderlimitSmallfig[0].transform(rotation);
+            guiderlimitLargefig[0].transform(rotation);
+            for(CanvasFigure fig : guiderlimitfig)
+            {
+            	fig.transform(rotation);
+            }
         }
     }
 }
