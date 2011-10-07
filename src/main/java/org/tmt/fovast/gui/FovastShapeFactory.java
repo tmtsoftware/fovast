@@ -1704,12 +1704,12 @@ class FovastShapeFactory {
                 CanvasFigure probArmFig = figs1[PROBETIP_RECTANGLE_INDEX];
                 Shape shape1 = probArmFig.getShape();
 
-                CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.arm");
-                CanvasFigure probArm2Fig = figsProbe2[PROBETIP_CIRCLE_INDEX];
+                CanvasFigure[] figsProbe2 = map.get("iris.oiwfs.probe2.contraint");
+                CanvasFigure probArm2Fig = figsProbe2[0];
                 Shape shapeProbe2 = probArm2Fig.getShape();
 
-                CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.arm");
-                CanvasFigure probArm3Fig = figsProbe3[PROBETIP_CIRCLE_INDEX];
+                CanvasFigure[] figsProbe3 = map.get("iris.oiwfs.probe3.contraint");
+                CanvasFigure probArm3Fig = figsProbe3[0];
                 Shape shapeProbe3 = probArm3Fig.getShape();
 
                 double centerX = shape1.getBounds2D().getCenterX();
@@ -2180,7 +2180,7 @@ class FovastShapeFactory {
                             !shapeProbe1.contains(newCenterPt) && !shapeProbe2.contains(newCenterPt)){
                         prevPt = pt;
                         //leave pt as is
-                    } else {
+                    } else {                       
                         pt.setLocation(prevPt.getX(), prevPt.getY());
                     }
                 } else {
