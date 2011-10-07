@@ -55,6 +55,8 @@ class FovastShapeFactory {
 
     private String FIGURE_TYPE_DOUBLE_ARC = "doubleArc";
 
+    private String FIGURE_TYPE_DOUBLE_CIRCLE = "doubleCircle";
+
     private String FIGURE_TYPE_ARC = "arc";
 
     private String ARC_END = "arcEnd";
@@ -548,7 +550,73 @@ class FovastShapeFactory {
            fig.setVisible(false);
            return new CanvasFigure[]{fig};
 
-       } else if(figType.equals(FIGURE_TYPE_ARC)) {
+       }else if(figType.equals(FIGURE_TYPE_DOUBLE_CIRCLE)){
+           CanvasFigure[] doubleCircle = new CanvasFigure[2];
+           Ellipse2D.Double ell=null;
+           double radius = (Double)props.get(RADIUS);
+           double radius1 = (Double)props.get(RADIUS1);
+           for(int i=0;i<doubleCircle.length;i++){
+               double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+               double y_off = (Double)props.get(CENTER_OFFSET_Y);
+               double flag_x=1;
+               double flag_y=1;
+               if(x_off < 0.0) {
+                   flag_x=-1;
+               }
+               if(y_off < 0.0) {
+                   flag_y=-1;
+               }
+               Point2D.Double wcsCenter = cc.getWCSCenter();
+               double ra = wcsCenter.x ;    //RA in degrees
+               double dec = wcsCenter.y ;    //DEC
+               double factor = Math.cos(Math.toRadians(dec)); //less than 1
+               Point2D.Double pt = new Point2D.Double(ra, dec);
+               cc.worldToScreenCoords(pt, false);
+               ra = pt.x;     //in pixels now
+               dec = pt.y;               
+               if(i == 1){
+                   pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off = pt.x;     //in pixels now
+                   y_off = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off*flag_x;    //RA
+                   dec = dec + y_off*flag_y;    //DEC
+                   pt = new Point2D.Double(radius*factor, radius);
+                   cc.worldToScreenCoords(pt, true);
+                   radius = pt.x;
+                   ra = ra - radius ;
+                   dec = dec - radius ;
+                   ell = new Ellipse2D.Double(ra, dec, 2*radius, 2*radius);
+               }
+               if(i == 0){
+                   pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+                   cc.worldToScreenCoords(pt, true);
+                   x_off = pt.x;     //in pixels now
+                   y_off = pt.y;
+                 //axis goes from east <-- west
+                   ra = ra + x_off*flag_x;    //RA
+                   dec = dec + y_off*flag_y;    //DEC
+                   pt = new Point2D.Double(radius1*factor, radius1);
+                   cc.worldToScreenCoords(pt, true);
+                   radius1 = pt.x;
+                   ra = ra - radius1 ;
+                   dec = dec - radius1 ;
+                   ell = new Ellipse2D.Double(ra, dec, 2*radius1, 2*radius1);
+               }
+               doubleCircle[i] = dig.makeFigure(ell, fillColor, outlineColor, outlineWidth,
+                   interactor);
+               //turns off resizing
+               if(doubleCircle[i] instanceof RotatableCanvasFigure) {
+                    ((RotatableCanvasFigure)doubleCircle[i]).setResizable(false);
+               }
+               dig.add(doubleCircle[i]);
+               doubleCircle[i].setVisible(false);
+           }
+           doubleCircle[1].addSlave(doubleCircle[0]);
+           return doubleCircle;
+       }
+       else if(figType.equals(FIGURE_TYPE_ARC)) {
            double radius = (Double)props.get(RADIUS);
            double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
            double y_off = (Double)props.get(CENTER_OFFSET_Y);
@@ -2105,12 +2173,13 @@ class FovastShapeFactory {
         }
 
         props = new HashMap<String, Object>();
-        props.put(FIGURE_TYPE, FIGURE_TYPE_CIRCLE);
+        props.put(FIGURE_TYPE, FIGURE_TYPE_DOUBLE_CIRCLE);
         props.put(ROTATABLE, false);
         props.put(MOVEABLE, true);
         props.put(CENTER_OFFSET_X, (1.3)/60d);
         props.put(CENTER_OFFSET_Y, 0d);
         props.put(RADIUS, 10.5/3600d);
+        props.put(RADIUS1, 1.6/3600d);
         props.put(ARC_END, ARC_END_CHORD);
         props.put(ARC_START_ANGLE, 90d);
         props.put(ARC_ANGLE_EXTENT, 180d);
