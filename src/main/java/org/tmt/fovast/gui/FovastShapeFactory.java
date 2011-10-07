@@ -145,6 +145,9 @@ class FovastShapeFactory {
     private int ARM_LINE_INDEX = 2;
     //radius of circle. Is used to reduced height of rectanglur arm of IRIS
     private int CIRCLE_RADIUS = 5;	//is 5 arc sec
+    //theta
+    private double IRIS_FIRST_ROTATION_THETA = 0;
+    private double IRIS_ROTATION_THETA = -1000;
 
     DivaImageGraphics dig ;
 
@@ -1731,9 +1734,18 @@ class FovastShapeFactory {
                 
                 //tushar
                 //below offsets are taken from initialisation code of arm / probe for fig1.
-                Point2D.Double arm_line1_top = 
-                	DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0, -2.292664743/60);
-					
+                Point2D.Double arm_line1_top = null;
+                if(IRIS_ROTATION_THETA == -1000)
+                {
+                	arm_line1_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0, -2.292664743/60);
+                }
+                else
+                {
+                	arm_line1_top =
+                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
+							(-2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA),
+							(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA));
+                }
                 // code to rotate object by some angle.
 //	            CanvasFigure linefig = figs1[ARM_LINE_INDEX];
                 CanvasFigure circlefig1 = figs1[PROBETIP_CIRCLE_INDEX];
@@ -1955,8 +1967,20 @@ class FovastShapeFactory {
 	            CanvasFigure circlefig2 = figs1[PROBETIP_CIRCLE_INDEX];
 	            
 	           //below offsets are taken from initialisation code of arm / probe for fig2.
-	            Point2D.Double arm_line2_top = 
-	            	DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
+//	            Point2D.Double arm_line2_top = 
+//	            	DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
+	            Point2D.Double arm_line2_top = null;
+                if(IRIS_ROTATION_THETA == -1000)
+                {
+                	arm_line2_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
+                }
+                else
+                {
+                	arm_line2_top =
+                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
+                				(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(30)),
+                				(2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(30)));
+                }
 	            
 	            Point2D.Double circle2CenterPt =
 	                	new Point2D.Double(circlefig2.getShape().getBounds2D().getCenterX(),
@@ -2168,8 +2192,20 @@ class FovastShapeFactory {
                 CanvasFigure circlefig3 = figs1[PROBETIP_CIRCLE_INDEX];
                 
               //below offsets are taken from initialisation code of arm / probe for fig3.
-                Point2D.Double arm_line3_top = 
-                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
+//                Point2D.Double arm_line3_top = 
+//                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
+                Point2D.Double arm_line3_top = null;
+                if(IRIS_ROTATION_THETA == -1000)
+                {
+                	arm_line3_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
+                }
+                else
+                {
+                	arm_line3_top =
+                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
+                				(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(150)),
+                				(2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(150)));
+                }
                 
                 Point2D.Double circle3CenterPt =
                 	new Point2D.Double(circlefig3.getShape().getBounds2D().getCenterX(),
@@ -2708,6 +2744,8 @@ class FovastShapeFactory {
             {
             	//will be invoke for first time
             	oldTheta = Math.atan((y - point.getY()) / (x - point.getX()));
+            	//store this first rotation angle
+            	IRIS_FIRST_ROTATION_THETA = oldTheta;
             }
             
             double newtheta;
@@ -2725,6 +2763,8 @@ class FovastShapeFactory {
             
             newtheta = rotationangle - oldTheta;		//delta theta
             oldTheta = rotationangle;
+            //store this rotation angle
+            IRIS_ROTATION_THETA = oldTheta;
             
             AffineTransform rotation = AffineTransform.getRotateInstance(newtheta, point.getX(), point.getY());
             lensetfigs[0].transform(rotation);
@@ -2733,7 +2773,6 @@ class FovastShapeFactory {
             
             //newly added. perform rotation for all objects
 //            iris.ifuimager.drag		//NOT REQUIRED
-//            iris.probes.limits			//PENDING
 //            focus correction			//PENDING
             
 //            iris.oiwfs.probe1.limits
@@ -2752,19 +2791,23 @@ class FovastShapeFactory {
 //            iris.oiwfs.probe2.focus
 //            iris.oiwfs.probe3.focus
             
-//            	//TUSHAR
-//				String prefix = "iris.oiwfs.probe";
-//				for(java.util.Map.Entry<String, CanvasFigure[]> entry : map.entrySet()) 
-//				{
-//					if((entry.getKey()).startsWith(prefix))
-//					{
-//						CanvasFigure[] figsArr = entry.getValue();
-//						for(CanvasFigure fig : figsArr)
-//						{
-//							fig.transform(rotation);
-//						}
-//					}
-//				}
+            	//TUSHAR
+            	//outer bigger circle
+            	CanvasFigure outerCircleFig = map.get("iris.probes.limits")[0];
+            	outerCircleFig.transform(rotation);
+            	
+				String prefix = "iris.oiwfs.probe";
+				for(java.util.Map.Entry<String, CanvasFigure[]> entry : map.entrySet()) 
+				{
+					if((entry.getKey()).startsWith(prefix))
+					{
+						CanvasFigure[] figsArr = entry.getValue();
+						for(CanvasFigure fig : figsArr)
+						{
+							fig.transform(rotation);
+						}
+					}
+				}
             }
         }	
     
@@ -2888,6 +2931,10 @@ class FovastShapeFactory {
             {
             	fig.transform(rotation);
             }
+//            CanvasFigure[] innerfig = map.get("mobie.vignettingstart");
+//            CanvasFigure[] outerfig = map.get("mobie.edgeoffield");
+//            innerfig[0].transform(rotation);
+//            outerfig[0].transform(rotation);
         }
     }
 }

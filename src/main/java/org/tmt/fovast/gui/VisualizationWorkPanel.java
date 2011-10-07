@@ -338,45 +338,33 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     private void showTarget(boolean show) {
-        DivaImageGraphics canvasGraphics =
-                (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
-
+////                Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter().clone();
+////                centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
+////                converter.imageToScreenCoords(centerPixel, false);
+////    	
+////              Shape shape = ShapeUtil.makePlus(centerPixel,
+////                      new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
+////                      new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
         if(targetSet) {
-            if(targetMarker != null) {
-                canvasGraphics.remove(targetMarker);
-                targetMarker = null;
-                canvasGraphics.repaint();
-            }
-            if(show) {
-                CoordinateConverter converter = displayComp.getImageDisplay(
-                        ).getCoordinateConverter();
-                Point2D.Double centerPixel = (Point2D.Double) converter.getImageCenter().clone();
-                //makeing clone
-                centerPixel = new Point2D.Double(centerPixel.x, centerPixel.y);
-                converter.imageToScreenCoords(centerPixel, false);
-                int halfWidth = 20;
-                //Rectangle2D.Double shape = new Rectangle2D.Double((centerPixel.x - halfWidth),
-                //        (centerPixel.y - halfWidth), halfWidth*2, halfWidth*2);
-                //targetMarker = canvasGraphics.makeRectangle(rect, CoordinateConverter.SCREEN,
-                //        Color.WHITE, Color.WHITE, 1.0f, null);
-                //Shape shape = ShapeUtil.makeCompass(centerPixel,
-                //        new Point2D.Double(centerPixel.x + halfWidth, centerPixel.y + halfWidth),
-                //        new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y - halfWidth));                
-                Shape shape = ShapeUtil.makePlus(centerPixel,
-                        new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
-                        new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
-                //Shape shape = ShapeUtil.makeEllipse(centerPixel,
-                //        new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
-                //        new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
-                //Shape shape = makeTargetShape(centerPixel, halfWidth);
-
-                targetMarker = canvasGraphics.makeFigure(shape, null, Color.WHITE, 2.0f);
+			if (targetMarker == null) {
+				DivaImageGraphics canvasGraphics = (DivaImageGraphics) displayComp
+						.getImageDisplay().getCanvasGraphics();
+				int halfWidth = 8;
+				Point2D.Double centerPixel = DegreeCoverter
+						.correctionUsingOffsets(
+								(FovastImageDisplay) displayComp
+										.getImageDisplay(), 0, 0);
+				Shape shape = ShapeUtil.makeCross(centerPixel.getX(),
+						centerPixel.getY(), halfWidth);
+				targetMarker = canvasGraphics.makeFigure(shape, null,
+						Color.WHITE, 2.0f);
                 //this remove basichighlighter set as interactor over the
                 //marker .. 
                 targetMarker.setInteractor(null);
                 canvasGraphics.add(targetMarker);
                 canvasGraphics.repaint();
             } 
+			targetMarker.setVisible(show);
         }
     }
 

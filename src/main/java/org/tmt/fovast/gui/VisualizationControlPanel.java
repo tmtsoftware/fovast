@@ -6,7 +6,6 @@
  */
 package org.tmt.fovast.gui;
 
-import diva.gui.toolbox.JPalette;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -15,7 +14,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -30,7 +28,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -44,9 +41,6 @@ import javax.swing.JTable;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.Border;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -84,7 +78,7 @@ public class VisualizationControlPanel extends JPanel
 
     private static Logger logger = LoggerFactory.getLogger(VisualizationControlPanel.class);
 
-    private final static String INSTRUMENT_CONTROL_XML = "resources/InstrumentControl.xml";
+//    private final static String INSTRUMENT_CONTROL_XML = "resources/InstrumentControl.xml";
 
     private final static String HELP_ICON = "resources/images/Help24.gif";
 
@@ -1010,16 +1004,19 @@ public class VisualizationControlPanel extends JPanel
                 decTextField.getText().trim());
         
         //if(showTargetCheckbox.isSelected()) {
-            visualization.showTarget(true);
-            updateUIForShowTarget(true);           
+//        TUSHAR
+//            visualization.showTarget(true);
+//            updateUIForShowTarget(true);           
         //}
     }
 
     private void enableDisableShowTargetCheckBox(boolean enable) {
         showTargetCheckbox.setEnabled(enable);
         showTargetLabel.setEnabled(enable);
-        showTargetCheckbox.setSelected(false);
-        showTargetCheckbox.setSelected(true);
+//        TUSHAR
+//        showTargetCheckbox.setSelected(false);
+//        showTargetCheckbox.setSelected(true);
+        
  //       showDragCheckbox.setEnabled(enable);
  //       showDragLabel.setEnabled(enable);
 //        focusComboBox.setEnabled(enable);
@@ -1656,23 +1653,23 @@ public class VisualizationControlPanel extends JPanel
               traverse();
           }
           if(confElementId.equalsIgnoreCase("iris.ifuimager") && enable){
-              showDragLabel.setEnabled(true);
-              showDragCheckbox.setEnabled(true);
+//              showDragLabel.setEnabled(true);
+//              showDragCheckbox.setEnabled(true);
               isIfuMode = true;
               traverse();
           }
           if(confElementId.equalsIgnoreCase("iris.ifuimager") && !enable){
-              showDragLabel.setEnabled(false);
-              showDragCheckbox.setEnabled(false);
-              showDragCheckbox.setSelected(false);
+//              showDragLabel.setEnabled(false);
+//              showDragCheckbox.setEnabled(false);
+//              showDragCheckbox.setSelected(false);
               isIfuMode = false;
               traverse();
           }
           if(confElementId.equalsIgnoreCase("iris") && enable){
               focusComboBox.setEnabled(true);
               focusLabel.setEnabled(true);
-//              showDragLabel.setEnabled(true);
-//              showDragCheckbox.setEnabled(true);
+              showDragLabel.setEnabled(true);
+              showDragCheckbox.setEnabled(true);
               isIrisSelected=true;
               fetchButton.setEnabled(true);
               traverse();
