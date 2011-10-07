@@ -14,6 +14,7 @@ import diva.canvas.interactor.DragInteractor;
 import diva.canvas.interactor.Interactor;
 import diva.canvas.interactor.PointConstraint;
 import diva.canvas.interactor.SelectionInteractor;
+import diva.util.java2d.ShapeUtilities;
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
@@ -33,6 +34,7 @@ import org.tmt.fovast.instrumentconfig.Config;
 import java.awt.Font;
 import java.awt.geom.Line2D;
 import jsky.graphics.CanvasFigureListener;
+import jsky.image.graphics.ShapeUtil;
 import org.tmt.fovast.astro.util.DegreeCoverter;
 
 class FovastShapeFactory {
@@ -42,6 +44,8 @@ class FovastShapeFactory {
     private String FIGURE_TYPE = "figureType";
 
     private String FIGURE_TYPE_RECTANGLE = "rectangle";
+
+    private String FIGURE_TYPE_CROSS = "cross";
 
     private String FIGURE_TYPE_CIRCLE = "circle";
 
@@ -331,7 +335,52 @@ class FovastShapeFactory {
                 return new CanvasFigure[]{fig, labelFig};
            }
 
-       } 
+       }
+
+        else if(figType.equals(FIGURE_TYPE_CROSS)){
+           double radius = (Double)props.get(RADIUS);
+           double x_off = (Double)props.get(CENTER_OFFSET_X); //in degrees
+           double y_off = (Double)props.get(CENTER_OFFSET_Y);
+           double flag_x=1;
+           double flag_y=1;
+
+           if(x_off < 0.0) {
+               flag_x=-1;
+           }
+           if(y_off < 0.0) {
+               flag_y=-1;
+           }
+           Point2D.Double wcsCenter = cc.getWCSCenter();
+           double ra = wcsCenter.x ;    //RA in degrees
+           double dec = wcsCenter.y ;    //DEC
+           double factor = Math.cos(Math.toRadians(dec)); //less than 1
+           Point2D.Double pt = new Point2D.Double(ra, dec);
+           cc.worldToScreenCoords(pt, false);
+           ra = pt.x;     //in pixels now
+           dec = pt.y;
+           pt = new Point2D.Double(x_off*factor, y_off); //works only for positive offsets
+           cc.worldToScreenCoords(pt, true);
+           x_off = pt.x;     //in pixels now
+           y_off = pt.y;
+         //axis goes from east <-- west
+           ra = ra + x_off*flag_x;    //RA
+           dec = dec + y_off*flag_y;    //DEC
+           pt = new Point2D.Double(radius*factor, radius);
+           cc.worldToScreenCoords(pt, true);
+           radius = pt.x;
+//           ra = ra - radius ;
+//           dec = dec - radius ;
+           Shape shape = ShapeUtil.makeCross(ra, dec, radius);
+           fig = dig.makeFigure(shape, fillColor, outlineColor, outlineWidth,
+                   interactor);
+           //turns off resizing
+           if(fig instanceof RotatableCanvasFigure) {
+                ((RotatableCanvasFigure)fig).setResizable(false);
+           }
+           dig.add(fig);
+           fig.setVisible(false);
+           return new CanvasFigure[] {fig};
+        }
        else if(figType.equals(FIGURE_TYPE_MOBIE_DETECTOR)){
            double width = (Double)props.get(WIDTH_X); //in degrees
            double height = (Double)props.get(WIDTH_Y);
@@ -1115,6 +1164,55 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] lsgFigures = makeFigure(props);
         map.put("nfiraos.lsgasterism", lsgFigures);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CROSS);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 1/3600d);
+        props.put(WIDTH_Y, 1/3600d);
+        props.put(WIDTH_X, 1/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] sweetSpotImagingModeFigs = makeFigure(props);
+        map.put("iris.sweetspot.imaging", sweetSpotImagingModeFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CROSS);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, (18.0/3600d));
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 1/3600d);
+        props.put(WIDTH_Y, 1/3600d);
+        props.put(WIDTH_X, 1/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] sweetSpotIfuModeFigs = makeFigure(props);
+        map.put("iris.sweetspot.ifu", sweetSpotIfuModeFigs);
+
+        props = new HashMap<String, Object>();
+        props.put(FIGURE_TYPE, FIGURE_TYPE_CROSS);
+        props.put(ROTATABLE, false);
+        props.put(MOVEABLE, false);
+        props.put(CENTER_OFFSET_X, 0.0025d);
+        props.put(CENTER_OFFSET_Y, 0d);
+        props.put(RADIUS, 1/3600d);
+        props.put(WIDTH_Y, 1/3600d);
+        props.put(WIDTH_X, 1/3600d);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(OUTLINE_COLOR, Color.GREEN);
+        props.put(FILL, FILL_OUTLINE_NO);
+        props.put(OUTLINE_WIDTH, 1.0f);
+        CanvasFigure[] sweetSpotBothFigs = makeFigure(props);
+        map.put("iris.sweetspot.both", sweetSpotBothFigs);
+
 
         //iris.ifuimager.lenslet
         props = new HashMap<String, Object>();
@@ -2143,7 +2241,7 @@ class FovastShapeFactory {
         props.put(OUTLINE_WIDTH, 1.0f);
         CanvasFigure[] mobieGuiderFigs = makeFigure(props);
         map.put("mobie.guider.guider", mobieGuiderFigs);
-        mobieGuiderFigs[0].addCanvasFigureListener(new CanvasFigureListener() {
+        mobieGuiderFigs[1].addCanvasFigureListener(new CanvasFigureListener() {
 
             @Override
             public void figureSelected(CanvasFigureEvent e) {

@@ -110,6 +110,17 @@
         <CheckboxNode configOptionId="nfiraos.acqusitionCameraLimits" label="Show Acquisition Camera"/>
         <!--CheckboxNode configOptionId="nfiraos.acqusitionCameraPointing" label="Show Acquisition Camera Pointing"/-->
     <!--/CheckboxNode-->
+        <CheckboxNode configOptionId="iris.sweetspot" label="Show AO Sweet Spot">
+            <RadioNode configOptionId="iris.sweetspot.group" configOptionValue="imageMode" label="Imaging Mode">
+                <CheckboxNode configOptionId="iris.sweetspot.imaging" label="Show Marker"/>
+            </RadioNode>
+            <RadioNode configOptionId="iris.sweetspot.group" configOptionValue="IFU" label="IFU Mode">
+                <CheckboxNode configOptionId="iris.sweetspot.ifu" label="Show Marker"/>
+            </RadioNode>
+            <RadioNode configOptionId="iris.sweetspot.group" configOptionValue="Both" label="Both">
+                <CheckboxNode configOptionId="iris.sweetspot.both" label="Show Marker"/>
+            </RadioNode>
+        </CheckboxNode>
     </Node>
     <RadioNode configOptionId="instrument" configOptionValue="mobie" label="Mobie">
         <CheckboxNode configOptionId="mobie.detector" label="Show Mobie Detector"/>

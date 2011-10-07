@@ -251,8 +251,33 @@ TODO: TOCHECK: is it only the imager that rotates or even the lenslet / slicer t
 
         </DisplayElement>
 
-    </ConfigOption>
-
+        <ConfigOption id="iris.sweetspot">
+          <ConfigOption id="iris.sweetspot.group" type="string">
+            <PossibleValues>
+                    <Value>imageMode</Value>
+                    <Value>IFU</Value>
+                    <Value>Both</Value>
+             </PossibleValues>
+            <DisplayElement id="iris.sweetspot.imaging" showByDefault="true" >
+                    <EnableConditions>
+                        <Condition element="iris.sweetspot.group" value="imageMode" />
+                    </EnableConditions>
+             </DisplayElement>
+            <DisplayElement id="iris.sweetspot.ifu" showByDefault= "true">
+                    <EnableConditions>
+                        <Condition element="iris.sweetspot.group" value="IFU" />
+                    </EnableConditions>
+             </DisplayElement>
+            <DisplayElement id="iris.sweetspot.both"  showByDefault="true">
+                    <EnableConditions>
+                        <Condition element="iris.sweetspot.group" value="Both" />
+                    </EnableConditions>
+             </DisplayElement>
+          </ConfigOption>
+        </ConfigOption>
+        
+     </ConfigOption>
+        
     <ConfigOption id="mobie" selectOnEnable="true">
 
         <EnableConditions>

@@ -166,7 +166,7 @@ public class VisualizationControlPanel extends JPanel
      */
     private boolean isProbe1Selected = false , isProbe2Selected= false , isProbe3Selected= false;
     
-    private boolean isIrisSelected;
+    private boolean isIrisSelected ,isIfuMode , isImagingMode ;
 
 
     
@@ -796,6 +796,54 @@ public class VisualizationControlPanel extends JPanel
                    }
               }
           } else {
+              if(child.getUserObject() instanceof FovastInstrumentTree.CheckboxUserObject){
+                    if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).getLabel().equalsIgnoreCase("Show AO Sweet Spot")){
+                        //if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+                            if(isIfuMode && isImagingMode){
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getLastChild())).getUserObject()).setSelected(true);
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getChildAt(1))).getUserObject()).setSelected(false);
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getFirstChild())).getUserObject()).setSelected(false);
+                                if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+                                    FovastInstrumentTree.RadioUserObject ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getLastChild())).getUserObject());
+                                    Object value = ruo.getConfigOptionValue();
+                                    if(value == null) //means its simple on/off config
+                                       value = "Both";
+                                    configHelper.setConfig(ruo.getConfigOptionId(), (Value) value);
+                                }
+                            }else if(isIfuMode && !isImagingMode){
+                                  ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getChildAt(1))).getUserObject()).setSelected(true);
+                                  ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getFirstChild())).getUserObject()).setSelected(false);
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getLastChild())).getUserObject()).setSelected(false);
+                                if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+                                    FovastInstrumentTree.RadioUserObject ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getChildAt(1))).getUserObject());
+                                    Object value = ruo.getConfigOptionValue();
+                                    if(value == null) //means its simple on/off config
+                                       value = "IFU";
+                                    configHelper.setConfig(ruo.getConfigOptionId(), (Value) value);
+                                }
+                            }else if(!isIfuMode && isImagingMode){
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getFirstChild())).getUserObject()).setSelected(true);
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getLastChild())).getUserObject()).setSelected(false);
+                                ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getChildAt(1))).getUserObject()).setSelected(false);
+                                if(((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).isSelected()){
+                                    FovastInstrumentTree.RadioUserObject ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getFirstChild())).getUserObject());
+                                    Object value = ruo.getConfigOptionValue();
+                                    if(value == null) //means its simple on/off config
+                                       value = "imageMode";
+                                    configHelper.setConfig(ruo.getConfigOptionId(), (Value) value);
+                                }
+                            }else if(!isIfuMode && !isImagingMode){
+                                ((FovastInstrumentTree.CheckboxUserObject)child.getUserObject()).setSelected(false);
+                                 FovastInstrumentTree.RadioUserObject ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getFirstChild())).getUserObject());
+                                 configHelper.setConfig(ruo.getConfigOptionId(), new BooleanValue(false));
+                                 ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getLastChild())).getUserObject());
+                                 configHelper.setConfig(ruo.getConfigOptionId(), new BooleanValue(false));
+                                 ruo = ((FovastInstrumentTree.RadioUserObject)((DefaultMutableTreeNode)(child.getChildAt(1))).getUserObject());
+                                 configHelper.setConfig(ruo.getConfigOptionId(), new BooleanValue(false));
+                            }
+                        //}
+                    }
+               }
               if(isIrisSelected){
                   if(child.getUserObject() instanceof FovastInstrumentTree.RadioUserObject){
                         if(((FovastInstrumentTree.RadioUserObject)child.getUserObject()).getLabel().equalsIgnoreCase("iris")){
@@ -1596,15 +1644,29 @@ public class VisualizationControlPanel extends JPanel
 
     @Override
     public void enableConfig(String confElementId, boolean enable, boolean isDisplayElement) {
+         if(confElementId.equalsIgnoreCase("iris.sweetspot.group") && enable){
+              traverse();
+          }
+          if(confElementId.equalsIgnoreCase("iris.sciencedetector") && enable){
+              isImagingMode = true;
+              traverse();
+          }
+          if(confElementId.equalsIgnoreCase("iris.sciencedetector") && !enable){
+              isImagingMode = false;
+              traverse();
+          }
           if(confElementId.equalsIgnoreCase("iris.ifuimager") && enable){
               showDragLabel.setEnabled(true);
               showDragCheckbox.setEnabled(true);
-              //showDragCheckbox.setSelected(true);
+              isIfuMode = true;
+              traverse();
           }
           if(confElementId.equalsIgnoreCase("iris.ifuimager") && !enable){
               showDragLabel.setEnabled(false);
               showDragCheckbox.setEnabled(false);
               showDragCheckbox.setSelected(false);
+              isIfuMode = false;
+              traverse();
           }
           if(confElementId.equalsIgnoreCase("iris") && enable){
               focusComboBox.setEnabled(true);
