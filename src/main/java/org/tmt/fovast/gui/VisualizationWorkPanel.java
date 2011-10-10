@@ -635,7 +635,6 @@ public class VisualizationWorkPanel extends JPanel
             } else {
                 if(displayElementFigureMap.containsKey(confElementId)) {
                     makeFigsVisible(confElementId, true);
-
                     CanvasFigure[] figs1 = displayElementFigureMap.get(confElementId);
                     CanvasFigure probArmFig = figs1[0];
                     Shape shape1 = probArmFig.getShape();
@@ -646,6 +645,69 @@ public class VisualizationWorkPanel extends JPanel
                     cc.screenToWorldCoords(centerPt, false);
                     String centerString = centerPt.getX()+","+centerPt.getY();
                     visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    if(confElementId.equalsIgnoreCase("iris.oiwfs.probe1.limits")){                      
+                        Point2D.Double center= cc.getWCSCenter();
+                        centerString = center.getX()+","+center.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position1" ,centerString);
+                        Point2D.Double arm_line1_top;
+                        if(fovastShapeFactory.getIRIS_ROTATION_THETA() == -1000)
+                        {
+                            arm_line1_top = DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(), 0, -2.292664743/60);
+                        }else{
+                            arm_line1_top =
+                            DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(),
+                                (-2.292664743/60) * Math.sin(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA()),
+                                (-2.292664743/60) * Math.cos(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA()));
+                        }
+                        cc.screenToWorldCoords(arm_line1_top, false);
+                        centerString = arm_line1_top.getX()+","+arm_line1_top.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    }
+                    if(confElementId.equalsIgnoreCase("iris.oiwfs.probe2.limits")){
+                        Point2D.Double center= cc.getWCSCenter();
+                        centerString = center.getX()+","+center.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position1" ,centerString);
+                        Point2D.Double arm_line2_top;
+                        if(fovastShapeFactory.getIRIS_ROTATION_THETA() == -1000)
+                        {
+                            arm_line2_top = DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(), -0.033091765, 0.019105539);
+                        }
+                        else
+                        {
+                            arm_line2_top =
+                                DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(),
+                                        (-2.292664743/60) * Math.cos(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(30)),
+                                        (2.292664743/60) * Math.sin(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(30)));
+                        }
+                        cc.screenToWorldCoords(arm_line2_top, false);
+                        centerString = arm_line2_top.getX()+","+arm_line2_top.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    }
+                    if(confElementId.equalsIgnoreCase("iris.oiwfs.probe3.limits")){
+                        Point2D.Double center= cc.getWCSCenter();
+                        centerString = center.getX()+","+center.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position1" ,centerString);
+                        Point2D.Double arm_line3_top;
+                        if(fovastShapeFactory.getIRIS_ROTATION_THETA() == -1000)
+                        {
+                            arm_line3_top = DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(), 0.033091765, 0.019105539);
+                        }
+                        else
+                        {
+                            arm_line3_top =
+                                DegreeCoverter.correctionUsingOffsets(fovastShapeFactory.getFovastImageDisplay(),
+                                        (-2.292664743/60) * Math.cos(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(150)),
+                                        (2.292664743/60) * Math.sin(-1 * fovastShapeFactory.getIRIS_ROTATION_THETA() + fovastShapeFactory.getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(150)));
+                        }
+                        cc.screenToWorldCoords(arm_line3_top, false);
+                        centerString = arm_line3_top.getX()+","+arm_line3_top.getY();
+                        visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+                    }
+//                    if(confElementId.equalsIgnoreCase("mobie.guider.limits")){
+//                        Point2D.Double center= cc.getWCSCenter();
+//                        centerString = center.getX()+","+center.getY();
+//                        visualization.getConfig().setConfigElementProperty(confElementId, "position" ,centerString);
+//                    }
                     String tempString;
                     if(probArmFig.isVisible()){
                         tempString = "true";
@@ -768,56 +830,21 @@ public class VisualizationWorkPanel extends JPanel
     }
 
     @Override
-    public void vslShowFocus(boolean show, int selectedIndex) {
-        showFocus(show,selectedIndex);
+    public void vslShowFocus(ArrayList<Object> pointsInLimits) {
+        showFocus(pointsInLimits);
     }
 
-    private void showFocus(boolean show, int selectedIndex) {
-        DivaImageGraphics canvasGraphics =
-                (DivaImageGraphics) displayComp.getImageDisplay().getCanvasGraphics();
+    private void showFocus(ArrayList<Object> pointsInLimits) {
+        FovastSymbolLayer layer =((FovastImageDisplay)(displayComp.getImageDisplay())
+              ).getSymbolLayer();
+          FovastTablePlotter plotter=layer.getPlotter();
+          plotter.showBrightStars(pointsInLimits);
+          layer.repaint();
+    }
 
-        if(targetSet) {
-            if(focusMarker != null) {
-                canvasGraphics.remove(focusMarker);
-                focusMarker = null;
-                canvasGraphics.repaint();
-            }
-            if(show) {
-                Config config = visualization.getConfig();
-                String center;
-                Color color=null;
-                if(selectedIndex==0){
-                    center = config.getConfigElementProperty("iris.oiwfs.probe1.arm", "position");
-                    color= Color.RED;
-                }else if(selectedIndex==1){
-                    center = config.getConfigElementProperty("iris.oiwfs.probe2.arm", "position");
-                    color= Color.GREEN;
-                }else{
-                    center = config.getConfigElementProperty("iris.oiwfs.probe3.arm", "position");
-                    color= Color.BLUE;
-                }
-                String[] raDecCenter = center.split(",");
-                double ra= Double.parseDouble(raDecCenter[0]);
-                double dec= Double.parseDouble(raDecCenter[1]);
-                CoordinateConverter converter = displayComp.getImageDisplay(
-                        ).getCoordinateConverter();
-                
-                //makeing clone
-                Point2D.Double centerPixel = new Point2D.Double(ra, dec);
-                converter.imageToScreenCoords(centerPixel, false);
-                int halfWidth = 20;
-                Shape shape = ShapeUtil.makePlus(centerPixel,
-                        new Point2D.Double(centerPixel.x, centerPixel.y - halfWidth),
-                        new Point2D.Double(centerPixel.x - halfWidth, centerPixel.y));
-                focusMarker = canvasGraphics.makeFigure(shape, null, color, 2.0f);
-                //this remove basichighlighter set as interactor over the
-                //marker ..
-                focusMarker.setInteractor(null);
-                canvasGraphics.add(focusMarker);
-                canvasGraphics.repaint();
-            }
-        }
-        System.out.println(show+"-"+selectedIndex);
+    @Override
+    public void capturePostions(String confElementId,Value value) {
+         updateConfigElementValue(confElementId, value, true);
     }
 
     

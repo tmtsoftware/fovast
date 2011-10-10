@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import jsky.coords.CoordinateConverter;
+import jsky.graphics.CanvasFigure;
+import jsky.graphics.CanvasGraphics;
+import jsky.image.graphics.DivaImageGraphics;
 import jsky.image.graphics.ShapeUtil;
 import jsky.util.java2d.ShapeUtilities;
 import org.tmt.fovast.astro.util.DegreeCoverter;
@@ -34,6 +37,8 @@ public class FovastTablePlotter{
     private HashMap<Catalog,ArrayList> catalogList = new LinkedHashMap<Catalog,ArrayList>();
     private HashMap<Catalog, Boolean> catalogDisplayList = new LinkedHashMap<Catalog, Boolean>();
     private HashMap<Catalog, SymbolTable> catalogSymbolList = new LinkedHashMap<Catalog, SymbolTable>();
+    private ArrayList<Object> pointsInLimits = new ArrayList<Object>();
+    private HashMap<Object,Shape> starsList = new LinkedHashMap<Object,Shape>();
 
     public void setImageDisplay(FovastImageDisplay imageDisplay) {
         _display = imageDisplay;
@@ -169,9 +174,15 @@ public class FovastTablePlotter{
                 }
             }
          }
+         if(pointsInLimits != null){
+             BasicStroke s2 = new BasicStroke(5f);
+             for(int i=0;i<pointsInLimits.size();i++){
+                g.setColor(Color.GREEN);
+                g.setStroke(s2);
+                g.draw((Shape)starsList.get(pointsInLimits.get(i)));
+             }
+         }
      }
-        
-
 
     protected int getCoordType(String name) {
         if (name != null && name.length() != 0) {
@@ -380,5 +391,45 @@ protected Shape makeShape(String symbol, double x, double y, double size,
         }
     }
 
+    public void showBrightStars(ArrayList<Object> pointsInLimits)
+    {
+        this.pointsInLimits = pointsInLimits;
+        Object[][] data= new Object[pointsInLimits.size()][];
+        for(int i=0;i<pointsInLimits.size();i++){
+            data[i]=(Object[]) pointsInLimits.get(i);
+        }
+        SymbolTable st = null;
+        st = new SymbolTable();
+        int symbolSetSize = SymbolTable.getSymbolSetSize();
+        st.setSymbol(SymbolTable.getSymbols(0));
+        st.setSymbolColor(SymbolTable.getColours(symbolNumber%SymbolTable.getColorSetSize()));
+        st.setRatio(1);
+        st.setAngle(0);
+        st.setLabel("");
+        st.setSize(2);
+        st.setLabel("Bright");
+        st.setUnits("image");
+        //ArrayList<Shape> figureList = new ArrayList<Shape>();
+        for (int i = 0; i < data.length; i++) {
+
+            CoordinateConverter coordinateConverter = _display.getCoordinateConverter();
+            Point2D.Double pos = DegreeCoverter.correctionUsingPoints(_display,(Double)data[i][0],(Double)data[i][1]);
+            Point2D.Double size = new Point2D.Double(st.getSize(), st.getSize());
+            int sizeType = getCoordType(st.getUnits());
+            coordinateConverter.convertCoords(size, sizeType, CoordinateConverter.SCREEN, true);
+            // get the Shape object for the symbol
+            Shape shape = makeShape(st.getSymbol(),
+                    pos.x, pos.y, Math.max(size.x, size.y), st.getRatio(), st.getAngle());
+//             CanvasGraphics cg = _display.getCanvasGraphics();
+//             DivaImageGraphics dig = (DivaImageGraphics)cg;
+//             CanvasFigure cfg = dig.makeFigure(shape, Color.RED, Color.RED, 10.0f);
+
+
+
+            //figureList.add(shape);
+            starsList.put(pointsInLimits.get(i),shape);
+        }
+        
+    }
 }
 

@@ -12,6 +12,7 @@ import org.tmt.fovast.mvc.ListenerSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmt.fovast.instrumentconfig.Config;
+import org.tmt.fovast.instrumentconfig.Value;
 
 
 /**
@@ -93,11 +94,20 @@ public class VisualizationState
         }
     }
 
-    private void fireVslTargetChanged(boolean show,int selectedIndex) {
+    private void fireVslTargetChanged(ArrayList<Object> pointsInLimits) {
         for(int i=0; i<listeners.size(); i++) {
             try {
-                ((VisualizationStateListener)(listeners.get(i))).vslShowFocus(
-                        show,selectedIndex);
+                ((VisualizationStateListener)(listeners.get(i))).vslShowFocus(pointsInLimits);
+            } catch (Exception ex) {
+                logger.error("Could not call listener method", ex);
+            }
+        }
+    }
+
+     private void fireVslTargetChanged(String confElementId , Value value) {
+        for(int i=0; i<listeners.size(); i++) {
+            try {
+                ((VisualizationStateListener)(listeners.get(i))).capturePostions(confElementId, value);
             } catch (Exception ex) {
                 logger.error("Could not call listener method", ex);
             }
@@ -143,9 +153,12 @@ public class VisualizationState
         this.fileName = fileName;
     }
 
-    public void showFocusTarget(boolean show, int selectedIndex) {
-       showFocus = show;
-        fireVslTargetChanged(show,selectedIndex);
+    public void showFocusTarget(ArrayList<Object> pointsInLimits) {
+        fireVslTargetChanged(pointsInLimits);
+    }
+
+    public void capturePositions(String confElementId,Value value) {
+        fireVslTargetChanged(confElementId,value);
     }
     //TODO: Code equals and .. other methods ..
 
@@ -157,7 +170,9 @@ public class VisualizationState
 
         public void vslShowTarget(boolean show);
 
-        public void vslShowFocus(boolean show,int selectedIndex);
+        public void vslShowFocus(ArrayList<Object> pointsInLimits);
+
+        public void capturePostions(String confElementId,Value value);
 
         public void vslConfigChanged(Config config);
     }

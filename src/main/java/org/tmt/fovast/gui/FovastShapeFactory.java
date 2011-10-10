@@ -188,10 +188,10 @@ class FovastShapeFactory {
 										+ ((bottomPt2.getX() - topPt1.getX())*(bottomPt2.getX() - topPt1.getX())));
 		double radius = CIRCLE_RADIUS / 3600d;
 		
-		Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+		Point2D.Double wcsCenter = getFovastImageDisplay().getCoordinateConverter().getWCSCenter();
 		double factor = Math.cos(Math.toRadians(wcsCenter.y)); //dec, less than 1
 		Point2D.Double pt = new Point2D.Double(radius * factor, radius);
-		fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(pt, true);
+		getFovastImageDisplay().getCoordinateConverter().worldToScreenCoords(pt, true);
 		radius = pt.x;
 		height = height - radius;
 		
@@ -239,8 +239,8 @@ class FovastShapeFactory {
 
     public CanvasFigure[] makeFigure(HashMap<String, Object> props) {
        String figType = (String) props.get(FIGURE_TYPE);
-       CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
-       CanvasGraphics cg = fovastImageDisplay.getCanvasGraphics();
+       CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
+       CanvasGraphics cg = getFovastImageDisplay().getCanvasGraphics();
        dig = (DivaImageGraphics)cg;
        CanvasFigure fig = null;
 
@@ -405,7 +405,7 @@ class FovastShapeFactory {
            {             
                if(i == 0){
             	   //right rectangle
-                   pt = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, x_off, y_off);
+                   pt = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),x_off, y_off);
                    ra = pt.x;
                    dec = pt.y;
                    ra = ra - width/2;           //go to top left corner
@@ -433,8 +433,8 @@ class FovastShapeFactory {
 //                   compFig[i] = dig.makeFigure(line1, fillColor, outlineColor, (outlineWidth + 4), null);
             	   
             	   		//small rectangle
-						Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, x_off, y_off);
-						Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, x_off1, y_off1);
+						Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),x_off, y_off);
+						Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),x_off1, y_off1);
 						Line2D.Double line1 = new Line2D.Double(pt1, pt2);
 						pt1 = new  Point2D.Double(line1.getBounds2D().getCenterX(), line1.getBounds2D().getY());
 						Rectangle2D.Double rect = new Rectangle2D.Double(pt1.getX(), pt1.getY(), (pt2.getX() - pt1.getX()), 50);
@@ -442,8 +442,8 @@ class FovastShapeFactory {
                }
                if(i == 2){
             	   //line
-                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, x_off, y_off);
-                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, x_off1, y_off1);
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),x_off, y_off);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),x_off1, y_off1);
                     Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
                     compFig[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
                }               
@@ -533,8 +533,8 @@ class FovastShapeFactory {
                     double topYline1 = -0.027424d;
                     double bottomXline1 = 0.005834;
                     double bottomYline1 = -0.010104;
-                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
-                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),bottomXline1, bottomYline1);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),topXline1, topYline1);
                     Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
                    doubleArc[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
                }
@@ -543,8 +543,8 @@ class FovastShapeFactory {
                     double topYline1 = 0.027424d;
                     double bottomXline1 = 0.005834;
                     double bottomYline1 = 0.010104;
-                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
-                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),bottomXline1, bottomYline1);
+                    Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),topXline1, topYline1);
                     Line2D.Double line1 = new Line2D.Double(pt1, pt2) ;
                    doubleArc[i] = dig.makeFigure(line1, fillColor, outlineColor, outlineWidth,null);
                }
@@ -968,8 +968,8 @@ class FovastShapeFactory {
                     double topYline1 = (Double)props.get(ARM_Line1_TOP_Y);
                     double bottomXline1 = (Double)props.get(ARM_Line1_BOTTOM_X);
                     double bottomYline1 = (Double)props.get(ARM_Line1_BOTTOM_Y);
-					Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, topXline1, topYline1);
-                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, bottomXline1, bottomYline1);
+					Point2D.Double pt1 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),topXline1, topYline1);
+                    Point2D.Double pt2 = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),bottomXline1, bottomYline1);
 					//to calculate theta
 		            double rotationangle = calculateArmAngle(topXline1, topYline1, bottomXline1, bottomYline1);
 					//add 180
@@ -980,7 +980,7 @@ class FovastShapeFactory {
 		          double rectanleWidth = 3.6377 / 3600d;
 		          double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
 		          Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
-		          fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+		            getFovastImageDisplay().getCoordinateConverter().worldToScreenCoords(temppt, true);
 		          //width in pixels
 		          rectanleWidth = temppt.getX();
 		          
@@ -1441,7 +1441,7 @@ class FovastShapeFactory {
 //        mobieDragFig[0].addCanvasFigureListener(new MobieDetectorFigListener());
          if(((Boolean) props.get(ROTATABLE)).booleanValue() == false)
          {
-             MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDragFig[0], fovastImageDisplay, map);
+             MobieDetectorConstraint mdc = new MobieDetectorConstraint(mobieDragFig[0], getFovastImageDisplay(), map);
              ((DragInteractor)mobieDragFig[0].getInteractor()).appendConstraint(mdc);
          }
      
@@ -1452,7 +1452,7 @@ class FovastShapeFactory {
         props.put(CENTER_OFFSET_X, 0d);
         props.put(CENTER_OFFSET_Y, 0d);
         props.put(RADIUS, 2.292664743/60d);
-        props.put(DRAW_OUTLINE, DRAW_OUTLINE_YES);
+        props.put(DRAW_OUTLINE, DRAW_OUTLINE_NO);
         props.put(OUTLINE_COLOR, Color.WHITE);
         props.put(FILL, FILL_OUTLINE_NO);
         props.put(OUTLINE_WIDTH, 1.0f);
@@ -1518,7 +1518,7 @@ class FovastShapeFactory {
         props.put(CENTER_OFFSET_Y, -2.292664743/60d);
         props.put(RADIUS, 2.375998076/60d);
         props.put(ARC_ANGLE_EXTENT, 51.72);
-        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_END,ARC_END_OPEN);
         props.put(ARC_START_ANGLE,115.86);
         props.put(CENTER_OFFSET_X1, 0d);
         props.put(CENTER_OFFSET_Y1, 0d);
@@ -1541,7 +1541,7 @@ class FovastShapeFactory {
         props.put(CENTER_OFFSET_Y, 0.019105539d);
         props.put(RADIUS,2.375998076/60d);
         props.put(ARC_ANGLE_EXTENT, 51.72);
-        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_END,ARC_END_OPEN);
         props.put(ARC_START_ANGLE,355.86);
         props.put(CENTER_OFFSET_X1, 0d);
         props.put(CENTER_OFFSET_Y1, 0d);
@@ -1564,7 +1564,7 @@ class FovastShapeFactory {
         props.put(CENTER_OFFSET_Y, 0.019105539d);
         props.put(RADIUS, 2.375998076/60d);
         props.put(ARC_ANGLE_EXTENT, 51.72);
-        props.put(ARC_END,ARC_END_PIE);
+        props.put(ARC_END,ARC_END_OPEN);
         props.put(ARC_START_ANGLE,235.86);
         props.put(CENTER_OFFSET_X1, 0d);
         props.put(CENTER_OFFSET_Y1, 0d);
@@ -1670,7 +1670,7 @@ class FovastShapeFactory {
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
                 Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
-                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 config.setConfigElementProperty("iris.oiwfs.probe1.arm", "position", centerString);
@@ -1735,16 +1735,16 @@ class FovastShapeFactory {
                 //tushar
                 //below offsets are taken from initialisation code of arm / probe for fig1.
                 Point2D.Double arm_line1_top = null;
-                if(IRIS_ROTATION_THETA == -1000)
+                if(getIRIS_ROTATION_THETA() == -1000)
                 {
-                	arm_line1_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0, -2.292664743/60);
+                	arm_line1_top = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(), 0, -2.292664743/60);
                 }
                 else
                 {
                 	arm_line1_top =
-                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
-							(-2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA),
-							(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA));
+                		DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),
+							(-2.292664743/60) * Math.sin(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA()),
+							(-2.292664743/60) * Math.cos(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA()));
                 }
                 // code to rotate object by some angle.
 //	            CanvasFigure linefig = figs1[ARM_LINE_INDEX];
@@ -1776,14 +1776,14 @@ class FovastShapeFactory {
 				//calculate width of all three rectangles
 				//width in degrees
 				double rectanleWidth = 3.6377 / 3600d;
-				Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+				Point2D.Double wcsCenter = getFovastImageDisplay().getCoordinateConverter().getWCSCenter();
 				double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
 				Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
-				fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+				getFovastImageDisplay().getCoordinateConverter().worldToScreenCoords(temppt, true);
 				//width in pixels
 				rectanleWidth = temppt.getX();
 				
-				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+				DivaImageGraphics dig = (DivaImageGraphics) getFovastImageDisplay().getCanvasGraphics();
 				iris_oiwfs_probe1_line = updateArmRectangles(dig, arm_line1_top, circle1CenterPt, 
 																								Color.RED, Color.RED, 
 																								rectanleWidth, otwidth, rotationangle, null);
@@ -1898,7 +1898,7 @@ class FovastShapeFactory {
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
                 Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
-                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 config.setConfigElementProperty("iris.oiwfs.probe2.arm", "position", centerString);
@@ -1970,16 +1970,16 @@ class FovastShapeFactory {
 //	            Point2D.Double arm_line2_top = 
 //	            	DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
 	            Point2D.Double arm_line2_top = null;
-                if(IRIS_ROTATION_THETA == -1000)
+                if(getIRIS_ROTATION_THETA() == -1000)
                 {
-                	arm_line2_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, -0.033091765, 0.019105539);
+                	arm_line2_top = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(), -0.033091765, 0.019105539);
                 }
                 else
                 {
                 	arm_line2_top =
-                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
-                				(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(30)),
-                				(2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(30)));
+                		DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),
+                				(-2.292664743/60) * Math.cos(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(30)),
+                				(2.292664743/60) * Math.sin(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(30)));
                 }
 	            
 	            Point2D.Double circle2CenterPt =
@@ -2008,14 +2008,14 @@ class FovastShapeFactory {
 				//calculate width of all three rectangles
 				//width in degrees
 				double rectanleWidth = 3.6377 / 3600d;
-				Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+				Point2D.Double wcsCenter = getFovastImageDisplay().getCoordinateConverter().getWCSCenter();
 				double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
 				Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
-				fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+				getFovastImageDisplay().getCoordinateConverter().worldToScreenCoords(temppt, true);
 				// width in pixels
 				rectanleWidth = temppt.getX();
 		          
-				DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+				DivaImageGraphics dig = (DivaImageGraphics) getFovastImageDisplay().getCanvasGraphics();
 				iris_oiwfs_probe2_line = updateArmRectangles(dig, arm_line2_top, circle2CenterPt, 
 																								Color.GREEN, Color.GREEN, 
 																								rectanleWidth, otwidth, rotationangle, null);
@@ -2130,7 +2130,7 @@ class FovastShapeFactory {
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
                 Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
-                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 //System.out.println("center:"+centerString);
@@ -2195,16 +2195,16 @@ class FovastShapeFactory {
 //                Point2D.Double arm_line3_top = 
 //                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
                 Point2D.Double arm_line3_top = null;
-                if(IRIS_ROTATION_THETA == -1000)
+                if(getIRIS_ROTATION_THETA() == -1000)
                 {
-                	arm_line3_top = DegreeCoverter.correctionUsingOffsets(fovastImageDisplay, 0.033091765, 0.019105539);
+                	arm_line3_top = DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(), 0.033091765, 0.019105539);
                 }
                 else
                 {
                 	arm_line3_top =
-                		DegreeCoverter.correctionUsingOffsets(fovastImageDisplay,
-                				(-2.292664743/60) * Math.cos(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(150)),
-                				(2.292664743/60) * Math.sin(-1 * IRIS_ROTATION_THETA + IRIS_FIRST_ROTATION_THETA + Math.toRadians(150)));
+                		DegreeCoverter.correctionUsingOffsets(getFovastImageDisplay(),
+                				(-2.292664743/60) * Math.cos(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(150)),
+                				(2.292664743/60) * Math.sin(-1 * getIRIS_ROTATION_THETA() + getIRIS_FIRST_ROTATION_THETA() + Math.toRadians(150)));
                 }
                 
                 Point2D.Double circle3CenterPt =
@@ -2233,14 +2233,14 @@ class FovastShapeFactory {
 					//calculate width of all three rectangles
 					//width in degrees
 					double rectanleWidth = 3.6377 / 3600d;
-					Point2D.Double wcsCenter = fovastImageDisplay.getCoordinateConverter().getWCSCenter();
+					Point2D.Double wcsCenter = getFovastImageDisplay().getCoordinateConverter().getWCSCenter();
 					double newfactor = Math.cos(Math.toRadians(wcsCenter.y)); //less than 1
 					Point2D.Double temppt = new Point2D.Double(rectanleWidth * newfactor, rectanleWidth);
-					fovastImageDisplay.getCoordinateConverter().worldToScreenCoords(temppt, true);
+					getFovastImageDisplay().getCoordinateConverter().worldToScreenCoords(temppt, true);
 					// width in pixels
 					rectanleWidth = temppt.getX();
 					
-					DivaImageGraphics dig = (DivaImageGraphics) fovastImageDisplay.getCanvasGraphics();
+					DivaImageGraphics dig = (DivaImageGraphics) getFovastImageDisplay().getCanvasGraphics();
 					iris_oiwfs_probe3_line = updateArmRectangles(dig, arm_line3_top, circle3CenterPt, 
 																									Color.BLUE, Color.BLUE, 
 																									rectanleWidth, otwidth, rotationangle, null);
@@ -2302,7 +2302,7 @@ class FovastShapeFactory {
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
                 Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
-                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 config.setConfigElementProperty("mobie.guider.guider", "position", centerString);
@@ -2423,7 +2423,7 @@ class FovastShapeFactory {
                 double centerX = shape1.getBounds2D().getCenterX();
                 double centerY = shape1.getBounds2D().getCenterY();
                 Point2D.Double centerPt = new Point2D.Double(centerX, centerY);
-                CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                 cc.screenToWorldCoords(centerPt, false);
                 String centerString = centerPt.getX()+","+centerPt.getY();
                 //System.out.println("center:"+centerString);
@@ -2499,13 +2499,13 @@ class FovastShapeFactory {
                 //we can do this as twfs does not rotate ..
                 if(irisDetectorFigs[0].getShape().intersects(
                         twfsFig.getShape().getBounds2D())) {
-                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                     Point2D.Double center = cc.getWCSCenter();
                     Point2D.Double pt = new Point2D.Double(
                             center.getX()+(1/60d), center.getY());
                     cc.worldToScreenCoords(pt, false);
                     twfsFig.translate(pt.x, pt.y);
-                    fovastImageDisplay.repaint();
+                    getFovastImageDisplay().repaint();
                 }
             }
 
@@ -2516,13 +2516,13 @@ class FovastShapeFactory {
                 //we can do this as twfs does not rotate ..
                 if(irisDetectorFigs[0].getShape().intersects(
                         twfsFig.getShape().getBounds2D())) {
-                    CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+                    CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
                     Point2D.Double center = cc.getWCSCenter();
                     Point2D.Double pt = new Point2D.Double(
                             center.getX()+(1/60d), center.getY());
                     cc.worldToScreenCoords(pt, false);
                     twfsFig.translate(pt.x, pt.y);
-                    fovastImageDisplay.repaint();
+                    getFovastImageDisplay().repaint();
                 }
             }
         });
@@ -2624,6 +2624,27 @@ class FovastShapeFactory {
         });
         dragInteractor.setConsuming(false);
         return dragInteractor;
+    }
+
+    /**
+     * @return the IRIS_ROTATION_THETA
+     */
+    public double getIRIS_ROTATION_THETA() {
+        return IRIS_ROTATION_THETA;
+    }
+
+    /**
+     * @return the fovastImageDisplay
+     */
+    public FovastImageDisplay getFovastImageDisplay() {
+        return fovastImageDisplay;
+    }
+
+    /**
+     * @return the IRIS_FIRST_ROTATION_THETA
+     */
+    public double getIRIS_FIRST_ROTATION_THETA() {
+        return IRIS_FIRST_ROTATION_THETA;
     }
     
     private class TwfsPointConstraint implements  PointConstraint {
@@ -2731,7 +2752,7 @@ class FovastShapeFactory {
              * theta = tan-1 [(y2 - y1) / (x2 - x1)]
              */
 			//required as point at which fig is to be rotated in not (0, 0)
-            CoordinateConverter cc = fovastImageDisplay.getCoordinateConverter();
+            CoordinateConverter cc = getFovastImageDisplay().getCoordinateConverter();
             
 			Point2D.Double center = cc.getWCSCenter();
 			Point2D.Double point = new Point2D.Double(center.getX(), center.getY());

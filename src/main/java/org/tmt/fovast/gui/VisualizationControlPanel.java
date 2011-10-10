@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -64,6 +65,7 @@ import org.tmt.fovast.instrumentconfig.ConfigHelper;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import jsky.graphics.CanvasFigure;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -150,9 +152,15 @@ public class VisualizationControlPanel extends JPanel
 
     private JComboBox focusComboBox;
 
+    private JCheckBox autoSuggestGuideStars;
+
     public static final String DOWNLOAD_CACHE_DIR = "guideStarInfo.xml";
 
     private ArrayList<PointInfoForXML> prevInfoList = new ArrayList<PointInfoForXML>();
+
+    private ArrayList<Object> pointsInLimits = new ArrayList<Object>();
+
+    private ArrayList<Object> brightestStarList = new ArrayList<Object>();
 
     /**
      * flags to check check whether respective probe is checked or not in order to show
@@ -377,6 +385,36 @@ public class VisualizationControlPanel extends JPanel
                 fetchButtonActionPerformed(event);
             }
        });
+
+        autoSuggestGuideStars = new JCheckBox("Auto Suggest Guide Stars");
+        autoSuggestGuideStars.setEnabled(false);
+        autoSuggestGuideStars.addItemListener(new ItemListener() {
+           public void itemStateChanged(ItemEvent event) {
+               if(event.getStateChange() == ItemEvent.SELECTED){
+                   ArrayList<String> tips = new ArrayList<String>();
+                   brightestStarList = new ArrayList<Object>();
+                   if(isIrisSelected){
+                        tips.add("iris.oiwfs.probe1.limits");
+                        tips.add("iris.oiwfs.probe2.limits");
+                        tips.add("iris.oiwfs.probe3.limits");
+                    }
+//                    else{
+//                        tips.add("mobie.guider.limits");
+//                    }
+                    for(int j=0;j<tips.size();j++){
+                        visualization.capturePositions(tips.get(j),visualization.getConfig().getConfig(tips.get(j)));
+                   }
+                   if(visualization.getCatalogs().size()>0)
+                        showBrightestStar();
+               }
+               if(event.getStateChange() == ItemEvent.DESELECTED){
+                   brightestStarList = new ArrayList<Object>();
+                   showFocusMarker();
+               }
+            }
+
+
+       });
        
         //raDecPanel layout        
         //GridLayout raDecPanelLayout = new GridLayout(2, 2);
@@ -452,6 +490,13 @@ public class VisualizationControlPanel extends JPanel
         raDecPanel.add(panButton, gbc);
 
         gbc.gridy = 9;
+        gbc.gridx = 0;
+        gbc.weightx = 2;
+        gbc.gridwidth = 3;
+        gbc.insets = new Insets(5, 0, 0, 0);
+        raDecPanel.add(autoSuggestGuideStars, gbc);
+
+        gbc.gridy = 10;
         gbc.gridx = 0;
         gbc.weightx = 2;
         gbc.gridwidth = 3;
@@ -539,7 +584,6 @@ public class VisualizationControlPanel extends JPanel
                 {
                     fetchButtonActionPerformed(null);
                     traverse();
-                    //showFocusMarker();
                 }
                }
         });
@@ -1031,12 +1075,8 @@ public class VisualizationControlPanel extends JPanel
         updateUIForShowTarget(show);
     }
 
-    public void showFocusMarker() {
-        boolean show=false;
-        if(focusComboBox.getSelectedIndex()!= -1){
-            show = true;
-        }
-        visualization.showFocusTarget(show,focusComboBox.getSelectedIndex());
+    public void showFocusMarker() {      
+        visualization.showFocusTarget(brightestStarList);
     }
 
     //
@@ -1298,9 +1338,10 @@ public class VisualizationControlPanel extends JPanel
                     tips.add("iris.oiwfs.probe2.arm");
                     tips.add("iris.oiwfs.probe3.arm");
                     tips.add("nfiraos.twfs.detector");
-                }else{
-                    tips.add("mobie.guider.guider");
                 }
+//                    else{
+//                    tips.add("mobie.guider.guider");
+//                }
                 for(int j = 0; j<tips.size();j++){
                     Iterator iter = catalogs.iterator();
                     double distMin=Double.MAX_VALUE;
@@ -1344,7 +1385,6 @@ public class VisualizationControlPanel extends JPanel
                         PointInfoForXML ptInfo = new PointInfoForXML();                        
                         if(distMin<=(5/3600d)){
                             System.out.println("valid point:"+distMin);
-
                             String raString = DegreeCoverter.degToHMS(raMin);
                             String secString = raString.substring(raString.lastIndexOf(':')+1);
                             double secValue = Double.parseDouble(secString);
@@ -1625,13 +1665,7 @@ public class VisualizationControlPanel extends JPanel
 
     @Override
     public void updateConfigElementValue(String confElementId, Value value, boolean isDisplayElement) {       
-//        if(confElementId.equals("iris.oiwfs.probe1.arm") ||
-//                confElementId.equals("iris.oiwfs.probe2.arm") ||
-//                confElementId.equals("iris.oiwfs.probe3.arm")){
-//            BooleanValue val=(BooleanValue)value;
-//                  fetchButton.setEnabled(val.getValue());
-//
-//        }   
+        
     }
 
     @Override
@@ -1672,7 +1706,9 @@ public class VisualizationControlPanel extends JPanel
               showDragCheckbox.setEnabled(true);
               isIrisSelected=true;
               fetchButton.setEnabled(true);
+              autoSuggestGuideStars.setEnabled(true);
               traverse();
+              //showBrightestStar();
           }else if(confElementId.equalsIgnoreCase("iris") && !enable){
               focusComboBox.setEnabled(false);
               focusLabel.setEnabled(false);
@@ -1683,6 +1719,8 @@ public class VisualizationControlPanel extends JPanel
               showDragCheckbox.setEnabled(true);
               traverse();
               fetchButton.setEnabled(true);
+              //autoSuggestGuideStars.setEnabled(true);
+              //showBrightestStar();
           }
           if(confElementId.contains("oiwfs")){
               if(confElementId.contains("probe1") && enable){
@@ -1715,6 +1753,8 @@ public class VisualizationControlPanel extends JPanel
                   focusComboBox.setEnabled(false);
                   focusLabel.setEnabled(false);
               }
+
+
           }
        if(confElementId.equalsIgnoreCase("mobie.drag") || confElementId.equalsIgnoreCase("iris.ifuimager.drag")){
            traverse();
@@ -1723,9 +1763,125 @@ public class VisualizationControlPanel extends JPanel
     }
 
     @Override
-    public void vslShowFocus(boolean show, int selectedIndex) {
+    public void vslShowFocus(ArrayList<Object> pointsInLimits) {
         //do nothing
         //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void showBrightestStar() {        
+        ArrayList<String> tips = new ArrayList<String>();
+       if(isIrisSelected){
+            Value bValue=visualization.getConfig().getConfig("iris.oiwfs.probe1.limits");
+            if(bValue != null && ((BooleanValue)bValue).getValue() == true)
+            tips.add("iris.oiwfs.probe1.limits");
+            bValue=visualization.getConfig().getConfig("iris.oiwfs.probe2.limits");
+            if(bValue != null && ((BooleanValue)bValue).getValue() == true)
+            tips.add("iris.oiwfs.probe2.limits");
+            bValue=visualization.getConfig().getConfig("iris.oiwfs.probe3.limits");
+           
+            if(bValue != null && ((BooleanValue)bValue).getValue() == true)
+            tips.add("iris.oiwfs.probe3.limits");
+        }
+//       else{
+//             Value bValue=visualization.getConfig().getConfig("mobie.guider.limits");
+//              if(bValue != null && ((BooleanValue)bValue).getValue() == true)
+//            tips.add("mobie.guider.limits");
+//        }
+        for(int j=0;j<tips.size();j++){
+            ArrayList<Catalog> catalogs = visualization.getCatalogs();
+            Catalog c = null;
+            Iterator iter = catalogs.iterator();
+            pointsInLimits = new ArrayList<Object>();
+            double dec1=Double.MAX_VALUE,ra1=Double.MAX_VALUE,temp1=Double.MAX_VALUE,
+                temp2=Double.MAX_VALUE,distFromPieCentre=Double.MAX_VALUE,distFromOpenCenter=Double.MAX_VALUE,
+                temp3=Double.MAX_VALUE,temp4=Double.MAX_VALUE;
+            if(isIrisSelected){
+                String pieCenter = visualization.getConfig().getConfigElementProperty(tips.get(j), "position");
+                String openCenter = visualization.getConfig().getConfigElementProperty(tips.get(j), "position1");
+                String[] raDecCenterForPie = pieCenter.split(",");
+                double raForPie= Double.parseDouble(raDecCenterForPie[0])*Math.PI/180;
+                double decForPie= Double.parseDouble(raDecCenterForPie[1])*Math.PI/180;
+                String[] raDecCenterForOpen = openCenter.split(",");
+                double raForOpen= Double.parseDouble(raDecCenterForOpen[0])*Math.PI/180;
+                double decForOpen= Double.parseDouble(raDecCenterForOpen[1])*Math.PI/180;
+
+            while(iter.hasNext())
+            {
+                c = (Catalog)iter.next();
+                Object[][] data=c.getData();
+                for (int i = 0; i < data.length; i++) {
+
+                    Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+                    ra1 = pos.getX()*Math.PI/180;
+                    dec1 = pos.getY()*Math.PI/180;
+
+                    temp1 = Math.cos(Math.PI/2-decForPie)*Math.cos(Math.PI/2-dec1);
+                    temp2 = Math.sin(Math.PI/2-decForPie)*Math.sin(Math.PI/2-dec1)*Math.cos(raForPie-ra1);
+                    distFromPieCentre = Math.acos(temp1+temp2);
+                    distFromPieCentre = distFromPieCentre*180/Math.PI;
+
+                    temp3 = Math.cos(Math.PI/2-decForOpen)*Math.cos(Math.PI/2-dec1);
+                    temp4 = Math.sin(Math.PI/2-decForOpen)*Math.sin(Math.PI/2-dec1)*Math.cos(raForOpen-ra1);
+                    distFromOpenCenter = Math.acos(temp3+temp4);
+                    distFromOpenCenter = distFromOpenCenter*180/Math.PI;
+
+                    if(distFromPieCentre < 2.375998076/60d && distFromOpenCenter < 1/60d){
+                        pointsInLimits.add(data[i]);
+                    }
+                }
+            }
+            sortByMag();
+          }
+//            else{
+//            String pieCenter = visualization.getConfig().getConfigElementProperty(tips.get(j), "position");
+//
+//            String[] raDecCenterForPie = pieCenter.split(",");
+//            double raForPie= Double.parseDouble(raDecCenterForPie[0])*Math.PI/180;
+//            double decForPie= Double.parseDouble(raDecCenterForPie[1])*Math.PI/180;
+//
+//            while(iter.hasNext())
+//            {
+//                c = (Catalog)iter.next();
+//                Object[][] data=c.getData();
+//                for (int i = 0; i < data.length; i++) {
+//
+//                    Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+//                    ra1 = pos.getX()*Math.PI/180;
+//                    dec1 = pos.getY()*Math.PI/180;
+//
+//                    temp1 = Math.cos(Math.PI/2-decForPie)*Math.cos(Math.PI/2-dec1);
+//                    temp2 = Math.sin(Math.PI/2-decForPie)*Math.sin(Math.PI/2-dec1)*Math.cos(raForPie-ra1);
+//                    distFromPieCentre = Math.acos(temp1+temp2);
+//                    distFromPieCentre = distFromPieCentre*180/Math.PI;
+//
+//                    if( distFromPieCentre < 1.9/60d && distFromOpenCenter > 0.7/60d ){
+//                        pointsInLimits.add(data[i]);
+//                    }
+//                }
+//            }
+//            sortByMag();
+//          }
+        }
+        showFocusMarker();
+    }
+
+    private void sortByMag() {
+       double magMax=Double.MAX_VALUE;
+       int index=0;
+       for(int i=0;i<pointsInLimits.size();i++){
+           Object[] temp = (Object[]) pointsInLimits.get(i);
+           if((Double)temp[2]<magMax){
+               magMax =(Double)temp[2];
+               index=i;
+           }           
+       }
+       Object[] brightestObject=(Object[]) pointsInLimits.get(index);
+       brightestStarList.add(brightestObject);
+    }
+
+    @Override
+    public void capturePostions(String confElementId,Value value) {
+       // throw new UnsupportedOperationException("Not supported yet.");
     }
 
 //    /**
