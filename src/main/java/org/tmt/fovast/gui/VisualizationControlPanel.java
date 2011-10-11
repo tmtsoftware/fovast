@@ -1808,28 +1808,29 @@ public class VisualizationControlPanel extends JPanel
             while(iter.hasNext())
             {
                 c = (Catalog)iter.next();
-                Object[][] data=c.getData();
-                for (int i = 0; i < data.length; i++) {
+            }
+            Object[][] data=c.getData();
+            for (int i = 0; i < data.length; i++) {
 
-                    Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
-                    ra1 = pos.getX()*Math.PI/180;
-                    dec1 = pos.getY()*Math.PI/180;
+                Point2D.Double pos = new Point2D.Double((Double)data[i][0],(Double)data[i][1]);
+                ra1 = pos.getX()*Math.PI/180;
+                dec1 = pos.getY()*Math.PI/180;
 
-                    temp1 = Math.cos(Math.PI/2-decForPie)*Math.cos(Math.PI/2-dec1);
-                    temp2 = Math.sin(Math.PI/2-decForPie)*Math.sin(Math.PI/2-dec1)*Math.cos(raForPie-ra1);
-                    distFromPieCentre = Math.acos(temp1+temp2);
-                    distFromPieCentre = distFromPieCentre*180/Math.PI;
+                temp1 = Math.cos(Math.PI/2-decForPie)*Math.cos(Math.PI/2-dec1);
+                temp2 = Math.sin(Math.PI/2-decForPie)*Math.sin(Math.PI/2-dec1)*Math.cos(raForPie-ra1);
+                distFromPieCentre = Math.acos(temp1+temp2);
+                distFromPieCentre = distFromPieCentre*180/Math.PI;
 
-                    temp3 = Math.cos(Math.PI/2-decForOpen)*Math.cos(Math.PI/2-dec1);
-                    temp4 = Math.sin(Math.PI/2-decForOpen)*Math.sin(Math.PI/2-dec1)*Math.cos(raForOpen-ra1);
-                    distFromOpenCenter = Math.acos(temp3+temp4);
-                    distFromOpenCenter = distFromOpenCenter*180/Math.PI;
+                temp3 = Math.cos(Math.PI/2-decForOpen)*Math.cos(Math.PI/2-dec1);
+                temp4 = Math.sin(Math.PI/2-decForOpen)*Math.sin(Math.PI/2-dec1)*Math.cos(raForOpen-ra1);
+                distFromOpenCenter = Math.acos(temp3+temp4);
+                distFromOpenCenter = distFromOpenCenter*180/Math.PI;
 
-                    if(distFromPieCentre < 2.375998076/60d && distFromOpenCenter < 1/60d){
-                        pointsInLimits.add(data[i]);
-                    }
+                if(distFromPieCentre < 2.375998076/60d && distFromOpenCenter < 1/60d){
+                    pointsInLimits.add(data[i]);
                 }
             }
+//            }
             sortByMag();
           }
 //            else{
@@ -1870,7 +1871,7 @@ public class VisualizationControlPanel extends JPanel
        int index=0;
        for(int i=0;i<pointsInLimits.size();i++){
            Object[] temp = (Object[]) pointsInLimits.get(i);
-           if((Double)temp[2]<magMax){
+           if((Double)temp[2]<magMax && (Double)temp[2]>0){
                magMax =(Double)temp[2];
                index=i;
            }           
@@ -1878,7 +1879,6 @@ public class VisualizationControlPanel extends JPanel
        Object[] brightestObject=(Object[]) pointsInLimits.get(index);
        brightestStarList.add(brightestObject);
     }
-
     @Override
     public void capturePostions(String confElementId,Value value) {
        // throw new UnsupportedOperationException("Not supported yet.");

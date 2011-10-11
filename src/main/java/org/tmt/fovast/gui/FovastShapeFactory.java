@@ -14,7 +14,6 @@ import diva.canvas.interactor.DragInteractor;
 import diva.canvas.interactor.Interactor;
 import diva.canvas.interactor.PointConstraint;
 import diva.canvas.interactor.SelectionInteractor;
-import diva.util.java2d.ShapeUtilities;
 import java.awt.Color;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;

@@ -349,7 +349,10 @@ public class VisualizationWorkPanel extends JPanel
 			if (targetMarker == null) {
 				DivaImageGraphics canvasGraphics = (DivaImageGraphics) displayComp
 						.getImageDisplay().getCanvasGraphics();
-				int halfWidth = 8;
+				//int halfWidth = 8;
+                double halfWidth = 5;
+                float zoom = displayComp.getImageDisplay().getScale();
+                halfWidth = halfWidth * zoom;
 				Point2D.Double centerPixel = DegreeCoverter
 						.correctionUsingOffsets(
 								(FovastImageDisplay) displayComp

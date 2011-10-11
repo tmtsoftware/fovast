@@ -157,7 +157,7 @@ public class FovastTablePlotter{
         getCatalogSymbolList().remove(c);
     }
     
-    public void paintSymbols(Graphics2D g, Rectangle2D region){      
+    public void paintSymbols(Graphics2D g, Rectangle2D region){
         BasicStroke s1 = new BasicStroke();
         g.setPaintMode();
         Iterator iter = catalogList.keySet().iterator();
@@ -170,11 +170,12 @@ public class FovastTablePlotter{
                 for(int i = 0;i < (catalogList.get(c)).size();i++){
                     g.setColor(color);
                     g.setStroke(s1);
-                    g.draw((Shape)catalogList.get(c).get(i));
+                    g.draw((Shape)catalogList.get(c).get(i));  
                 }
             }
          }
          if(pointsInLimits != null){
+             showBrightStars(pointsInLimits);
              BasicStroke s2 = new BasicStroke(5f);
              for(int i=0;i<pointsInLimits.size();i++){
                 g.setColor(Color.GREEN);
@@ -406,6 +407,9 @@ protected Shape makeShape(String symbol, double x, double y, double size,
         st.setRatio(1);
         st.setAngle(0);
         st.setLabel("");
+//        double sizeOfMarker = 2;
+//        float zoom = _display.getScale();
+//        sizeOfMarker = sizeOfMarker * zoom;
         st.setSize(2);
         st.setLabel("Bright");
         st.setUnits("image");
@@ -423,9 +427,7 @@ protected Shape makeShape(String symbol, double x, double y, double size,
 //             CanvasGraphics cg = _display.getCanvasGraphics();
 //             DivaImageGraphics dig = (DivaImageGraphics)cg;
 //             CanvasFigure cfg = dig.makeFigure(shape, Color.RED, Color.RED, 10.0f);
-
-
-
+            
             //figureList.add(shape);
             starsList.put(pointsInLimits.get(i),shape);
         }
