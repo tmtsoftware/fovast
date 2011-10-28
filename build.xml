@@ -22,7 +22,7 @@
 		<delete dir="${project.dist}"></delete>
 	</target>
 
-	<target name="compile" depends="clean">
+	<target name="compile" >
 		<!-- make build dir & build/web -->
 		<mkdir dir="${project.build}"/>
 				
@@ -46,8 +46,7 @@
 
 		
 		<!-- compile sources -->
-	  <javac srcdir="${project.src}" 
-	  	destdir="${project.build}/classes" fork="true" debug="true">
+	  <javac srcdir="${project.src}" includeAntRuntime="false" destdir="${project.build}/classes" fork="true" debug="true">
 	    <classpath>	    	
 	        <path refid="classpath"/>
 	    </classpath>
@@ -57,16 +56,15 @@
 	<target name="jar" depends="compile">
 		<!-- make build dir & build/web -->
 		<mkdir dir="${project.dist}"/>
-
 		
 		<mkdir dir="${project.dist}/lib"/>
-<copy todir="${project.dist}/lib">
-	<fileset dir="${project.lib}"></fileset>
-</copy>
+        <copy todir="${project.dist}/lib">
+            <fileset dir="${project.lib}"></fileset>
+        </copy>
 
-<manifestclasspath property="jar.classpath" jarfile="${project.dist}/${project.name}.jar">
-	<classpath refid="classpath"/>
-</manifestclasspath>
+        <manifestclasspath property="jar.classpath" jarfile="${project.dist}/${project.name}.jar">
+            <classpath refid="classpath"/>
+        </manifestclasspath>
 
 		<jar destfile="${project.dist}/${project.name}.jar">
 			<fileset dir="${project.build}/classes" />
@@ -75,6 +73,8 @@
 				<attribute name="Class-Path" value=". ${jar.classpath}"/>
 		    </manifest>
 		</jar>
+
+        <copy todir="${project.dist}" file="${project.root}/fovast.sh"/>
 
 	    <!--
 		<jar  destfile="${project.dist}/${project.name}.jar" >

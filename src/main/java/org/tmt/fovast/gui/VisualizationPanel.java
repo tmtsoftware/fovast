@@ -92,9 +92,6 @@ public class VisualizationPanel extends JPanel implements PlotHandler {
         splitPane.setLeftComponent(controlPanel);        
         splitPane.setRightComponent(workPanel);       
         add(splitPane);
-        
-
-        System.out.println("hello"+dim.width);
     }
 
     //
