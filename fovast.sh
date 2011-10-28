@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# This script starts fovast.
+# This script starts fovast.  You could just type java -jar fovast.jar
 #
 
 # Figure out the project base.
@@ -25,23 +25,8 @@ if [ -z "${JAVA_HOME}" ]; then
     exit
 fi
 
-SetClasspath() {
-    CLASSPATH="."
+cmd="${JAVA_HOME}/bin/java -Xmx256m -jar $FOVAST_BASE/fovast.jar"
 
-    # If there are no arguments, then just include everything.
-    if [ $# -eq 0 ]; then
-        CLASSPATH=`echo ${LIB_DIR}/*.jar | tr ' ' ${SEP}`${SEP}${CLASSPATH}
-        return
-    fi
-}
+#echo $cmd
 
-LIB_DIR=$FOVAST_BASE/lib
-SEP=":"
-SetClasspath
-
-cmd="${JAVA_HOME}/bin/java -DFOVAST_PROJECT_BASE=${FOVAST_PROJECT_BASE} -Xmx256m -cp $CLASSPATH -jar $FOVAST_BASE/fovast.jar"
-
-echo $cmd
-
-#exec $cmd
-
+exec $cmd

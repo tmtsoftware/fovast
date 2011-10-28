@@ -16,6 +16,12 @@
 			<include name="*"/>
 		</fileset>
 	</path>
+
+    <path id="distClasspath">
+        <fileset dir="${project.dist}/lib">
+                 <include name="*"/>
+        </fileset>
+    </path>
 	
 	<target name="clean">
 		<delete dir="${project.build}"></delete>
@@ -63,7 +69,7 @@
         </copy>
 
         <manifestclasspath property="jar.classpath" jarfile="${project.dist}/${project.name}.jar">
-            <classpath refid="classpath"/>
+            <classpath refid="distClasspath"/>
         </manifestclasspath>
 
 		<jar destfile="${project.dist}/${project.name}.jar">
@@ -75,6 +81,7 @@
 		</jar>
 
         <copy todir="${project.dist}" file="${project.root}/fovast.sh"/>
+        <chmod file="${project.dist}/fovast.sh" perm="ugo+x"/>
 
 	    <!--
 		<jar  destfile="${project.dist}/${project.name}.jar" >
